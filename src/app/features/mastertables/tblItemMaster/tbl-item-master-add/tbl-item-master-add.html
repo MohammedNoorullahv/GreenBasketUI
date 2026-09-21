@@ -1,0 +1,166 @@
+<div class="container grid-page-shell">
+
+	<!-- ============================================
+		 Section 1: Caption
+		 ============================================ -->
+	<div class="page-header-bar-simple">
+		<h1 class="page-caption">Add Item Masters</h1>
+	</div>
+
+	<form #form="ngForm" novalidate>
+
+		<!-- ============================================
+			 Section 2: Input fields
+			 ============================================ -->
+		<div class="page-card">
+
+			<div class="d-flex flex-row form-row">
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldItemName">Item Name</label>
+					<input type="text" id="fldItemName" class="form-control" name="fldItemName" [(ngModel)]="model.fldItemName" maxlength="100" required>
+					<div class="text-danger" *ngIf="form.controls['fldItemName']?.touched && form.controls['fldItemName']?.invalid">
+						Item Name is required.
+					</div>
+
+				</div>
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldItemType">Item Type</label>
+					<input type="text" id="fldItemType" class="form-control" name="fldItemType" [(ngModel)]="model.fldItemType" maxlength="30" required>
+					<div class="text-danger" *ngIf="form.controls['fldItemType']?.touched && form.controls['fldItemType']?.invalid">
+						Item Type is required.
+					</div>
+
+				</div>
+			</div>
+
+			<div class="d-flex flex-row form-row">
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldCategoryName">Category Name</label>
+					<input type="text" id="fldCategoryName" class="form-control" name="fldCategoryName" [(ngModel)]="model.fldCategoryName" maxlength="50" required>
+					<div class="text-danger" *ngIf="form.controls['fldCategoryName']?.touched && form.controls['fldCategoryName']?.invalid">
+						Category Name is required.
+					</div>
+
+				</div>
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldBaseUnit">Base Unit</label>
+					<input type="text" id="fldBaseUnit" class="form-control" name="fldBaseUnit" [(ngModel)]="model.fldBaseUnit" maxlength="20" required>
+					<div class="text-danger" *ngIf="form.controls['fldBaseUnit']?.touched && form.controls['fldBaseUnit']?.invalid">
+						Base Unit is required.
+					</div>
+
+				</div>
+			</div>
+
+			<div class="d-flex flex-row form-row">
+				<div class="col-3 field-group field-group-switch">
+					<div class="form-check form-switch">
+						<input class="form-check-input" type="checkbox" id="fldAllowFractionalQuantity" name="fldAllowFractionalQuantity" [(ngModel)]="model.fldAllowFractionalQuantity" (ngModelChange)="onFractionalQuantityChange($event)">
+						<label class="form-check-label" for="fldAllowFractionalQuantity">Allow Fractional Quantity</label>
+					</div>
+
+				</div>
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldSubUnitLabel">Sub Unit Label</label>
+					<input type="text" id="fldSubUnitLabel" class="form-control" name="fldSubUnitLabel" [(ngModel)]="model.fldSubUnitLabel" maxlength="20" [disabled]="!model.fldAllowFractionalQuantity" [required]="model.fldAllowFractionalQuantity">
+					<div class="text-danger" *ngIf="model.fldAllowFractionalQuantity && form.controls['fldSubUnitLabel']?.touched && !model.fldSubUnitLabel?.trim()">
+						Sub Unit Label is required when fractional quantity is allowed.
+					</div>
+				</div>
+			</div>
+
+			<div class="d-flex flex-row form-row">
+				<div class="col-3 field-group field-group-switch">
+					<div class="form-check form-switch">
+						<input class="form-check-input" type="checkbox" id="fldAllowFlatRupeeValueBooking" name="fldAllowFlatRupeeValueBooking" [(ngModel)]="model.fldAllowFlatRupeeValueBooking">
+						<label class="form-check-label" for="fldAllowFlatRupeeValueBooking">Allow Flat Rupee Value Booking</label>
+					</div>
+					<div class="text-danger" *ngIf="form.controls['fldAllowFlatRupeeValueBooking']?.touched && form.controls['fldAllowFlatRupeeValueBooking']?.invalid">
+						Allow Flat Rupee Value Booking is required.
+					</div>
+
+				</div>
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldMinOrderQuantityStep">Min Order Quantity Step</label>
+					<input type="number" id="fldMinOrderQuantityStep" class="form-control" name="fldMinOrderQuantityStep" [(ngModel)]="model.fldMinOrderQuantityStep" [step]="model.fldAllowFractionalQuantity ? 0.01 : 1" [min]="model.fldAllowFractionalQuantity ? 0.01 : 1" required (ngModelChange)="onMinOrderQuantityChange()">
+					<div class="text-danger" *ngIf="form.controls['fldMinOrderQuantityStep']?.touched && form.controls['fldMinOrderQuantityStep']?.invalid">
+						Enter a quantity greater than 0. Whole numbers only when fractional quantity is disabled.
+					</div>
+
+				</div>
+			</div>
+
+			<!-- <div class="d-flex flex-row form-row">
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldItemImagePath">Item Image Path</label>
+					<input type="text" id="fldItemImagePath" class="form-control" name="fldItemImagePath" [(ngModel)]="model.fldItemImagePath" maxlength="500">
+				</div>
+			</div> -->
+
+			<!-- Item Image -->
+
+                <div class="profile-field">
+
+                    <label class="form-label" for="itemImage">
+
+                        Item Image
+                        <span class="optional">(Optional)</span>
+
+                    </label>
+
+                    <div class="profile-image-upload">
+
+                        <input #itemImageInput type="file" id="itemImage" accept="image/jpeg,image/png,image/webp"
+                            (change)="onItemImageSelected($event)" hidden />
+
+                        <button type="button" class="profile-upload-button" (click)="itemImageInput.click()">
+                            <i class="bi bi-camera"></i>
+
+                            {{ itemImagePreview
+                            ? 'Change item Image'
+                            : 'Upload item Image' }}
+                        </button>
+
+                        <small>
+                            JPG, PNG or WebP. Maximum 5 MB.
+                        </small>
+
+                        <div *ngIf="itemImagePreview" class="profile-image-preview">
+
+                            <img [src]="itemImagePreview" alt="Selected item image" />
+
+                            <button type="button" class="profile-remove-image"
+                                (click)="removeitemImage(itemImageInput)">
+                                <i class="bi bi-trash"></i>
+                                Remove Image
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+		</div>
+
+		<!-- ============================================
+			 Section 3: Command buttons
+			 ============================================ -->
+		<div class="page-actions-bar">
+			<button type="button" (click)="OnFormSubmit(form, 'SaveAndAddNew')" class="btn-app btn-save-new" [disabled]="isSaving">
+				<i class="bi bi-floppy"></i>
+				Save &amp; Add New
+			</button>
+			<button type="button" (click)="OnFormSubmit(form, 'SaveAndClose')" class="btn-app btn-save-close" [disabled]="isSaving">
+				<i class="bi bi-check2-circle"></i>
+				Save &amp; Close
+			</button>
+			<button type="button" (click)="backToHome()" class="btn-app btn-dark">
+				<i class="bi bi-arrow-left"></i>
+				Back
+			</button>
+		</div>
+
+	</form>
+
+</div>

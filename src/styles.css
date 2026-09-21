@@ -1,1 +1,7 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('./app/shared/styles/common.css');
+@import "leaflet/dist/leaflet.css";
+
+/* "src/app/shared/styles/common.css" */
+body, html { margin: 0; padding: 0; box-sizing: border-box; }
+

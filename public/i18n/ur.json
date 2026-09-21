@@ -1,0 +1,40 @@
+{
+  "APP": {
+    "NAME": "گرین باسکٹ",
+    "POWERED_BY": "RelAffSol کی جانب سے"
+  },
+  "MENU": {
+    "DASHBOARD": "ڈیش بورڈ",
+    "CITY_MASTER": "شہر / قصبہ ماسٹر",
+    "STREET_MASTER": "گلی ماسٹر",
+    "PROFILE": "پروفائل",
+    "ITEM_MASTER": "اشیاء کی فہرست",
+    "DAILY_INVENTORY": "روزانہ اسٹاک",
+    "ORDERS": "آرڈر درج کریں",
+    "ORDER_STATUS": "آرڈر کی صورتحال",
+    "CUSTOMER_CONCERNS": "صارفین کی شکایات",
+    "APP_SETTINGS": "ایپ کی ترتیبات",
+    "REPORTS": "رپورٹس"
+  },
+  "BUTTON": {
+    "SAVE": "محفوظ کریں",
+    "SAVE_ADD": "محفوظ کریں اور شامل کریں",
+    "SAVE_CLOSE": "محفوظ کریں اور بند کریں",
+    "BACK": "واپس",
+    "REGISTER": "رجسٹر کریں",
+    "CANCEL": "منسوخ کریں",
+    "CLOSE": "بند کریں"
+  },
+  "LABEL": {
+    "CITY_NAME": "شہر / قصبے کا نام",
+    "AREA_NAME": "علاقے کا نام",
+    "STREET_NAME": "گلی کا نام",
+    "PINCODE": "پوسٹل کوڈ",
+    "ITEM_NAME": "اشیاء کا نام",
+    "ITEM_PRICE": "اشیاء کی قیمت",
+    "ITEM_QUANTITY": "اشیاء کی مقدار",
+    "ITEM_UNIT": "اشیاء کی پیمائش کی اکائی",
+    "ITEM_CATEGORY": "اشیاء کی قسم",
+    "ITEM_DESCRIPTION": "اشیاء کی تفصیل"
+  }
+}

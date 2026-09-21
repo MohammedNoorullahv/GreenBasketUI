@@ -1,0 +1,79 @@
+<div class="container grid-page-shell">
+
+	<!-- ============================================
+		 Section 1: Caption
+		 ============================================ -->
+	<div class="page-header-bar-simple">
+		<i class="bi bi-buildings page-caption-icon"></i>
+		<h1 class="page-caption">Add City / Town Masters</h1>
+
+	</div>
+
+	<form #form="ngForm" novalidate>
+
+		<!-- ============================================
+			 Section 2: Input fields
+			 ============================================ -->
+		<div class="page-card">
+
+			<div class="d-flex flex-row form-row">
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldCityorTownName">
+						<!-- City / Town Name -->
+						<span>{{ 'LABEL.CITY_NAME' | translate }}</span>
+					</label>
+					<input type="text" id="fldCityorTownName" class="form-control" name="fldCityorTownName" [(ngModel)]="model.fldCityorTownName" maxlength="100" required>
+					<div class="text-danger" *ngIf="form.controls['fldCityorTownName']?.touched && form.controls['fldCityorTownName']?.invalid">
+						City / Town Name is required.
+					</div>
+
+				</div>
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldAreaName">
+						<!-- Area Name -->
+						<span>{{ 'LABEL.AREA_NAME' | translate }}</span>
+					</label>
+					<input type="text" id="fldAreaName" class="form-control" name="fldAreaName" [(ngModel)]="model.fldAreaName" maxlength="50">
+				</div>
+			</div>
+
+			<div class="d-flex flex-row form-row">
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldPincode">
+						<!-- Pincode -->
+						<span>{{ 'LABEL.PINCODE' | translate }}</span>
+					</label>
+					<input type="text" id="fldPincode" class="form-control" name="fldPincode" [(ngModel)]="model.fldPincode" maxlength="6" required>
+					<div class="text-danger" *ngIf="form.controls['fldPincode']?.touched && form.controls['fldPincode']?.invalid">
+						Pincode is required.
+					</div>
+
+				</div>
+			</div>
+
+		</div>
+
+		<!-- ============================================
+			 Section 3: Command buttons
+			 ============================================ -->
+		<div class="page-actions-bar">
+			<button type="button" (click)="OnFormSubmit(form, 'SaveAndAddNew')" class="btn-app btn-save-new" [disabled]="isSaving">
+				<i class="bi bi-floppy"></i>
+				<!-- Save &amp; Add New -->
+				<span>{{ 'BUTTON.SAVE_ADD' | translate }}</span>
+			</button>
+			<button type="button" (click)="OnFormSubmit(form, 'SaveAndClose')" class="btn-app btn-save-close" [disabled]="isSaving">
+				<i class="bi bi-check2-circle"></i>
+				<!-- Save &amp; Close -->
+				<span>{{ 'BUTTON.SAVE_CLOSE' | translate }}</span>
+			</button>
+			<button type="button" (click)="backToHome()" class="btn-app btn-dark">
+				<i class="bi bi-arrow-left"></i>
+				
+				<span>{{ 'BUTTON.BACK' | translate }}</span>
+			</button>
+		</div>
+
+	</form>
+
+</div>

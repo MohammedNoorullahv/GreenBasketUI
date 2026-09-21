@@ -1,0 +1,40 @@
+{
+  "APP": {
+    "NAME": "கிரீன் பாஸ்கெட்",
+    "POWERED_BY": "RelAffSol வழங்குகிறது"
+  },
+  "MENU": {
+    "DASHBOARD": "முகப்புப் பலகை",
+    "CITY_MASTER": "நகரம் / பேரூராட்சி பட்டியல்",
+    "STREET_MASTER": "தெரு பட்டியல்",
+    "PROFILE": "சுயவிவரம்",
+    "ITEM_MASTER": "பொருள் விவரங்கள்",
+    "DAILY_INVENTORY": "தினசரி இருப்பு",
+    "ORDER_ENTRY": "ஆர்டர் பதிவு",
+    "ORDER_STATUS": "ஆர்டர் நிலை",
+    "CUSTOMER_CONCERNS": "வாடிக்கையாளர் குறைகள்",
+    "APP_SETTINGS": "செயலி அமைப்புகள்",
+    "REPORTS": "அறிக்கைகள்"
+  },
+  "BUTTON": {
+    "SAVE": "பதிவு செய்",
+    "SAVE_ADD": "பதிவு செய்து புதியதை சேர்",
+    "SAVE_CLOSE": "பதிவு செய்து வெளியேறு",
+    "BACK": "வெளியேறு",
+    "REGISTER": "பதிவு செய்து கொள்",
+    "CANCEL": "ரத்து செய்",
+    "CLOSE": "மூடு"
+  },
+  "LABEL": {
+    "CITY_NAME": "நகரம் / ஊர் பெயர்",
+    "AREA_NAME": "பகுதியின் பெயர்",
+    "STREET_NAME": "தெரு பெயர்",
+    "PINCODE": "அஞ்சல் குறியீட்டு எண்",
+    "ITEM_NAME": "பொருளின் பெயர்",
+    "ITEM_PRICE": "பொருளின் விலை",
+    "ITEM_QUANTITY": "பொருளின் அளவு",
+    "ITEM_UNIT": "பொருளின் அளவீட்டு அலகு",
+    "ITEM_CATEGORY": "பொருளின் வகை",
+    "ITEM_DESCRIPTION": "பொருளின் விவரம்"
+  }
+}

@@ -1,0 +1,126 @@
+<div class="container grid-page-shell">
+
+	<!-- ============================================
+		 Section 1: Caption
+		 ============================================ -->
+	<div class="page-header-bar-simple">
+		<h1 class="page-caption">Add Daily Inventories</h1>
+	</div>
+
+	<form #form="ngForm" novalidate>
+
+		<!-- ============================================
+			 Section 2: Input fields
+			 ============================================ -->
+		<div class="page-card">
+
+			<div class="d-flex flex-row form-row">
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldFKVendorId">F K Vendor Id</label>
+					<select id="fldFKVendorId" class="form-select" name="fldFKVendorId" [(ngModel)]="model.fldFKVendorId" required>
+						<option value="">-- Select --</option>
+						<option *ngFor="let tblProfile of tblProfile$ | async" [value]="tblProfile.fldId">{{ tblProfile.fldFullName }}</option>
+					</select>
+					<div class="text-danger" *ngIf="form.controls['fldFKVendorId']?.touched && form.controls['fldFKVendorId']?.invalid">
+						F K Vendor Id is required and should be greater than 0.
+					</div>
+
+				</div>
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldFKItemId">F K Item Id</label>
+					<select id="fldFKItemId" class="form-select" name="fldFKItemId" [(ngModel)]="model.fldFKItemId" required>
+						<option value="">-- Select --</option>
+						<option *ngFor="let tblItemMaster of tblItemMaster$ | async" [value]="tblItemMaster.fldId">{{ tblItemMaster.fldItemName }}</option>
+					</select>
+					<div class="text-danger" *ngIf="form.controls['fldFKItemId']?.touched && form.controls['fldFKItemId']?.invalid">
+						F K Item Id is required and should be greater than 0.
+					</div>
+
+				</div>
+			</div>
+
+			<div class="d-flex flex-row form-row">
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldItemName">Item Name</label>
+					<input type="text" id="fldItemName" class="form-control" name="fldItemName" [(ngModel)]="model.fldItemName" maxlength="100">
+				</div>
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldBaseUnit">Base Unit</label>
+					<input type="text" id="fldBaseUnit" class="form-control" name="fldBaseUnit" [(ngModel)]="model.fldBaseUnit" maxlength="20">
+				</div>
+			</div>
+
+			<div class="d-flex flex-row form-row">
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldInventoryDate">Inventory Date</label>
+					<input type="date" id="fldInventoryDate" class="form-control" name="fldInventoryDate" [(ngModel)]="model.fldInventoryDate" required>
+					<div class="text-danger" *ngIf="form.controls['fldInventoryDate']?.touched && form.controls['fldInventoryDate']?.invalid">
+						Inventory Date is required.
+					</div>
+
+				</div>
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldSellingRate">Selling Rate</label>
+					<input type="number" id="fldSellingRate" class="form-control" name="fldSellingRate" [(ngModel)]="model.fldSellingRate" step="0.01" min="0" required>
+					<div class="text-danger" *ngIf="form.controls['fldSellingRate']?.touched && form.controls['fldSellingRate']?.invalid">
+						Selling Rate is required and should be greater than 0.
+					</div>
+
+				</div>
+			</div>
+
+			<div class="d-flex flex-row form-row">
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldAvailableStock">Available Stock</label>
+					<input type="number" id="fldAvailableStock" class="form-control" name="fldAvailableStock" [(ngModel)]="model.fldAvailableStock" step="0.01" min="0" required>
+					<div class="text-danger" *ngIf="form.controls['fldAvailableStock']?.touched && form.controls['fldAvailableStock']?.invalid">
+						Available Stock is required and should be greater than 0.
+					</div>
+
+				</div>
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldInitialStock">Initial Stock</label>
+					<input type="number" id="fldInitialStock" class="form-control" name="fldInitialStock" [(ngModel)]="model.fldInitialStock" step="0.01" min="0" required>
+					<div class="text-danger" *ngIf="form.controls['fldInitialStock']?.touched && form.controls['fldInitialStock']?.invalid">
+						Initial Stock is required and should be greater than 0.
+					</div>
+
+				</div>
+			</div>
+
+			<div class="d-flex flex-row form-row">
+				<div class="col-3 field-group field-group-switch">
+					<div class="form-check form-switch">
+						<input class="form-check-input" type="checkbox" id="fldIsAvailable" name="fldIsAvailable" [(ngModel)]="model.fldIsAvailable">
+						<label class="form-check-label" for="fldIsAvailable">Is Available</label>
+					</div>
+					<div class="text-danger" *ngIf="form.controls['fldIsAvailable']?.touched && form.controls['fldIsAvailable']?.invalid">
+						Is Available is required.
+					</div>
+
+				</div>
+			</div>
+
+		</div>
+
+		<!-- ============================================
+			 Section 3: Command buttons
+			 ============================================ -->
+		<div class="page-actions-bar">
+			<button type="button" (click)="OnFormSubmit(form, 'SaveAndAddNew')" class="btn-app btn-save" [disabled]="isSaving">
+				<i class="bi bi-floppy"></i>
+				Save &amp; Add New
+			</button>
+			<button type="button" (click)="OnFormSubmit(form, 'SaveAndClose')" class="btn-app btn-new" [disabled]="isSaving">
+				<i class="bi bi-check2-circle"></i>
+				Save &amp; Close
+			</button>
+			<button type="button" (click)="backToHome()" class="btn-app btn-dark">
+				<i class="bi bi-arrow-left"></i>
+				Back
+			</button>
+		</div>
+
+	</form>
+
+</div>

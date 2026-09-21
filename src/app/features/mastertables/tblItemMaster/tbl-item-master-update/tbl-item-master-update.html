@@ -1,0 +1,125 @@
+<div class="container grid-page-shell">
+	<!-- ============================================
+		 Section 1: Caption
+		 ============================================ -->
+	<div class="page-header-bar-simple">
+		<h1 class="page-caption">{{ actionType }} Item Masters</h1>
+	</div>
+
+	<ng-container *ngIf="tblItemMaster; else notFound">
+
+		<form #form="ngForm" novalidate>
+
+			<!-- ============================================
+				 Section 2: Input fields
+				 ============================================ -->
+			<div class="page-card">
+
+				<div class="d-flex flex-row form-row">
+					<div class="col-3 field-group">
+						<label class="form-label" for="fldItemName">Item Name</label>
+						<input type="text" id="fldItemName" class="form-control" name="fldItemName" [(ngModel)]="tblItemMaster.fldItemName" maxlength="100" required>
+						<div class="text-danger" *ngIf="form.controls['fldItemName']?.touched && form.controls['fldItemName']?.invalid">
+							Item Name is required.
+						</div>
+					</div>
+					<div class="col-3 field-group">
+						<label class="form-label" for="fldItemType">Item Type</label>
+						<input type="text" id="fldItemType" class="form-control" name="fldItemType" [(ngModel)]="tblItemMaster.fldItemType" maxlength="30" required>
+						<div class="text-danger" *ngIf="form.controls['fldItemType']?.touched && form.controls['fldItemType']?.invalid">
+							Item Type is required.
+						</div>
+					</div>
+				</div>
+
+				<div class="d-flex flex-row form-row">
+					<div class="col-3 field-group">
+						<label class="form-label" for="fldCategoryName">Category Name</label>
+						<input type="text" id="fldCategoryName" class="form-control" name="fldCategoryName" [(ngModel)]="tblItemMaster.fldCategoryName" maxlength="50" required>
+						<div class="text-danger" *ngIf="form.controls['fldCategoryName']?.touched && form.controls['fldCategoryName']?.invalid">
+							Category Name is required.
+						</div>
+					</div>
+					<div class="col-3 field-group">
+						<label class="form-label" for="fldBaseUnit">Base Unit</label>
+						<input type="text" id="fldBaseUnit" class="form-control" name="fldBaseUnit" [(ngModel)]="tblItemMaster.fldBaseUnit" maxlength="20" required>
+						<div class="text-danger" *ngIf="form.controls['fldBaseUnit']?.touched && form.controls['fldBaseUnit']?.invalid">
+							Base Unit is required.
+						</div>
+					</div>
+				</div>
+
+				<div class="d-flex flex-row form-row">
+					<div class="col-3 field-group field-group-switch">
+						<div class="form-check form-switch">
+							<input class="form-check-input" type="checkbox" id="fldAllowFractionalQuantity" name="fldAllowFractionalQuantity" [(ngModel)]="tblItemMaster.fldAllowFractionalQuantity">
+							<label class="form-check-label" for="fldAllowFractionalQuantity">Allow Fractional Quantity</label>
+						</div>
+					</div>
+					<div class="col-3 field-group">
+						<label class="form-label" for="fldSubUnitLabel">Sub Unit Label</label>
+						<input type="text" id="fldSubUnitLabel" class="form-control" name="fldSubUnitLabel" [(ngModel)]="tblItemMaster.fldSubUnitLabel" maxlength="20">
+					</div>
+				</div>
+
+				<div class="d-flex flex-row form-row">
+					<div class="col-3 field-group field-group-switch">
+						<div class="form-check form-switch">
+							<input class="form-check-input" type="checkbox" id="fldAllowFlatRupeeValueBooking" name="fldAllowFlatRupeeValueBooking" [(ngModel)]="tblItemMaster.fldAllowFlatRupeeValueBooking">
+							<label class="form-check-label" for="fldAllowFlatRupeeValueBooking">Allow Flat Rupee Value Booking</label>
+						</div>
+					</div>
+					<div class="col-3 field-group">
+						<label class="form-label" for="fldMinOrderQuantityStep">Min Order Quantity Step</label>
+						<input type="number" id="fldMinOrderQuantityStep" class="form-control" name="fldMinOrderQuantityStep" [(ngModel)]="tblItemMaster.fldMinOrderQuantityStep" step="0.01" min="0" required>
+						<div class="text-danger" *ngIf="form.controls['fldMinOrderQuantityStep']?.touched && form.controls['fldMinOrderQuantityStep']?.invalid">
+							Min Order Quantity Step is required and should be greater than 0.
+						</div>
+					</div>
+				</div>
+
+				<div class="d-flex flex-row form-row">
+					<div class="col-3 field-group">
+						<label class="form-label" for="fldItemImagePath">Item Image Path</label>
+						<input type="text" id="fldItemImagePath" class="form-control" name="fldItemImagePath" [(ngModel)]="tblItemMaster.fldItemImagePath" maxlength="500">
+					</div>
+				</div>
+
+				<input id="fldId" name="fldId" [(ngModel)]="tblItemMaster.fldId" hidden>
+				<input id="fldIsActive" name="fldIsActive" [(ngModel)]="tblItemMaster.fldIsActive" hidden>
+				<input id="fldCreatedBy" name="fldCreatedBy" [(ngModel)]="tblItemMaster.fldCreatedBy" hidden>
+				<input id="fldCreatedDt" name="fldCreatedDt" [(ngModel)]="tblItemMaster.fldCreatedDt" hidden>
+
+			</div>
+
+			<!-- ============================================
+				 Section 3: Command buttons
+				 ============================================ -->
+			<div class="page-actions-bar">
+				<button type="button" (click)="submitAction = 'Edit'; OnFormSubmit(form)" class="btn-app btn-save" [disabled]="actionType !== 'Edit'">
+					<i class="bi bi-floppy"></i>
+					Save
+				</button>
+				<button type="button" (click)="submitAction = 'Delete'; OnFormSubmit(form)" class="btn-app btn-delete" [disabled]="actionType !== 'Delete'">
+					<i class="bi bi-trash3"></i>
+					Delete
+				</button>
+				<button type="button" (click)="backToHome()" class="btn-app btn-dark">
+					<i class="bi bi-arrow-left"></i>
+					Back
+				</button>
+			</div>
+
+		</form>
+
+	</ng-container>
+
+	<ng-template #notFound>
+		<div class="page-card">
+			<div class="alert alert-warning mb-0" role="alert">
+				TblItemMaster Not Found
+			</div>
+		</div>
+	</ng-template>
+
+</div>

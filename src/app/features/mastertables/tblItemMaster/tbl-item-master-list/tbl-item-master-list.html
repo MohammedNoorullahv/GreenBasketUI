@@ -1,0 +1,135 @@
+<div class="container grid-page-shell">
+
+	<!-- ============================================
+		 Page header: caption + record toggle + New Record
+		 ============================================ -->
+	<div class="page-header-bar">
+
+		<h1 class="page-caption">TblItemMastersList</h1>
+
+		<div class="page-header-center">
+			<button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
+				(click)="OnFormSubmit('Load All')"
+				[attr.title]="actionType !== 'Load All' ? 'Loading All Records' : 'All Records'">
+				<i class="bi bi-list-ul"></i>
+				All Records
+			</button>
+
+			<button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Active Only'"
+				(click)="OnFormSubmit('Active Only')"
+				[attr.title]="actionType !== 'Active Only' ? 'Loading Active Records' : 'Active Records'">
+				<i class="bi bi-check-circle"></i>
+				Active Records
+			</button>
+		</div>
+
+		<div class="page-header-right">
+			<a [routerLink]="['add']" class="btn-app btn-new">
+				<i class="bi bi-plus-lg"></i>
+				New Record
+			</a>
+		</div>
+
+	</div>
+
+	<div class="page-card">
+
+		<div class="page-header-bar-secondary">
+
+			<div class="page-header-left">
+				<button type="button" class="btn-app btn-outline">
+					<i class="bi bi-funnel"></i>
+					Filter
+				</button>
+
+				<button type="button" class="btn-app btn-outline">
+					<i class="bi bi-download"></i>
+					Export CSV
+				</button>
+			</div>
+
+			<div class="page-header-right">
+				<ng-container *ngIf="tblItemMaster$ | async as tblitemmasters">
+					<span class="pagination-info">
+						Showing {{ tblitemmasters.length }} of {{ tblitemmasters.length }} Records
+					</span>
+				</ng-container>
+
+				<button type="button" class="pager-btn" disabled>
+					<i class="bi bi-chevron-left"></i>
+				</button>
+				<button type="button" class="pager-btn" disabled>
+					<i class="bi bi-chevron-right"></i>
+				</button>
+			</div>
+
+		</div>
+
+		<ng-container *ngIf="tblItemMaster$ | async as tblitemmasters">
+
+			<table class="data-table">
+				<thead>
+					<tr>
+						<th>Id</th>
+						<th>Item Name</th>
+						<th>Item Type</th>
+						<th>Category Name</th>
+						<th>Base Unit</th>
+						<th>Allow Fractional Quantity</th>
+						<th>Sub Unit Label</th>
+						<th>Allow Flat Rupee Value Booking</th>
+						<th>Min Order Quantity Step</th>
+						<th>Item Image Path</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+
+				<tbody>
+					<tr *ngFor="let tblitemmaster of tblitemmasters">
+						<td class="cell-code">{{tblitemmaster.fldId}}</td>
+						<td class="cell-primary">{{tblitemmaster.fldItemName}}</td>
+						<td>{{tblitemmaster.fldItemType}}</td>
+						<td>{{tblitemmaster.fldCategoryName}}</td>
+						<td>{{tblitemmaster.fldBaseUnit}}</td>
+						<td>
+							<span class="badge-pill" [ngClass]="tblitemmaster.fldAllowFractionalQuantity ? 'badge-success' : 'badge-muted'">
+								{{tblitemmaster.fldAllowFractionalQuantity ? 'Yes' : 'No'}}
+							</span>
+						</td>
+						<td>{{tblitemmaster.fldSubUnitLabel}}</td>
+						<td>
+							<span class="badge-pill" [ngClass]="tblitemmaster.fldAllowFlatRupeeValueBooking ? 'badge-success' : 'badge-muted'">
+								{{tblitemmaster.fldAllowFlatRupeeValueBooking ? 'Yes' : 'No'}}
+							</span>
+						</td>
+						<td>{{tblitemmaster.fldMinOrderQuantityStep}}</td>
+						<td>{{tblitemmaster.fldItemImagePath}}</td>
+						<td>
+							<div class="row-actions">
+								<a class="icon-btn edit" title="Edit"
+									[routerLink]="['/mastertables/tblItemMaster/Edit', tblitemmaster.fldId]"
+									[queryParams]="{ action: 'Edit' }">
+									<i class="bi bi-pencil-square"></i>
+								</a>
+								<a class="icon-btn delete" title="Delete"
+									[routerLink]="['/mastertables/tblItemMaster/Edit', tblitemmaster.fldId]"
+									[queryParams]="{ action: 'Delete' }">
+									<i class="bi bi-trash3"></i>
+								</a>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+
+			</table>
+
+			<p class="grid-footnote" *ngIf="tblitemmasters.length === 0">
+				No records found.
+			</p>
+
+		</ng-container>
+
+	</div>
+
+</div>
+

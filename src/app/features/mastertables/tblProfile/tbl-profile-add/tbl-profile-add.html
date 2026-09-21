@@ -1,0 +1,431 @@
+<div class="container grid-page-shell">
+
+    <!-- Page Heading -->
+    <div class="page-header-bar-simple">
+
+        <h1 class="page-caption page-caption-with-icon">
+
+            <i class="bi bi-person-plus page-caption-icon"></i>
+
+            <span>Add Profile</span>
+
+        </h1>
+
+    </div>
+
+    <form #form="ngForm" novalidate>
+
+        <div class="page-card profile-page-card">
+
+            <div class="profile-form">
+
+                <h2 class="profile-form-title">
+                    Create Your Account
+                </h2>
+
+                <!-- User Type -->
+
+                <div class="profile-field">
+
+                    <label class="form-label">I am a</label>
+
+                    <div class="profile-user-types">
+
+                        <label class="profile-radio">
+
+                            <input type="radio" name="fldUserType" value="Customer" [(ngModel)]="model.fldUserType"
+                                required />
+
+                            Customer
+
+                        </label>
+
+                        <label class="profile-radio profile-radio-disabled">
+
+                            <input type="radio" name="fldUserType" value="Vendor" disabled />
+
+                            Vendor
+
+                            <small>(Currently disabled)</small>
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+                <!-- Contact Number -->
+
+                <div class="profile-field">
+
+                    <label class="form-label" for="fldContactNumber">
+                        Phone Number <span class="required">*</span>
+                    </label>
+
+                    <div class="profile-phone-group">
+
+                        <span class="profile-country-code">+91</span>
+
+                        <input type="tel" id="fldContactNumber" class="form-control" name="fldContactNumber"
+                            [(ngModel)]="model.fldContactNumber" maxlength="15" placeholder="Enter phone number"
+                            required />
+
+                    </div>
+
+                    <div class="text-danger profile-validation" *ngIf="form.controls['fldContactNumber']?.touched &&
+                   form.controls['fldContactNumber']?.invalid">
+                        Phone Number is required.
+                    </div>
+
+                </div>
+
+                <!-- Alternate Number -->
+
+                <div class="profile-field">
+
+                    <label class="form-label" for="fldAlternateContactNumber">
+
+                        Alternate Phone Number
+
+                        <span class="optional">(Optional)</span>
+
+                    </label>
+
+                    <div class="profile-phone-group">
+
+                        <span class="profile-country-code">+91</span>
+
+                        <input type="tel" id="fldAlternateContactNumber" class="form-control"
+                            name="fldAlternateContactNumber" [(ngModel)]="model.fldAlternateContactNumber"
+                            maxlength="15" placeholder="Enter alternate number" />
+
+                    </div>
+
+                </div>
+
+                <!-- Full Name -->
+
+                <div class="profile-field">
+
+                    <label class="form-label" for="fldFullName">
+
+                        Full Name <span class="required">*</span>
+
+                    </label>
+
+                    <input type="text" id="fldFullName" class="form-control" name="fldFullName"
+                        [(ngModel)]="model.fldFullName" maxlength="150" placeholder="Enter your name" required />
+
+                    <div class="text-danger profile-validation" *ngIf="form.controls['fldFullName']?.touched &&
+                   form.controls['fldFullName']?.invalid">
+                        Full Name is required.
+                    </div>
+
+                </div>
+
+                <!-- Building Name -->
+
+                <div class="profile-field">
+
+                    <label class="form-label" for="fldComplexOrBuildingName">
+
+                        Complex / Building Name
+
+                        <span class="optional">(Optional)</span>
+
+                    </label>
+
+                    <input type="text" id="fldComplexOrBuildingName" class="form-control"
+                        name="fldComplexOrBuildingName" [(ngModel)]="model.fldComplexOrBuildingName" maxlength="150"
+                        placeholder="E.g. Green Park Apartments" />
+
+                </div>
+
+                <!-- Door Number -->
+
+                <div class="profile-field">
+
+                    <label class="form-label" for="fldDoorNo">
+
+                        Door No <span class="required">*</span>
+
+                    </label>
+
+                    <input type="text" id="fldDoorNo" class="form-control" name="fldDoorNo"
+                        [(ngModel)]="model.fldDoorNo" maxlength="20" placeholder="Enter door number" required />
+
+                    <div class="text-danger profile-validation" *ngIf="form.controls['fldDoorNo']?.touched &&
+                   form.controls['fldDoorNo']?.invalid">
+                        Door No is required.
+                    </div>
+
+                </div>
+
+                <!-- Street Name -->
+
+                <div class="profile-field">
+
+                    <label class="form-label" for="fldFKStreetId">
+
+                        Street Name <span class="required">*</span>
+
+                    </label>
+
+                    <select id="fldFKStreetId" class="form-select" name="fldFKStreetId"
+                        [(ngModel)]="model.fldFKStreetId" [required]="!manualStreetEntry"
+                        [disabled]="manualStreetEntry">
+
+                        <option value="">Select Street</option>
+
+                        <option *ngFor="
+                let tblStreetMaster of
+                tblStreetMaster$ | async
+              " [value]="tblStreetMaster.fldId">
+
+                            {{ tblStreetMaster.fldStreetName }}
+
+                        </option>
+
+                    </select>
+
+                    <button type="button" class="profile-text-button" (click)="toggleManualStreet()">
+
+                        {{
+                        manualStreetEntry
+                        ? 'Select street from list'
+                        : "Can't find your street? Enter manually"
+                        }}
+
+                    </button>
+
+                    <input *ngIf="manualStreetEntry" type="text" id="fldStreetName" class="form-control"
+                        name="fldStreetName" [(ngModel)]="model.fldStreetName" maxlength="100"
+                        placeholder="Enter your street name" required />
+
+                </div>
+
+                <!-- MAP LOCATION SELECTOR -->
+
+                <div class="profile-field">
+
+                    <label class="form-label">
+
+                        Location <span class="required">*</span>
+
+                    </label>
+
+                    <div class="profile-location-selector">
+
+                        <i class="bi bi-geo-alt-fill"></i>
+
+                        <div class="profile-location-text">
+
+                            <strong>
+                                {{
+                                model.fldGPSLocation
+                                ? 'Delivery Location Selected'
+                                : 'Select Delivery Location'
+                                }}
+                            </strong>
+
+                            <small>
+                                {{
+                                model.fldGPSLocation
+                                || 'Choose your location using the map'
+                                }}
+                            </small>
+
+                        </div>
+
+                        <button type="button" class="profile-map-button" (click)="openLocationMap()">
+
+                            <i class="bi bi-map"></i>
+
+                        </button>
+
+                    </div>
+
+                    <button type="button" class="profile-text-button" (click)="openLocationMap()">
+
+                        <i class="bi bi-pin-map"></i>
+
+                        {{
+                        model.fldGPSLocation
+                        ? 'Change Location'
+                        : 'Choose Location on Map'
+                        }}
+
+                    </button>
+
+                </div>
+
+                <!-- House Image -->
+
+                <div class="profile-field">
+
+                    <label class="form-label" for="houseImage">
+
+                        House Image
+                        <span class="optional">(Optional)</span>
+
+                    </label>
+
+                    <div class="profile-image-upload">
+
+                        <input #houseImageInput type="file" id="houseImage" accept="image/jpeg,image/png,image/webp"
+                            (change)="onHouseImageSelected($event)" hidden />
+
+                        <button type="button" class="profile-upload-button" (click)="houseImageInput.click()">
+                            <i class="bi bi-camera"></i>
+
+                            {{ houseImagePreview
+                            ? 'Change House Image'
+                            : 'Upload House Image' }}
+                        </button>
+
+                        <small>
+                            JPG, PNG or WebP. Maximum 5 MB.
+                        </small>
+
+                        <div *ngIf="houseImagePreview" class="profile-image-preview">
+
+                            <img [src]="houseImagePreview" alt="Selected house image" />
+
+                            <button type="button" class="profile-remove-image"
+                                (click)="removeHouseImage(houseImageInput)">
+                                <i class="bi bi-trash"></i>
+                                Remove Image
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Terms -->
+
+                <div class="profile-terms">
+
+                    <input type="checkbox" id="fldIsTermsAgreed" name="fldIsTermsAgreed"
+                        [(ngModel)]="model.fldIsTermsAgreed" required />
+
+                    <label for="fldIsTermsAgreed">
+
+                        I agree to the
+
+                        <span class="profile-help">
+                            Terms &amp; Conditions
+                        </span>
+
+                    </label>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Registration Buttons -->
+
+        <div class="page-actions-bar profile-actions">
+
+            <button type="button" class="btn-app btn-register" [disabled]="isSaving" (click)="registerProfile(form)">
+
+                <i class="bi bi-check-circle"></i>
+
+                Register
+
+            </button>
+
+            <button type="button" class="btn-app btn-back" (click)="backToHome()">
+
+                <i class="bi bi-arrow-left"></i>
+
+                Back
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<!-- =====================================
+     LOCATION MAP MODAL
+     ===================================== -->
+
+<div *ngIf="showLocationMap" class="profile-map-overlay">
+
+    <div class="profile-map-modal">
+
+        <div class="profile-map-header">
+
+            <h3>
+
+                <i class="bi bi-geo-alt-fill"></i>
+
+                Select Delivery Location
+
+            </h3>
+
+            <button type="button" class="profile-map-close" (click)="closeLocationMap()">
+
+                <i class="bi bi-x-lg"></i>
+
+            </button>
+
+        </div>
+
+        <p class="profile-map-instruction">
+
+            Tap on the map or drag the location pin
+            to select your delivery address.
+
+        </p>
+
+        <div id="profileLocationMap" class="profile-map-container"></div>
+
+        <div class="profile-map-coordinates">
+
+            <i class="bi bi-pin-map-fill"></i>
+
+            {{
+            selectedLatitude !== null &&
+            selectedLongitude !== null
+            ? selectedLatitude.toFixed(6) +
+            ', ' +
+            selectedLongitude.toFixed(6)
+            : 'No location selected'
+            }}
+
+        </div>
+
+        <div class="profile-map-actions">
+
+            <button type="button" class="btn-app btn-outline" (click)="useCurrentLocation()">
+
+                <i class="bi bi-crosshair"></i>
+
+                Current Location
+
+            </button>
+
+            <button type="button" class="btn-app btn-save-close" [disabled]="
+          selectedLatitude === null ||
+          selectedLongitude === null
+        " (click)="confirmLocation()">
+
+                <i class="bi bi-check-circle"></i>
+
+                Confirm Location
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,0 +1,118 @@
+<div class="container grid-page-shell">
+
+	<!-- ============================================
+		 Page header: caption + record toggle + New Record
+		 ============================================ -->
+	<div class="page-header-bar">
+
+		<h1 class="page-caption">City / TownMastersList</h1>
+
+		<div class="page-header-center">
+			<button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
+				(click)="OnFormSubmit('Load All')"
+				[attr.title]="actionType !== 'Load All' ? 'Loading All Records' : 'All Records'">
+				<i class="bi bi-list-ul"></i>
+				All Records
+			</button>
+
+			<button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Active Only'"
+				(click)="OnFormSubmit('Active Only')"
+				[attr.title]="actionType !== 'Active Only' ? 'Loading Active Records' : 'Active Records'">
+				<i class="bi bi-check-circle"></i>
+				Active Records
+			</button>
+		</div>
+
+		<div class="page-header-right">
+			<a [routerLink]="['add']" class="btn-app btn-new">
+				<i class="bi bi-plus-lg"></i>
+				New Record
+			</a>
+		</div>
+
+	</div>
+
+	<div class="page-card">
+
+		<div class="page-header-bar-secondary">
+
+			<div class="page-header-left">
+				<button type="button" class="btn-app btn-outline">
+					<i class="bi bi-funnel"></i>
+					Filter
+				</button>
+
+				<button type="button" class="btn-app btn-outline">
+					<i class="bi bi-download"></i>
+					Export CSV
+				</button>
+			</div>
+
+			<div class="page-header-right">
+				<ng-container *ngIf="tblCityorTownMaster$ | async as tblcityortownmasters">
+					<span class="pagination-info">
+						Showing {{ tblcityortownmasters.length }} of {{ tblcityortownmasters.length }} Records
+					</span>
+				</ng-container>
+
+				<button type="button" class="pager-btn" disabled>
+					<i class="bi bi-chevron-left"></i>
+				</button>
+				<button type="button" class="pager-btn" disabled>
+					<i class="bi bi-chevron-right"></i>
+				</button>
+			</div>
+
+		</div>
+
+		<ng-container *ngIf="tblCityorTownMaster$ | async as tblcityortownmasters">
+
+            <div class="table-responsive">
+
+			<table class="data-table">
+				<thead>
+					<tr>
+						<th>Id</th>
+						<th>Cityor Town Name</th>
+						<th>Area Name</th>
+						<th>Pincode</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+
+				<tbody>
+					<tr *ngFor="let tblcityortownmaster of tblcityortownmasters">
+						<td class="cell-code">{{tblcityortownmaster.fldId}}</td>
+						<td class="cell-primary">{{tblcityortownmaster.fldCityorTownName}}</td>
+						<td>{{tblcityortownmaster.fldAreaName}}</td>
+						<td class="cell-mono">{{tblcityortownmaster.fldPincode}}</td>
+						<td>
+							<div class="row-actions">
+								<a class="icon-btn edit" title="Edit"
+									[routerLink]="['/mastertables/tblCityorTownMaster/Edit', tblcityortownmaster.fldId]"
+									[queryParams]="{ action: 'Edit' }">
+									<i class="bi bi-pencil-square"></i>
+								</a>
+								<a class="icon-btn delete" title="Delete"
+									[routerLink]="['/mastertables/tblCityorTownMaster/Edit', tblcityortownmaster.fldId]"
+									[queryParams]="{ action: 'Delete' }">
+									<i class="bi bi-trash3"></i>
+								</a>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+
+			</table>
+
+            </div>
+            
+			<p class="grid-footnote" *ngIf="tblcityortownmasters.length === 0">
+				No records found.
+			</p>
+
+		</ng-container>
+
+	</div>
+
+</div>

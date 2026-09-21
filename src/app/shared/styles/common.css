@@ -1,0 +1,2059 @@
+/* =========================================================
+   Green Basket - Common Page Styles
+   Toolbar, Data Grid, Badges, Action Buttons
+   (Reusable across every list / master page,
+    independent of the sidebar in navbar.css)
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   Page shell - light backdrop so the panel below reads as
+   a distinct "feature panel", not a flat page
+   --------------------------------------------------------- */
+
+.grid-page-shell {
+  background-color: #eef8f2;
+
+  padding: 20px 22px 26px 22px;
+
+  border-radius: 12px;
+}
+
+.page-card {
+  background-color: #FFFFFF;
+
+  border: 1px solid #dcebe2;
+  border-radius: 12px;
+
+  padding: 20px 22px 14px 22px;
+
+  box-shadow: 0 4px 14px rgba(16, 24, 64, 0.08);
+}
+
+.page-title {
+  color: #17384a;
+
+  font-size: 20px;
+  font-weight: 600;
+
+  margin: 0 0 14px 0;
+}
+
+
+/* ---------------------------------------------------------
+   Page header bar - caption + all page-level actions,
+   sitting above the grid panel as its own panel.
+   Echoes the brand mark (same navy, same Arial family) and
+   borrows the sidebar's active-item accent bar motif, but
+   with its own gradient accent so it reads as a distinct,
+   purpose-built header rather than a repeat of the sidebar
+   or a plain copy of the grid card below it.
+   --------------------------------------------------------- */
+
+/* Container banner layout adjustments */
+.page-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  border-radius: 8px;
+  /* Soft light red family background color */
+  background-color: #f7fffa;
+  border: 2px solid navy;
+
+  /* display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+
+  background-color: #ffffff;
+  border: 1px solid #dcebe2;
+  border-radius: 12px;
+
+  padding: 12px 22px;
+  margin-bottom: 16px;
+
+  box-shadow: 0 4px 14px rgba(16, 24, 64, 0.07); */
+}
+
+/* Caption - same brand family/colour as the BizTrack360 logo,
+   sized between the logo (24px) and body copy (13-14px) */
+
+.page-caption {
+  color: #087d4b;
+
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+
+  letter-spacing: 0.01em;
+
+  margin: 0;
+  white-space: nowrap;
+}
+
+.page-header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.header-divider {
+  width: 1px;
+  height: 22px;
+
+  background-color: #dcebe2;
+
+  margin: 0 2px;
+}
+
+/* ---------------------------------------------------------
+   Transaction Pages ( List  ) Page Positioning
+   --------------------------------------------------------- */
+
+/* Container override for transaction pages */
+.transaction-header {
+  display: flex;
+  align-items: center;
+  /* Centers title and new button vertically */
+  justify-content: space-between;
+  gap: 24px;
+
+
+}
+
+/* Flex wrapper for the center row */
+.transaction-header .page-header-center {
+  flex-grow: 1;
+  max-width: 650px;
+  /* Prevents inputs from stretching too wide */
+}
+
+/* Aligns dates and refresh button perfectly along the bottom baseline */
+.tx-filter-group {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Ensures both date inputs share equal available space */
+.tx-field {
+  flex: 1;
+}
+
+/* Overrides any global vertical margins on the form labels */
+.tx-field .form-label {
+  display: block;
+  margin-bottom: 6px;
+}
+
+/* Explicitly locks the height to match standard bootstrap inputs */
+.tx-action .btn-app {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+
+/* ---------------------------------------------------------
+   Toolbar (filter / export / pagination / New Record)
+   --------------------------------------------------------- */
+
+.grid-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  margin-bottom: 14px;
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pagination-info {
+  color: #62766e;
+
+  font-size: 13px;
+
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
+.pager-btn {
+  width: 30px;
+  height: 30px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: #ffffff;
+  border: 1px solid #d2e5da;
+  border-radius: 6px;
+
+  color: #365447;
+
+  cursor: pointer;
+
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.pager-btn:hover:not(:disabled) {
+  background-color: #e8f7ef;
+  border-color: #a9d7bc;
+}
+
+.pager-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+
+/* ---------------------------------------------------------
+   Buttons - base
+   --------------------------------------------------------- */
+
+.btn-app {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  height: 38px;
+  padding: 0 16px;
+
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+
+  border: 1px solid transparent;
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-app:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-app .bi {
+  font-size: 15px;
+}
+
+/* Neutral / outline utility button, e.g. "Filter", "Export CSV" */
+
+.btn-outline {
+  background-color: #ffffff;
+  border-color: #d2e5da;
+  color: #29483b;
+}
+
+.btn-outline:hover:not(:disabled) {
+  background-color: #eff9f2;
+  border-color: #a9d7bc;
+}
+
+/* Toggle style used for "All Records" / "Active Records" */
+
+.btn-toggle {
+  background-color: #ffffff;
+  border-color: #c8dfd2;
+  color: #365447;
+}
+
+.btn-toggle:hover:not(:disabled) {
+  background-color: #e8f7ef;
+}
+
+.btn-toggle[disabled] {
+  background-color: #e1f5e9;
+  border-color: #a6d6b9;
+  color: #087d4b;
+  opacity: 1;
+  font-weight: 700;
+}
+
+
+/* ---------------------------------------------------------
+   Buttons - action colours
+   New / Save / Update / Delete / Back
+   --------------------------------------------------------- */
+
+/* New - primary navy, matches sidebar brand colour */
+
+.btn-new {
+  background-color: #087d4b;
+  color: #ffffff;
+}
+
+
+/* Container holding the 2 inputs and the button layout side-by-side */
+.tx-filter-group {
+  display: flex;
+  flex-direction: row;
+  /* Keeps inputs and button in a horizontal row */
+  align-items: flex-end;
+  /* Vertically centers the button with the input boxes, ignoring the top labels */
+  gap: 16px;
+  /* Adds clean spacing between inputs and button */
+}
+
+/* Base structural wrapper for each date input field column */
+.tx-field {
+  display: flex;
+  flex-direction: column;
+  /* Keeps label stacked directly above its input */
+  gap: 4px;
+  /* Adds spacing between label text and input field */
+}
+
+/* The Refresh button styling with a thick outer border */
+.btn-Refresh {
+  background-color: #f4faf6;
+  /* Light background matching your design image */
+  color: #000000;
+  /* Dark text color */
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 6px;
+  height: 38px;
+  /* Explicitly matches standard form control height */
+
+  /* Thick outer border configurations */
+  border: 3px solid #087d4b;
+  /* Distinct 3px solid primary theme border */
+  box-sizing: border-box;
+  /* Prevents the border from clipping or sizing issues */
+  display: inline-flex;
+  align-items: center;
+  /* Centers text and icon vertically inside the button */
+  gap: 6px;
+  /* Gap between icon and text */
+  cursor: pointer;
+}
+
+
+
+.btn-new:hover:not(:disabled) {
+  background-color: #05633b;
+}
+
+/* Save - success green */
+
+.btn-save {
+  background-color: #087d4b;
+  color: #ffffff;
+}
+
+.btn-save:hover:not(:disabled) {
+  background-color: #05633b;
+}
+
+/* Update - amber */
+
+.btn-update {
+  background-color: #d98a1a;
+  color: #ffffff;
+}
+
+.btn-update:hover:not(:disabled) {
+  background-color: #b3720f;
+}
+
+/* Delete - danger red */
+
+.btn-delete {
+  background-color: #d1394a;
+  color: #ffffff;
+}
+
+.btn-delete:hover:not(:disabled) {
+  background-color: #ab1f30;
+}
+
+/* Back - neutral grey, low emphasis */
+
+.btn-back {
+  background-color: #ffffff;
+  border-color: #c8dfd2;
+  color: #365447;
+}
+
+.btn-back:hover:not(:disabled) {
+  background-color: #eaf4ed;
+  border-color: #b5d5c3;
+}
+
+
+/* ---------------------------------------------------------
+   Row-level icon buttons (Actions column)
+   --------------------------------------------------------- */
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon-btn {
+  width: 30px;
+  height: 30px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 6px;
+  background-color: transparent;
+
+  color: #678075;
+
+  cursor: pointer;
+
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.icon-btn.edit:hover {
+  background-color: #e1f5e9;
+  color: #087d4b;
+}
+
+.icon-btn.delete:hover {
+  background-color: #fbe1e4;
+  color: #ab1f30;
+}
+
+
+/* ---------------------------------------------------------
+   Data grid table
+   --------------------------------------------------------- */
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table thead th {
+  background-color: #12513d;
+
+  color: #ffffff;
+
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+
+  text-align: left;
+
+  padding: 12px 14px;
+
+  border-bottom: 1px solid #12513d;
+  white-space: nowrap;
+}
+
+.data-table thead th:first-child {
+  border-top-left-radius: 6px;
+}
+
+.data-table thead th:last-child {
+  border-top-right-radius: 6px;
+}
+
+.data-table tbody td {
+  padding: 14px;
+
+  font-size: 14px;
+  color: #233f35;
+
+  border-bottom: 1px solid #e8f0ea;
+
+  vertical-align: middle;
+}
+
+.data-table tbody tr:hover {
+  background-color: #f4fbf6;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Code-style column, e.g. Id / Sl No */
+
+.cell-code {
+  color: #087d4b;
+  font-weight: 700;
+  font-size: 13.5px;
+}
+
+/* Bold primary label column, e.g. Description */
+
+.cell-primary {
+  font-weight: 600;
+  color: #17384a;
+}
+
+/* Monospace column, e.g. Short Name / GST-style codes */
+
+.cell-mono {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 13px;
+  color: #40594b;
+}
+
+.cell-muted {
+  color: #7b9285;
+  font-style: italic;
+}
+
+
+/* ---------------------------------------------------------
+   Status / boolean badges
+   --------------------------------------------------------- */
+
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 4px 11px;
+
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+
+  border-radius: 999px;
+}
+
+.badge-pill::before {
+  content: "";
+
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background-color: currentColor;
+}
+
+.badge-success {
+  background-color: #dcf3e6;
+  color: #16824a;
+}
+
+.badge-muted {
+  background-color: #e8f0ea;
+  color: #62766e;
+}
+
+
+/* ---------------------------------------------------------
+   Grid footer caption
+   --------------------------------------------------------- */
+
+.grid-footnote {
+  color: #7b9285;
+
+  font-size: 12px;
+  font-style: italic;
+
+  margin: 10px 2px 4px 2px;
+}
+
+.page-header-bar-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+
+  background-color: #ffffff;
+  border: 1px solid #dcebe2;
+  border-radius: 12px;
+
+  padding: 12px 22px;
+  margin-bottom: 16px;
+
+  box-shadow: 0 4px 14px rgba(16, 24, 64, 0.07);
+}
+
+.page-header-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.page-header-bar-simple {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  background-color: #ffffff;
+  border: 1px solid #dcebe2;
+  border-radius: 12px;
+
+  padding: 16px 22px;
+  margin-bottom: 16px;
+
+  box-shadow: 0 4px 14px rgba(16, 24, 64, 0.07);
+}
+
+.form-row {
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-group-switch {
+  justify-content: center;
+}
+
+.form-label {
+  color: #29483b;
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.form-control {
+  border: 2px solid #b5d5c3;
+  /* Thicker width and a more defined grey-blue color */
+  border-radius: 6px;
+  padding: 8px 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-control:focus {
+  border-color: #0aa054;
+  box-shadow: 0 0 0 0.2rem rgba(6, 69, 125, 0.15);
+}
+
+.form-check-input:checked {
+  background-color: #087d4b;
+  border-color: #087d4b;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.btn-dark {
+  background-color: #1c1f26;
+  color: #ffffff;
+}
+
+.btn-dark:hover:not(:disabled) {
+  background-color: #0e1015;
+}
+
+.page-actions-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+
+  background-color: #F5FAFF;
+  border: 1px solid #dcebe2;
+  border-radius: 12px;
+
+  padding: 16px 22px;
+  margin-top: 16px;
+
+  box-shadow: 0 4px 14px rgba(16, 24, 64, 0.07);
+}
+
+/* Give every stacked section panel (caption / fields / actions)
+   a strong top accent so each reads as its own distinct panel,
+   not just a shadowed rectangle blending into the next */
+
+.page-header-bar-simple,
+.page-card,
+.page-actions-bar {
+  border-top: 2px solid #087d4b;
+  border-left: 2px solid #087d4b;
+  border-right: 2px solid #087d4b;
+  border-bottom: 2px solid #087d4b;
+  box-shadow: 0 6px 18px rgba(16, 24, 64, 0.12);
+}
+
+.page-header-bar-simple {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* was: space-between */
+  gap: 14px;
+
+  background-color: #ffffff;
+  border: 2px solid #0aa054;
+  border-radius: 12px;
+
+  padding: 16px 22px;
+  margin-bottom: 5px;
+
+  box-shadow: 0 6px 18px rgba(16, 24, 64, 0.12);
+}
+
+.page-actions-bar {
+  margin-top: 1px;
+}
+
+/* #region AG GRID STYLES */
+
+/* ==========================================================================
+   CLEAN LIGHT-THEME GREEN MATCHED GRID LAYOUT (src/styles.css)
+   ========================================================================== */
+
+/* 1. Global Header Customisation (Matched to your exact button hex code) */
+.ag-theme-alpine {
+  /* Base header color matching your exact "+ New Record" primary button */
+  --ag-header-background-color: #087d4b !important;
+
+  /* Slightly lighter blue shade when hovering over structural column layouts */
+  --ag-header-cell-hover-background-color: #0a9955 !important;
+}
+
+/* 2. Crisp Header Typography & Text Contrast Design */
+.ag-theme-alpine .ag-header-cell-label {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+}
+
+/* Sets active sorting direction indicators to white so they contrast cleanly against blue */
+.ag-theme-alpine .ag-header-cell-label .ag-sort-indicator-icon {
+  color: #ffffff !important;
+  opacity: 0.95;
+}
+
+/* 3. Floating Filter Inputs Box Structure (Now styled white to match your overall design look) */
+.ag-theme-alpine .ag-floating-filter-button {
+  display: none !important;
+  /* Removes clunky default icon layout drops */
+}
+
+.ag-theme-alpine .ag-floating-filter-input input {
+  background-color: #ffffff !important;
+  /* Pure white background like your text boxes */
+  color: #222222 !important;
+  /* Dark text inside white input boxes */
+  border: 1px solid #c8dfd2 !important;
+  /* Clean light gray outline border frames */
+  border-radius: 4px;
+  padding-left: 8px !important;
+}
+
+/* Adds a subtle blue outline focus highlight when typing inside a filter column text field */
+.ag-theme-alpine .ag-floating-filter-input input:focus {
+  border-color: #087d4b !important;
+  outline: none;
+}
+
+/* ==========================================================================
+   PAGINATION FOOTER ROW AND TOTALS SUMMARY DECORATOR (src/styles.css)
+   ========================================================================== */
+
+/* 1. Aligns pagination controls directly below the table as a clean single row */
+.ag-theme-alpine .ag-paging-panel {
+  background-color: #f8fcf9 !important;
+  color: #4e6459 !important;
+  border-top: 1px solid #d9e9df !important;
+  font-size: 13px !important;
+  height: 45px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  padding-right: 15px !important;
+}
+
+/* Styles custom page action toggle items matching your light look */
+.ag-theme-alpine .ag-paging-button {
+  color: #087d4b !important;
+  background-color: #ffffff !important;
+  border: 1px solid #c8dfd2 !important;
+  border-radius: 4px !important;
+  padding: 3px 10px !important;
+  font-weight: 600 !important;
+}
+
+.ag-theme-alpine .ag-paging-button:hover:not(.ag-disabled) {
+  background-color: #087d4b !important;
+  color: #ffffff !important;
+  border-color: #087d4b !important;
+}
+
+/* 2. Light Theme Grid Multi-Footer Row Calculations Design */
+.ag-theme-alpine .ag-row-pinned {
+  background-color: #e8f4eb !important;
+  /* Premium unified slate background shade */
+  font-weight: 700 !important;
+  border-top: 2px solid #087d4b !important;
+  /* Bold primary boundary line top accent */
+  border-bottom: 2px solid #d9e9df !important;
+}
+
+/* Specific text coloring for sum, min, max calculation rows */
+.ag-theme-alpine .ag-row-pinned .ag-cell {
+  color: #087d4b !important;
+  /* Highlights metrics clearly in primary button blue tint */
+  font-size: 13px !important;
+  display: flex !important;
+  align-items: center !important;
+
+}
+
+/* Gray header style specifically for label row titles - FIXED ALIGNMENT */
+.ag-theme-alpine .ag-row-pinned .ag-cell[col-id="fldId"] {
+  color: #087d4b !important;
+  font-weight: 700 !important;
+  text-align: left !important;
+  justify-content: flex-start !important;
+  padding-left: 14px !important;
+  white-space: nowrap !important;
+  /* Prevents text wrap layout bugs */
+  overflow: visible !important;
+  /* Let label text breathe cleanly */
+}
+
+
+.ag-theme-alpine .ag-row-pinned[row-index="0"] .ag-cell {
+  color: #212529 !important;
+  font-weight: 800 !important;
+}
+
+/* ==========================================================================
+   LIGHT SYSTEM DATA TEXT OVERRIDE (src/styles.css)
+   ========================================================================== */
+
+/* Forces normal grid content parameters to contrast clearly against light row backgrounds */
+.ag-theme-alpine .ag-cell {
+  color: #233f35 !important;
+  /* Explicit deep charcoal body text color */
+  font-size: 13px !important;
+}
+
+/* Keeps your specific page actions centered nicely */
+.ag-theme-alpine .row-actions i {
+  color: #087d4b !important;
+}
+
+.ag-theme-alpine .row-actions .delete i {
+  color: #dc3545 !important;
+  /* Keeps trash bin red */
+}
+
+
+/* #endregion */
+
+.purchase-order-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.toolbar-title {
+  align-self: center;
+  margin: 0 12px 0 0;
+}
+
+.date-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.date-field label {
+  margin-bottom: 6px;
+}
+
+.toolbar-button {
+  display: flex;
+  align-items: center;
+}
+
+.toolbar-button .btn {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+/* ==========================================================================
+   TRANSACTION DETAIL HEADER SYSTEM (Shared across all detail screens)
+   ========================================================================== */
+
+/* Applies the light red background family exclusively to the detail view wrapper */
+.tx-detail-header-panel {
+  /* background-color: #f7fffa !important; */
+  /* border: 0px solid #ffe3e3 !important;
+  border-radius: 0px;
+  padding: 0px 0px; */
+  /* background-color: lightsalmon; */
+  margin: 0 0px;
+
+}
+
+/* Enforces compact vertical spacing strictly for these dynamic metadata rows */
+.tx-detail-row {
+  width: 100%;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 4px !important;
+}
+
+.tx-detail-row:last-child {
+  margin-bottom: 0 !important;
+  margin-top: 0;
+
+}
+
+/* Decreases vertical spacing gaps under labels */
+.tx-detail-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 1px !important;
+  color: #6c757d;
+}
+
+/* Uniform design for all read-only transaction parent headers */
+input.tx-detail-input:disabled {
+  height: 30px;
+  padding: 2px 8px;
+  font-size: 13px;
+  background-color: #ffffff !important;
+  border-color: #e9ecef;
+  color: #212529 !important;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body {
+  min-height: 100vh;
+}
+
+/* =========================================================
+   GREEN BASKET - FINAL SHARED COMPONENT REFINEMENTS
+   Preserve existing BizTrack360 HTML class names and layout.
+   ========================================================= */
+:root {
+  --gb-primary: #087d4b;
+  --gb-primary-hover: #05633b;
+  --gb-accent: #0aa054;
+  --gb-ink: #17384a;
+  --gb-muted: #64786d;
+  --gb-shell: #eef8f2;
+  --gb-border: #d7e9dd;
+  --gb-input-border: #cbdcf1;
+  --gb-shadow: 0 4px 14px rgba(16, 74, 46, .07);
+  --gb-font: Inter, 'Segoe UI', Arial, sans-serif;
+  --gb-panel-blue: #0866C2;
+  --gb-panel-blue-dark: #064E96;
+}
+
+/* BizTrack360 desktop composition: title left, toggles center, new record right */
+.grid-page-shell {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 20px 22px 26px;
+  background: var(--gb-shell);
+  border-radius: 12px;
+  box-sizing: border-box;
+  font-family: var(--gb-font);
+}
+
+.container.grid-page-shell {
+  width: 100%;
+  max-width: none;
+}
+
+.page-header-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  min-height: 66px;
+  padding: 12px 24px;
+  margin-bottom: 0;
+  background: #f7fffa;
+  border: 2px solid var(--gb-primary);
+  border-radius: 9px;
+  box-shadow: none;
+  position: relative;
+}
+
+.page-caption {
+  font-family: var(--gb-font);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -.015em;
+  color: var(--gb-ink);
+  margin: 0;
+}
+
+.page-header-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.page-header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.page-header-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.page-card {
+  background: #fff;
+  border: 2px solid var(--gb-primary);
+  border-radius: 12px;
+  padding: 20px 22px 30px;
+  margin: 0;
+  box-shadow: var(--gb-shadow);
+  min-width: 0;
+}
+
+.page-header-bar-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px 22px;
+  margin-bottom: 0;
+  background: #fff;
+  border: 1px solid var(--gb-border);
+  border-radius: 12px;
+  box-shadow: var(--gb-shadow);
+}
+
+.page-header-bar-simple,
+.page-card,
+.page-actions-bar {
+  border: 2px solid var(--gb-panel-blue);
+  border-radius: 12px;
+  background-color: #FFFFFF;
+
+  box-shadow: 0 4px 14px rgba(8, 102, 194, 0.06);
+}
+
+.page-header-bar-simple {
+  background-color: #F5FAFF;
+}
+
+/* Shared buttons: do not affect sidebar .menu-item hover */
+.btn-app {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  height: auto;
+  padding: 8px 16px;
+  font-family: var(--gb-font);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-decoration: none;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: background-color .15s, border-color .15s, color .15s, box-shadow .15s;
+}
+
+.btn-app:focus-visible,
+.pager-btn:focus-visible,
+.icon-btn:focus-visible {
+  outline: 2px solid var(--gb-accent);
+  outline-offset: 2px;
+}
+
+.btn-outline {
+  background: #fff;
+  border-color: var(--gb-border);
+  color: var(--gb-ink);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: #effaf3;
+  border-color: #9cd2b3;
+  color: var(--gb-primary);
+}
+
+.btn-toggle {
+  min-width: 132px;
+  background: #fff;
+  border-color: var(--gb-border);
+  color: var(--gb-ink);
+}
+
+.btn-toggle:hover:not(:disabled) {
+  background: #e8f7ef;
+  border-color: #9cd2b3;
+}
+
+.btn-toggle:disabled,
+.btn-toggle[disabled] {
+  opacity: 1;
+  cursor: default;
+  font-weight: 700;
+  background: #e1f5e9;
+  color: var(--gb-primary);
+  border-color: #a6d6b9;
+}
+
+.btn-new,
+.btn-primary.btn-app,
+.btn-submit {
+  background: var(--gb-primary);
+  border-color: var(--gb-primary);
+  color: #fff;
+}
+
+.btn-new:hover:not(:disabled),
+.btn-primary.btn-app:hover:not(:disabled),
+.btn-submit:hover:not(:disabled) {
+  background: var(--gb-primary-hover);
+  border-color: var(--gb-primary-hover);
+  color: #fff;
+}
+
+.btn-save {
+  background: var(--gb-primary);
+  border-color: var(--gb-primary);
+  color: #fff;
+}
+
+.btn-save:hover:not(:disabled) {
+  background: var(--gb-primary-hover);
+  color: #fff;
+}
+
+.btn-back {
+  background: #fff;
+  border-color: var(--gb-border);
+  color: var(--gb-ink);
+}
+
+.btn-back:hover:not(:disabled) {
+  background: #effaf3;
+  border-color: #a6d6b9;
+}
+
+.btn-Refresh {
+  border-color: var(--gb-primary);
+  background: #f4faf6;
+  color: var(--gb-ink);
+}
+
+.btn-Refresh:hover:not(:disabled) {
+  background: #e1f5e9;
+}
+
+.btn-app:disabled:not(.btn-toggle) {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+/* Grid: enterprise desktop columns + Green Basket order-history softness */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  font-family: var(--gb-font);
+}
+
+.data-table thead th {
+  background: #12513d;
+  color: #fff;
+  padding: 12px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-bottom: 1px solid #12513d;
+}
+
+.data-table tbody td {
+  padding: 12px 14px;
+  color: #233f35;
+  font-size: 13px;
+  border-bottom: 1px solid #e8f0ea;
+  vertical-align: middle;
+}
+
+.data-table tbody tr:nth-child(even) {
+  background: #fbfdfb;
+}
+
+.data-table tbody tr:hover,
+.data-table tbody tr:nth-child(even):hover {
+  background: #f0faf3;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.cell-code {
+  color: var(--gb-primary);
+  font-weight: 700;
+}
+
+.cell-primary {
+  color: var(--gb-ink);
+  font-weight: 600;
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon-btn {
+  border-radius: 6px;
+}
+
+.icon-btn.edit {
+  color: var(--gb-primary);
+}
+
+.icon-btn.edit:hover {
+  background: #e1f5e9;
+  color: var(--gb-primary-hover);
+}
+
+.icon-btn.delete {
+  color: #c62c3f;
+}
+
+.icon-btn.delete:hover {
+  background: #fbe1e4;
+  color: #a91e30;
+}
+
+.pager-btn {
+  border-color: var(--gb-border);
+  color: var(--gb-ink);
+}
+
+.pager-btn:hover:not(:disabled) {
+  background: #e8f7ef;
+  border-color: #a6d6b9;
+  color: var(--gb-primary);
+}
+
+/* Customer registration-style fields; retain existing .form-* naming */
+.form-row {
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.form-label {
+  color: var(--gb-ink);
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.form-control,
+.form-select {
+  width: 100%;
+  min-height: 36px;
+  padding: 7px 10px;
+  background: #fff;
+  border: 1px solid var(--gb-input-border);
+  border-radius: 6px;
+  color: var(--gb-ink);
+  font-family: var(--gb-font);
+  font-size: 13px;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.form-control:focus,
+.form-select:focus {
+  outline: 0;
+  border-color: var(--gb-primary);
+  box-shadow: 0 0 0 .2rem rgba(8, 125, 75, .12);
+}
+
+.form-control::placeholder {
+  color: #94a3b8;
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  background: #f3f7f5;
+  color: #73857b;
+}
+
+.form-control[readonly] {
+  background: #f8fbf9;
+}
+
+.form-check-input:checked {
+  background-color: var(--gb-primary);
+  border-color: var(--gb-primary);
+}
+
+.input-group-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fbf9;
+  border: 1px solid var(--gb-input-border);
+  color: var(--gb-ink);
+  font-size: 13px;
+}
+
+.required,
+.required-field {
+  color: #d1394a;
+  font-weight: 700;
+}
+
+.form-help {
+  font-size: 11px;
+  color: #2563eb;
+  margin-top: 3px;
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+  border-color: #d1394a;
+}
+
+.section-title {
+  color: var(--gb-primary-hover);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.form-card {
+  background: #fff;
+  border: 1px solid var(--gb-border);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--gb-shadow);
+}
+
+/* Customer order-history reusable cards and status chips */
+.record-card {
+  background: #fff;
+  border: 1px solid #dbe9e2;
+  border-radius: 9px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 7px rgba(20, 60, 40, .04);
+}
+
+.record-card:hover {
+  border-color: #a6d6b9;
+}
+
+.record-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gb-ink);
+}
+
+.record-subtitle {
+  font-size: 12px;
+  color: var(--gb-muted);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-delivered,
+.status-active {
+  background: #ddf7e9;
+  color: #087d4b;
+}
+
+.status-pending {
+  background: #fff3d9;
+  color: #9a6700;
+}
+
+.status-cancelled {
+  background: #ffe8ea;
+  color: #c62828;
+}
+
+.status-denied {
+  background: #fff0d9;
+  color: #b45309;
+}
+
+.status-packing {
+  background: #e8f1ff;
+  color: #2563eb;
+}
+
+.btn-small {
+  min-height: 29px;
+  padding: 5px 10px;
+  font-size: 12px;
+  border-radius: 5px;
+}
+
+.btn-view {
+  background: #fff;
+  color: #2563eb;
+  border: 1px solid #93b8ff;
+}
+
+.btn-view:hover {
+  background: #eff6ff;
+}
+
+/* Responsive: desktop composition becomes stacked without sidebar changes */
+@media (max-width:1100px) {
+  .page-header-bar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .page-header-center {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width:768px) {
+  .grid-page-shell {
+    padding: 12px;
+  }
+
+  .page-header-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 15px;
+    gap: 12px;
+  }
+
+  .page-caption {
+    font-size: 17px;
+    white-space: normal;
+  }
+
+  .page-header-center,
+  .page-header-right {
+    justify-content: flex-start;
+  }
+
+  .page-card {
+    padding: 12px;
+  }
+
+  .page-header-bar-secondary {
+    padding: 12px;
+  }
+
+  .data-table {
+    min-width: 650px;
+  }
+
+  .tx-filter-group {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width:480px) {
+  .btn-app {
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+
+  .btn-toggle {
+    min-width: auto;
+  }
+
+  .page-header-bar-secondary {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-header-left,
+  .page-header-right {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .record-card {
+    padding: 10px;
+  }
+}
+
+/* =========================================
+   SAVE BUTTON COLOURS
+   ========================================= */
+
+/* Save & Add New - Green */
+
+.btn-save-new {
+  background-color: #087D4B;
+  border: 1px solid #087D4B;
+  color: #FFFFFF;
+}
+
+.btn-save-new:hover:not(:disabled) {
+  background-color: #05633B;
+  border-color: #05633B;
+  color: #FFFFFF;
+}
+
+/* Save & Close - Blue */
+
+.btn-save-close {
+  background-color: #0866C2;
+  border: 1px solid #0866C2;
+  color: #FFFFFF;
+}
+
+.btn-save-close:hover:not(:disabled) {
+  background-color: #064E96;
+  border-color: #064E96;
+  color: #FFFFFF;
+}
+
+/* Back - Dark Navy */
+
+.btn-back {
+  background-color: #1C2733;
+  border: 1px solid #1C2733;
+  color: #FFFFFF;
+}
+
+.btn-back:hover:not(:disabled) {
+  background-color: #112F3E;
+  border-color: #112F3E;
+  color: #FFFFFF;
+}
+
+/* =========================================
+   PAGE HEADING WITH ICON
+   ========================================= */
+
+.page-caption-with-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+
+  margin: 0;
+
+  color: #17384A;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.page-caption-icon {
+  color: #0866C2;
+  font-size: 28px;
+  line-height: 1;
+}
+
+
+/* =========================================
+   GREEN BASKET PROFILE REGISTRATION
+   ========================================= */
+
+.profile-page-card {
+  padding: 24px;
+  background: #FFFFFF;
+}
+
+.profile-form {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.profile-form-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #17384A;
+  margin: 0 0 20px;
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 15px;
+}
+
+.profile-form .form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #17384A;
+  margin-bottom: 2px;
+}
+
+.profile-form .form-control,
+.profile-form .form-select {
+  width: 100%;
+  height: 38px;
+  min-height: 38px;
+  padding: 7px 11px;
+  background: #FFFFFF;
+  border: 1px solid #CBDCF1;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #17384A;
+  box-shadow: none;
+}
+
+.profile-form .form-control:focus,
+.profile-form .form-select:focus {
+  border-color: #0866C2;
+  box-shadow: 0 0 0 3px rgba(8, 102, 194, .10);
+  outline: none;
+}
+
+.profile-form .required {
+  color: #DC3545;
+}
+
+.profile-form .optional {
+  color: #64748B;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.profile-user-types {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.profile-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.profile-radio input {
+  accent-color: #087D4B;
+}
+
+.profile-radio-disabled {
+  color: #94A3B8;
+}
+
+.profile-radio-disabled small {
+  font-size: 10px;
+}
+
+.profile-phone-group {
+  display: flex;
+  gap: 6px;
+}
+
+.profile-country-code {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 46px;
+  height: 38px;
+  background: #F1F6FC;
+  border: 1px solid #CBDCF1;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.profile-phone-group .form-control {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-text-button {
+  align-self: flex-start;
+  padding: 2px 0;
+  background: transparent;
+  border: none;
+  color: #0866C2;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.profile-text-button:hover {
+  text-decoration: underline;
+}
+
+.profile-location-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: #F8FBFF;
+  border: 1px solid #CBDCF1;
+  border-radius: 7px;
+}
+
+.profile-location-selector>i {
+  color: #0866C2;
+  font-size: 21px;
+}
+
+.profile-location-text {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.profile-location-text strong {
+  font-size: 12px;
+  color: #17384A;
+}
+
+.profile-location-text small {
+  font-size: 11px;
+  color: #64748B;
+  overflow-wrap: anywhere;
+}
+
+.profile-map-button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #CBDCF1;
+  border-radius: 6px;
+  background: #FFFFFF;
+  color: #0866C2;
+  cursor: pointer;
+}
+
+.profile-image-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px dashed #CBDCF1;
+  border-radius: 8px;
+  background: #FAFCFF;
+}
+
+.profile-image-box>i {
+  color: #0866C2;
+  font-size: 24px;
+}
+
+.profile-image-box .form-control {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-terms {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  font-size: 13px;
+}
+
+.profile-terms input {
+  width: 15px;
+  height: 15px;
+  accent-color: #087D4B;
+}
+
+.profile-help {
+  color: #0866C2;
+  font-weight: 600;
+}
+
+.profile-validation {
+  font-size: 12px;
+}
+
+.profile-actions {
+  justify-content: space-between;
+}
+
+.btn-register {
+  background: #087D4B;
+  border: 1px solid #087D4B;
+  color: #FFFFFF;
+}
+
+.btn-register:hover:not(:disabled) {
+  background: #05633B;
+  color: #FFFFFF;
+}
+
+.btn-back {
+  background: #1C2733;
+  border: 1px solid #1C2733;
+  color: #FFFFFF;
+}
+
+.btn-back:hover:not(:disabled) {
+  background: #112F3E;
+  color: #FFFFFF;
+}
+
+/* =========================================
+   LOCATION MAP MODAL
+   ========================================= */
+
+.profile-map-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(17, 47, 62, .65);
+}
+
+.profile-map-modal {
+  width: 100%;
+  max-width: 650px;
+  max-height: 95vh;
+  overflow-y: auto;
+  background: #FFFFFF;
+  border: 2px solid #0866C2;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, .18);
+}
+
+.profile-map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-map-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #17384A;
+}
+
+.profile-map-header h3 i {
+  color: #0866C2;
+  margin-right: 7px;
+}
+
+.profile-map-close {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  color: #17384A;
+}
+
+.profile-map-instruction {
+  margin: 12px 0;
+  font-size: 13px;
+  color: #64748B;
+}
+
+.profile-map-container {
+  width: 100%;
+  height: 350px;
+  border: 1px solid #CBDCF1;
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.profile-map-coordinates {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #17384A;
+}
+
+.profile-map-coordinates i {
+  color: #0866C2;
+  margin-right: 6px;
+}
+
+.profile-map-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.profile-map-actions .btn-save-close {
+  background: #0866C2;
+  border-color: #0866C2;
+  color: #FFFFFF;
+}
+
+.profile-map-actions .btn-save-close:hover:not(:disabled) {
+  background: #064E96;
+}
+
+.profile-location-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 2px solid #0866C2;
+  color: #0866C2;
+  font-size: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .2);
+}
+
+@media (max-width: 576px) {
+
+  .profile-page-card {
+    padding: 18px 14px;
+  }
+
+  .profile-form {
+    max-width: 100%;
+  }
+
+  .profile-map-container {
+    height: 300px;
+  }
+
+  .profile-map-actions {
+    flex-direction: column;
+  }
+
+  .profile-map-actions .btn-app {
+    width: 100%;
+    justify-content: center;
+  }
+
+}
+
+.profile-image-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px dashed #CBDCF1;
+  border-radius: 8px;
+  background: #FAFCFF;
+}
+
+.profile-upload-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid #0866C2;
+  border-radius: 6px;
+  background: #FFFFFF;
+  color: #0866C2;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.profile-upload-button:hover {
+  background: #EFF6FF;
+}
+
+.profile-image-upload small {
+  font-size: 11px;
+  color: #64748B;
+}
+
+.profile-image-preview img {
+  display: block;
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.profile-remove-image {
+  margin-top: 8px;
+  border: none;
+  background: transparent;
+  color: #DC3545;
+  font-size: 12px;
+  cursor: pointer;
+}

@@ -1,0 +1,150 @@
+<div class="app-layout">
+    <!-- Mobile Header Bar: Only visible on small smartphone screens -->
+    <header class="mobile-top-bar">
+
+        <!-- Green Basket Icon -->
+        <div class="mobile-brand">
+
+            <img src="/Images/Green Basket Light.jpg" alt="Green Basket" class="mobile-brand-logo" />
+
+        </div>
+
+        <div class="mobile-header-actions">
+
+            <!-- Language Selection -->
+            <div class="language-selector mobile-language-selector">
+
+                <i class="bi bi-translate"></i>
+
+                <select class="language-dropdown" [value]="selectedLanguage" (change)="onLanguageChange($event)"
+                    aria-label="Select language">
+
+                    <option value="en">English</option>
+
+                    <option value="ta">தமிழ்</option>
+
+                    <option value="ur">اردو</option>
+
+                </select>
+
+            </div>
+
+            <!-- Existing Sidebar Toggle -->
+            <button type="button" class="mobile-toggle-btn" (click)="toggleSidebar()" aria-label="Toggle menu">
+
+                <i class="bi" [ngClass]="
+          isSidebarCollapsed
+            ? 'bi-list'
+            : 'bi-x-lg'
+        "></i>
+
+            </button>
+
+        </div> <!-- End mobile-header-actions -->
+
+    </header> <!-- MISSING CLOSING TAG -->
+
+    <!-- Navigation Sidebar Container Frame -->
+    <aside class="sidebar" [class.mobile-open]="!isSidebarCollapsed">
+        <!-- Branding Header Section with 3 Leaves -->
+
+
+        <div class="sidebar-header">
+
+            <div class="brand-logo">
+
+                <img src="/Images/Green Basket Light.jpg" alt="Green Basket" class="desktop-brand-logo" />
+                <span class="desktop-brand-name">
+
+                    <h4>Green Basket</h4>
+                    <span class="sub-brand">Admin Panel</span>
+                </span>
+
+            </div>
+
+            <!-- Language Selection -->
+            <div class="language-selector">
+
+                <i class="bi bi-translate"></i>
+
+                <select class="language-dropdown" [value]="selectedLanguage" (change)="onLanguageChange($event)"
+                    aria-label="Select language">
+
+                    <option value="en">English</option>
+
+                    <option value="ta">தமிழ்</option>
+
+                    <option value="ur">اردو</option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+        <!-- Navigation Menu Items -->
+        <nav class="sidebar-menu">
+            <a class="menu-item" routerLink="/dashboard" routerLinkActive="active" (click)="isSidebarCollapsed = true">
+                <i class="bi bi-grid-1x2"></i> <span>Dashboard</span>
+            </a>
+
+            <a class="menu-item" routerLink="/mastertables/tblCityorTownMaster" routerLinkActive="active-submenu"
+                (click)="isSidebarCollapsed = true">
+                <i class="bi bi-buildings"></i> 
+                <span>{{ 'MENU.CITY_MASTER' | translate }}</span>
+            </a>
+
+            <a class="menu-item" routerLink="/mastertables/tblStreetMaster" routerLinkActive="active-submenu"
+                (click)="isSidebarCollapsed = true">
+                <i class="bi bi-geo-alt"></i>
+                <span>{{ 'MENU.STREET_MASTER' | translate }}</span>
+            </a>
+
+            <!-- <a routerLink="/mastertables/tblProfile" routerLinkActive="active-submenu">Profile</a> -->
+            <a class="menu-item" routerLink="/mastertables/tblProfile" routerLinkActive="active-submenu"
+                (click)="isSidebarCollapsed = true">
+                <i class="bi bi-person-badge"></i>
+                <span>{{ 'MENU.PROFILE' | translate }}</span>
+            </a>
+
+            <a class="menu-item" routerLink="/mastertables/tblItemMaster" routerLinkActive="active"
+                (click)="isSidebarCollapsed = true">
+                <i class="bi bi-box-seam"></i>
+                <span>{{ 'MENU.ITEM_MASTER' | translate }}</span>
+            </a>
+
+            <a class="menu-item" routerLink="/transactiontables/tblDailyInventory" routerLinkActive="active-submenu"
+                (click)="isSidebarCollapsed = true">
+                <i class="bi bi-clipboard-data"></i>
+                <span>{{ 'MENU.DAILY_INVENTORY' | translate }}</span>
+            </a>
+
+
+            <a class="menu-item" routerLink="/orders" routerLinkActive="active" (click)="isSidebarCollapsed = true">
+                <i class="bi bi-file-earmark-text"></i>
+                <span>{{ 'MENU.ORDERS' | translate }}</span>
+            </a>
+
+            <a class="menu-item" routerLink="/concerns" routerLinkActive="active" (click)="isSidebarCollapsed = true">
+                <i class="bi bi-exclamation-triangle"></i> <span>{{ 'MENU.CUSTOMER_CONCERNS' | translate }}</span>
+            </a>
+
+            <a class="menu-item" routerLink="/propertyMaster" routerLinkActive="active"
+                (click)="isSidebarCollapsed = true">
+                <i class="bi bi-gear"></i> <span>{{ 'MENU.APP_SETTINGS' | translate }}</span>
+            </a>
+
+            <a class="menu-item" routerLink="/reports" routerLinkActive="active" (click)="isSidebarCollapsed = true">
+                <i class="bi bi-pie-chart"></i> <span>{{ 'MENU.REPORTS' | translate }}</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Backdrop overlay when mobile sidebar drawer menu expands -->
+    <div class="sidebar-backdrop" *ngIf="!isSidebarCollapsed" (click)="toggleSidebar()"></div>
+
+    <!-- Main Workspace Output Container Frame -->
+    <main class="main-content">
+        <router-outlet></router-outlet>
+    </main>
+</div>

@@ -1,0 +1,135 @@
+<div class="container grid-page-shell">
+
+    <!-- ============================================
+		 Page header: caption + record toggle + New Record
+		 ============================================ -->
+    <div class="page-header-bar">
+
+        <h1 class="page-caption">TblProfilesList</h1>
+
+        <div class="page-header-center">
+            <button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
+                (click)="OnFormSubmit('Load All')"
+                [attr.title]="actionType !== 'Load All' ? 'Loading All Records' : 'All Records'">
+                <i class="bi bi-list-ul"></i>
+                All Records
+            </button>
+
+            <button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Active Only'"
+                (click)="OnFormSubmit('Active Only')"
+                [attr.title]="actionType !== 'Active Only' ? 'Loading Active Records' : 'Active Records'">
+                <i class="bi bi-check-circle"></i>
+                Active Records
+            </button>
+        </div>
+
+        <div class="page-header-right">
+            <a [routerLink]="['add']" class="btn-app btn-new">
+                <i class="bi bi-plus-lg"></i>
+                New Record
+            </a>
+        </div>
+
+    </div>
+
+    <div class="page-card">
+
+        <div class="page-header-bar-secondary">
+
+            <div class="page-header-left">
+                <button type="button" class="btn-app btn-outline">
+                    <i class="bi bi-funnel"></i>
+                    Filter
+                </button>
+
+                <button type="button" class="btn-app btn-outline">
+                    <i class="bi bi-download"></i>
+                    Export CSV
+                </button>
+            </div>
+
+            <div class="page-header-right">
+                <ng-container *ngIf="tblProfile$ | async as tblprofiles">
+                    <span class="pagination-info">
+                        Showing {{ tblprofiles.length }} of {{ tblprofiles.length }} Records
+                    </span>
+                </ng-container>
+
+                <button type="button" class="pager-btn" disabled>
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <button type="button" class="pager-btn" disabled>
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+
+        </div>
+
+        <ng-container *ngIf="tblProfile$ | async as tblprofiles">
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>User Type</th>
+                        <th>Contact Number</th>
+                        <th>Alternate Contact Number</th>
+                        <th>Full Name</th>
+                        <th>Complex Or Building Name</th>
+                        <th>Door No</th>
+                        <th>F K Street Id</th>
+                        <th>Street Name</th>
+                        <th>G P S Location</th>
+                        <th>House Image Path</th>
+                        <th>Is Terms Agreed</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr *ngFor="let tblprofile of tblprofiles">
+                        <td class="cell-code">{{tblprofile.fldId}}</td>
+                        <td class="cell-primary">{{tblprofile.fldUserType}}</td>
+                        <td class="cell-mono">{{tblprofile.fldContactNumber}}</td>
+                        <td class="cell-mono">{{tblprofile.fldAlternateContactNumber}}</td>
+                        <td>{{tblprofile.fldFullName}}</td>
+                        <td>{{tblprofile.fldComplexOrBuildingName}}</td>
+                        <td>{{tblprofile.fldDoorNo}}</td>
+                        <td>{{tblprofile.fldFKStreetId}}</td>
+                        <td>{{tblprofile.fldStreetName}}</td>
+                        <td>{{tblprofile.fldGPSLocation}}</td>
+                        <td>{{tblprofile.fldHouseImagePath}}</td>
+                        <td>
+                            <span class="badge-pill"
+                                [ngClass]="tblprofile.fldIsTermsAgreed ? 'badge-success' : 'badge-muted'">
+                                {{tblprofile.fldIsTermsAgreed ? 'Yes' : 'No'}}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="row-actions">
+                                <a class="icon-btn edit" title="Edit"
+                                    [routerLink]="['/mastertables/tblProfile/Edit', tblprofile.fldId]"
+                                    [queryParams]="{ action: 'Edit' }">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a class="icon-btn delete" title="Delete"
+                                    [routerLink]="['/mastertables/tblProfile/Edit', tblprofile.fldId]"
+                                    [queryParams]="{ action: 'Delete' }">
+                                    <i class="bi bi-trash3"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+            <p class="grid-footnote" *ngIf="tblprofiles.length === 0">
+                No records found.
+            </p>
+
+        </ng-container>
+
+    </div>
+
+</div>

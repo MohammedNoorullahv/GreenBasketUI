@@ -1,0 +1,41 @@
+{
+  "APP": {
+    "NAME": "Green Basket",
+    "ADMIN_PANEL": "Admin Panel",
+    "POWERED_BY": "Powered by"
+  },
+  "MENU": {
+    "DASHBOARD": "Dashboard",
+    "VEGETABLE_MASTER": "Vegetable Master",
+    "CITY_MASTER": "City/Town Master",
+    "STREET_MASTER": "Street Master",
+    "PROFILE": "Profile",
+    "ITEM_MASTER": "Item Master",
+    "DAILY_INVENTORY": "Daily Inventory",
+    "ORDERS": "Orders",
+    "CUSTOMER_CONCERNS": "Customer Concerns",
+    "APP_SETTINGS": "App Settings",
+    "REPORTS": "Reports"
+  },
+  "BUTTON": {
+    "SAVE": "Save",
+    "SAVE_ADD": "Save & Add",
+    "SAVE_CLOSE": "Save & Close",
+    "BACK": "Back",
+    "REGISTER": "Register",
+    "CANCEL": "Cancel",
+    "CLOSE": "Close"
+  },
+  "LABEL": {
+    "CITY_NAME": "City/Town Name",
+    "AREA_NAME": "Area Name",
+    "STREET_NAME": "Street Name",
+    "PINCODE": "Pincode",
+    "ITEM_NAME": "Item Name",
+    "ITEM_PRICE": "Item Price",
+    "ITEM_QUANTITY": "Item Quantity",
+    "ITEM_UNIT": "Item Unit",
+    "ITEM_CATEGORY": "Item Category",
+    "ITEM_DESCRIPTION": "Item Description"
+  }
+}

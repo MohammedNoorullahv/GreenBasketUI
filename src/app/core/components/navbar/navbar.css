@@ -1,0 +1,678 @@
+:host {
+
+  /* Existing Green Basket Colour Identity */
+
+  --sidebar-bg: #112F3E;
+
+  --sidebar-hover: #0AA054;
+
+  --sidebar-active: #0AA054;
+
+  --text-light: #FFFFFF;
+
+  --text-muted: #B8C9D5;
+
+  --main-bg: #F4F7F9;
+
+
+  /* Premium Typography */
+
+  --font-brand: 'Plus Jakarta Sans', sans-serif;
+
+  --font-menu: 'Inter', sans-serif;
+
+
+  display: block;
+
+  width: 100%;
+
+  height: 100vh;
+
+}
+
+
+/* =========================================
+   BASE APPLICATION LAYOUT
+========================================= */
+
+.app-layout {
+
+  display: flex;
+
+  min-height: 100vh;
+
+  width: 100%;
+
+  background-color: var(--main-bg);
+
+  font-family: var(--font-menu);
+
+  -webkit-font-smoothing: antialiased;
+
+  text-rendering: optimizeLegibility;
+
+}
+
+
+/* =========================================
+   SIDEBAR
+========================================= */
+
+.sidebar {
+
+  width: 260px;
+
+  background-color: var(--sidebar-bg);
+
+  color: var(--text-light);
+
+  display: flex;
+
+  flex-direction: column;
+
+  flex-shrink: 0;
+
+  height: 100vh;
+
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.08);
+
+  z-index: 100;
+
+  transition: transform 0.3s
+    cubic-bezier(0.4, 0, 0.2, 1);
+
+}
+
+
+/* =========================================
+   SIDEBAR HEADER
+========================================= */
+
+.sidebar-header {
+
+  padding: 25px 24px 24px;
+
+  border-bottom: 1px solid
+    rgba(255, 255, 255, 0.07);
+
+}
+
+
+/* =========================================
+   BRAND LOGO
+========================================= */
+
+.brand-logo {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+}
+
+
+.organic-leaves-logo {
+
+  width: 38px;
+
+  height: 38px;
+
+  flex-shrink: 0;
+
+  filter: drop-shadow(
+    0px 2px 4px rgba(0, 0, 0, 0.15)
+  );
+
+}
+
+
+/* =========================================
+   BRAND NAME - PREMIUM TYPOGRAPHY
+========================================= */
+
+.brand-text h1 {
+
+  font-family: var(--font-brand);
+
+  font-size: 1.28rem;
+
+  font-weight: 700;
+
+  line-height: 1.35;
+
+  letter-spacing: -0.65px;
+
+  margin: 0;
+
+  color: #FFFFFF;
+
+}
+
+
+/* =========================================
+   ADMIN PANEL SUBTITLE
+========================================= */
+
+.sub-brand {
+
+  font-family: var(--font-menu);
+
+  font-size: 0.76rem;
+
+  font-weight: 400;
+
+  letter-spacing: 0.15px;
+
+  line-height: 1.5;
+
+  color: #B8C9D5;
+
+  display: block;
+
+  margin-top: 3px;
+
+}
+
+
+/* =========================================
+   SIDEBAR MENU CONTAINER
+========================================= */
+
+.sidebar-menu {
+
+  display: flex;
+
+  flex-direction: column;
+
+  padding: 18px 12px;
+
+  gap: 5px;
+
+}
+
+
+/* =========================================
+   MENU ITEMS - PREMIUM TYPOGRAPHY
+========================================= */
+
+.menu-item {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 15px;
+
+  padding: 12px 15px;
+
+  color: var(--text-muted);
+
+  text-decoration: none;
+
+  font-family: var(--font-menu);
+
+  font-size: 0.91rem;
+
+  font-weight: 500;
+
+  letter-spacing: -0.15px;
+
+  line-height: 1.5;
+
+  border-radius: 8px;
+
+  transition:
+
+    background-color 0.18s ease,
+
+    color 0.18s ease,
+
+    box-shadow 0.18s ease;
+
+}
+
+
+/* =========================================
+   MENU ICONS
+========================================= */
+
+.menu-item i {
+
+  font-size: 1.2rem;
+
+  width: 24px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  opacity: 0.95;
+
+  transition: opacity 0.18s ease;
+
+}
+
+
+/* =========================================
+   HOVER AND ACTIVE STATE
+
+   ORIGINAL GREEN BACKGROUND RETAINED
+========================================= */
+
+.menu-item:hover,
+
+.menu-item.active {
+
+  background-color: var(--sidebar-hover) !important;
+
+  color: var(--text-light) !important;
+
+  font-weight: 600;
+
+  box-shadow:
+    0 4px 12px rgba(10, 160, 84, 0.25);
+
+}
+
+
+/* Menu icons when active */
+
+.menu-item:hover i,
+
+.menu-item.active i {
+
+  color: #FFFFFF;
+
+  opacity: 1;
+
+}
+
+
+/* =========================================
+   MOBILE TOP BAR
+========================================= */
+
+.mobile-top-bar {
+
+  display: none;
+
+}
+
+
+/* =========================================
+   MAIN CONTENT
+========================================= */
+
+.main-content {
+
+  flex: 1;
+
+  min-width: 0;
+
+  background-color: var(--main-bg);
+
+  padding: 30px;
+
+  overflow-y: auto;
+
+  height: 100vh;
+
+  font-family: var(--font-menu);
+
+}
+
+
+/* =========================================
+   MOBILE RESPONSIVE DESIGN
+========================================= */
+
+@media (max-width: 991px) {
+
+  .app-layout {
+
+    flex-direction: column;
+
+  }
+
+
+  .mobile-top-bar {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    background-color: var(--sidebar-bg);
+
+    color: var(--text-light);
+
+    padding: 0 20px;
+
+    height: 65px;
+
+    position: fixed;
+
+    top: 0;
+
+    left: 0;
+
+    right: 0;
+
+    z-index: 101;
+
+    box-shadow:
+      0 2px 10px rgba(0, 0, 0, 0.2);
+
+  }
+
+
+  .mobile-toggle-btn {
+
+    background: transparent;
+
+    border: none;
+
+    color: white;
+
+    font-size: 1.75rem;
+
+    cursor: pointer;
+
+    display: flex;
+
+    align-items: center;
+
+    padding: 8px;
+
+  }
+
+
+  .sidebar {
+
+    position: fixed;
+
+    top: 65px;
+
+    left: 0;
+
+    bottom: 0;
+
+    width: 270px;
+
+    height: calc(100vh - 65px);
+
+    transform: translateX(-100%);
+
+    box-shadow: none;
+
+    border-radius: 0;
+
+  }
+
+
+  .sidebar.mobile-open {
+
+    transform: translateX(0);
+
+    box-shadow:
+      5px 0 20px rgba(0, 0, 0, 0.3);
+
+  }
+
+
+  .sidebar-header {
+
+    display: none;
+
+  }
+
+
+  .sidebar-backdrop {
+
+    position: fixed;
+
+    top: 65px;
+
+    left: 0;
+
+    right: 0;
+
+    bottom: 0;
+
+    background: rgba(0, 0, 0, 0.5);
+
+    backdrop-filter: blur(2px);
+
+    z-index: 99;
+
+  }
+
+
+  .main-content {
+
+    margin-top: 65px;
+
+    padding: 20px;
+
+    height: calc(100vh - 65px);
+
+  }
+
+}
+
+
+/* =========================================
+   PURE CSS THREE-LEAF LOGO
+========================================= */
+
+.triple-leaf-css {
+
+  position: relative;
+
+  width: 36px;
+
+  height: 36px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  margin-right: 4px;
+
+}
+
+
+.css-leaf {
+
+  position: absolute;
+
+  background-color: #0AA054 !important;
+
+  border-radius: 0 100% 0 100%;
+
+  transform-origin: bottom center;
+
+}
+
+
+/* Central Leaf */
+
+.css-leaf.leaf-center {
+
+  width: 14px;
+
+  height: 24px;
+
+  top: 2px;
+
+  transform: rotate(0deg);
+
+  z-index: 2;
+
+}
+
+
+/* Left Leaf */
+
+.css-leaf.leaf-left {
+
+  width: 10px;
+
+  height: 18px;
+
+  bottom: 8px;
+
+  left: 3px;
+
+  transform: rotate(-40deg);
+
+  opacity: 0.85;
+
+  z-index: 1;
+
+}
+
+
+/* Right Leaf */
+
+.css-leaf.leaf-right {
+
+  width: 10px;
+
+  height: 18px;
+
+  bottom: 8px;
+
+  right: 3px;
+
+  transform: rotate(40deg);
+
+  opacity: 0.9;
+
+  z-index: 1;
+
+}
+
+/* =========================================
+   GREEN BASKET BRANDING
+========================================= */
+
+.desktop-brand-logo {
+  display: block;
+  width: 100%;
+  max-width: 100px;
+  height: auto;
+  object-fit: contain;
+}
+
+.mobile-brand-logo {
+  display: block;
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
+
+/* =========================================
+   LANGUAGE SELECTOR
+========================================= */
+
+.language-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin-top: 18px;
+  padding: 9px 12px;
+
+  background: rgba(255, 255, 255, 0.08);
+
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+
+  color: #ffffff;
+}
+
+.language-selector i {
+  font-size: 18px;
+  color: #4ade80;
+}
+
+.language-dropdown {
+  flex: 1;
+  min-width: 0;
+
+  background: transparent;
+  color: #ffffff;
+
+  border: none;
+  outline: none;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.language-dropdown option {
+  background: #ffffff;
+  color: #112f3e;
+}
+
+/* =========================================
+   MOBILE HEADER
+========================================= */
+
+.mobile-brand {
+  display: flex;
+  align-items: center;
+}
+
+.mobile-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobile-language-selector {
+  margin-top: 0;
+  padding: 7px 9px;
+  gap: 7px;
+}
+
+.mobile-language-selector .language-dropdown {
+  width: 76px;
+  flex: none;
+  font-size: 12px;
+}
+
+@media (max-width: 380px) {
+
+  .mobile-top-bar {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .mobile-header-actions {
+    gap: 5px;
+  }
+
+  .mobile-language-selector {
+    padding: 6px;
+  }
+
+  .mobile-language-selector .language-dropdown {
+    width: 65px;
+  }
+
+}

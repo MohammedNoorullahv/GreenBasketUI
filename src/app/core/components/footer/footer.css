@@ -1,0 +1,22 @@
+.relaffsol-footer {
+
+  width: 100%;
+
+  min-height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 8px 16px;
+
+  background: #ffffff;
+
+  border-top: 1px solid #e2e8f0;
+
+  color: #64748b;
+
+  font-size: 12px;
+
+  box-sizing: border-box;
+}

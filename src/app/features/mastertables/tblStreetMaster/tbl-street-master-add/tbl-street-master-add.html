@@ -1,0 +1,62 @@
+<div class="container grid-page-shell">
+
+	<!-- ============================================
+		 Section 1: Caption
+		 ============================================ -->
+	<div class="page-header-bar-simple">
+		<i class="bi bi-geo-alt"></i> 
+		<h1 class="page-caption">Add Street Masters</h1>
+	</div>
+
+	<form #form="ngForm" novalidate>
+
+		<!-- ============================================
+			 Section 2: Input fields
+			 ============================================ -->
+		<div class="page-card">
+
+			<div class="d-flex flex-row form-row">
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldFKCity">F K City</label>
+					<select id="fldFKCity" class="form-select" name="fldFKCity" [(ngModel)]="model.fldFKCity" required>
+						<option value="">-- Select --</option>
+						<option *ngFor="let tblCityorTownMaster of tblCityorTownMaster$ | async" [value]="tblCityorTownMaster.fldId">{{ tblCityorTownMaster.fldCityorTownName }}</option>
+					</select>
+					<div class="text-danger" *ngIf="form.controls['fldFKCity']?.touched && form.controls['fldFKCity']?.invalid">
+						F K City is required and should be greater than 0.
+					</div>
+
+				</div>
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldStreetName">Street Name</label>
+					<input type="text" id="fldStreetName" class="form-control" name="fldStreetName" [(ngModel)]="model.fldStreetName" maxlength="100" required>
+					<div class="text-danger" *ngIf="form.controls['fldStreetName']?.touched && form.controls['fldStreetName']?.invalid">
+						Street Name is required.
+					</div>
+
+				</div>
+			</div>
+
+		</div>
+
+		<!-- ============================================
+			 Section 3: Command buttons
+			 ============================================ -->
+		<div class="page-actions-bar">
+			<button type="button" (click)="OnFormSubmit(form, 'SaveAndAddNew')" class="btn-app btn-save-new" [disabled]="isSaving">
+				<i class="bi bi-floppy"></i>
+				Save &amp; Add New
+			</button>
+			<button type="button" (click)="OnFormSubmit(form, 'SaveAndClose')" class="btn-app btn-save-close" [disabled]="isSaving">
+				<i class="bi bi-check2-circle"></i>
+				Save &amp; Close
+			</button>
+			<button type="button" (click)="backToHome()" class="btn-app btn-dark">
+				<i class="bi bi-arrow-left"></i>
+				Back
+			</button>
+		</div>
+
+	</form>
+
+</div>

@@ -2057,3 +2057,223 @@ body {
   font-size: 12px;
   cursor: pointer;
 }
+
+/* ============================================================
+   GLOBAL FORM CONTROL STYLING
+   Applicable to all Angular pages
+   ============================================================ */
+
+:root {
+  --app-input-border: #94a9c5;
+  --app-input-hover-border: #647f9f;
+
+  --app-input-focus-border: #2563eb;
+  --app-input-focus-shadow: rgba(37, 99, 235, 0.18);
+
+  --app-input-background: #ffffff;
+  --app-input-text: #1e293b;
+
+  --app-input-disabled-background: #f1f5f9;
+  --app-input-disabled-border: #cbd5e1;
+}
+
+
+/* ------------------------------------------------------------
+   1. Normal input boxes
+   ------------------------------------------------------------ */
+
+.form-control,
+.form-select {
+
+  background-color: var(--app-input-background);
+
+  color: var(--app-input-text);
+
+  border: 1px solid var(--app-input-border);
+
+  border-radius: 5px;
+
+  box-shadow: none;
+
+  transition:
+    border-color 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out,
+    background-color 0.2s ease-in-out;
+
+}
+
+
+/* ------------------------------------------------------------
+   2. Mouse hover
+   ------------------------------------------------------------ */
+
+.form-control:hover:not(:disabled):not(:focus),
+.form-select:hover:not(:disabled):not(:focus) {
+
+  border-color: var(--app-input-hover-border);
+
+}
+
+
+/* ------------------------------------------------------------
+   3. Currently focused input box
+   ------------------------------------------------------------ */
+
+.form-control:focus,
+.form-select:focus {
+
+  background-color: #ffffff;
+
+  color: var(--app-input-text);
+
+  border-color: var(--app-input-focus-border);
+
+  outline: 0;
+
+  box-shadow:
+    0 0 0 3px var(--app-input-focus-shadow);
+
+}
+
+
+/* ------------------------------------------------------------
+   4. Disabled input boxes
+   ------------------------------------------------------------ */
+
+.form-control:disabled,
+.form-select:disabled,
+.form-control[readonly],
+.form-select[readonly] {
+
+  background-color: var(--app-input-disabled-background);
+
+  border-color: var(--app-input-disabled-border);
+
+  color: #64748b;
+
+  box-shadow: none;
+
+  cursor: not-allowed;
+
+}
+
+
+/* ------------------------------------------------------------
+   5. Invalid input boxes after user interaction
+   ------------------------------------------------------------ */
+
+.form-control.ng-invalid.ng-touched:not(:focus),
+.form-select.ng-invalid.ng-touched:not(:focus) {
+
+  border-color: #dc3545;
+
+}
+
+
+/* ------------------------------------------------------------
+   6. Textarea
+   ------------------------------------------------------------ */
+
+textarea.form-control {
+
+  resize: vertical;
+
+}
+
+
+/* ------------------------------------------------------------
+   7. Placeholder text
+   ------------------------------------------------------------ */
+
+.form-control::placeholder {
+
+  color: #94a3b8;
+
+  opacity: 1;
+
+}
+
+/* Vegetable image - fixed size */
+.vegetable-image {
+  width: 48px;
+  height: 48px;
+
+  min-width: 48px;
+  min-height: 48px;
+
+  max-width: 48px;
+  max-height: 48px;
+
+  object-fit: cover;
+
+  border-radius: 8px;
+
+  display: block;
+
+  background-color: #f0fdf4;
+}
+
+.stock-grid-scroll {
+  max-height: calc(100vh - 280px);
+
+  overflow-y: auto;
+  overflow-x: auto;
+
+  position: relative;
+}
+
+.stock-grid-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.stock-grid-table thead th {
+  background: yellow !important;
+  position: sticky;
+  top: 0;
+
+  z-index: 10;
+
+  background-color: #eaf8f0;
+
+  border-bottom: 1px solid #087f5b;
+}
+
+
+/* =========================================
+   GREEN BASKET - DAILY STOCK STICKY HEADER
+   ========================================= */
+
+/* Scroll only the vegetable list */
+.daily-stock-scroll {
+  height: 60vh;
+  overflow-y: auto;
+  overflow-x: auto;
+  position: relative;
+}
+
+/* Retain existing table styling */
+.daily-stock-scroll table {
+  width: 100%;
+}
+
+/* Sticky column headings */
+.daily-stock-scroll table thead th {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 100 !important;
+
+  background: #eaf8f0 !important;
+  box-shadow: 0 1px 0 #087f5b;
+}
+
+.daily-stock-scroll table {
+  width: 100%;
+  min-width: 900px;
+  table-layout: auto;
+}
+
+.daily-stock-scroll table thead th {
+  white-space: nowrap;
+}

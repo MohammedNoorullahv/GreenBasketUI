@@ -1,0 +1,35 @@
+.stock-page { padding-bottom: 1rem; }
+.stock-header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; align-items: end; }
+.stock-subtitle { color: #64748b; font-size: .86rem; margin-top: .25rem; }
+.stock-date { min-width: 180px; }
+.stock-date .form-label { display: block; margin-bottom: .25rem; }
+.stock-card { padding: .75rem; }
+.stock-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-bottom: .75rem; }
+.stock-search { max-width: 320px; }
+.stock-changed-filter { display: flex; align-items: center; gap: .4rem; white-space: nowrap; }
+.stock-table-wrap { width: 100%; overflow-x: auto; }
+.stock-table { width: 100%; min-width: 790px; border-collapse: collapse; }
+.stock-table th, .stock-table td { padding: .5rem .55rem; vertical-align: middle; }
+.stock-table th { background: #edf7f1; color: #14532d; white-space: nowrap; }
+.stock-table tbody tr { border-bottom: 1px solid #e2e8f0; }
+.stock-table tbody tr.stock-edited { background: #f0fdf4; }
+.stock-item { display: flex; gap: .65rem; align-items: center; min-width: 165px; }
+.stock-thumb { width: 39px; height: 39px; flex-shrink: 0; object-fit: cover; border-radius: 8px; background: #f1f5f9; }
+.stock-item-name { font-weight: 600; color: #172b3d; }
+.stock-item-tamil { font-size: .76rem; color: #475569; }
+.stock-item-unit { font-size: .73rem; color: #64748b; }
+.stock-number { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.stock-current { font-weight: 700; color: #047857; }
+.stock-number-input { min-width: 90px; max-width: 125px; text-align: right; border: 1px solid #94a9c5; }
+.stock-number-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.18); }
+.stock-switch { display: inline-block; position: relative; width: 43px; height: 24px; cursor: pointer; }
+.stock-switch input { opacity: 0; width: 0; height: 0; }
+.stock-switch-slider { position: absolute; inset: 0; background: #aab4c2; border-radius: 20px; transition: .2s; }
+.stock-switch-slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; border-radius: 50%; background: white; transition: .2s; }
+.stock-switch input:checked + .stock-switch-slider { background: #078653; }
+.stock-switch input:checked + .stock-switch-slider::before { transform: translateX(19px); }
+.stock-switch input:focus-visible + .stock-switch-slider { outline: 3px solid rgba(37,99,235,.35); outline-offset: 2px; }
+.stock-message { text-align: center; color: #64748b; padding: 1.5rem; }
+.stock-actions { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
+.stock-save-count { margin-right: auto; font-size: .85rem; color: #475569; }
+@media (max-width: 640px) { .stock-search { max-width: none; flex: 1 1 100%; } .stock-card { padding: .35rem; } .stock-table th, .stock-table td { padding: .4rem; } }

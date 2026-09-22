@@ -1,10 +1,11 @@
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { TblDailyInventory } from '../models/tblDailyInventory.model';
 import { TblDailyInventoryAdd } from '../models/tblDailyInventory-Add.model';
 import { TblDailyInventoryUpdate } from '../models/tblDailyInventory-Update.model';
 import { environment } from '../../../../../environments/environment.development';
+import { DailyStockEntrySaveRequest, TblDailyInventoryforStockEntry } from '../models/tblDailyInventoryforStockEntry.model';
 
 
 @Injectable({
@@ -28,6 +29,39 @@ export class TblDailyInventoryService {
   getActiveLeanTblDailyInventorys(): Observable<TblDailyInventory[]> {
     return this.http.get<TblDailyInventory[]>(`${environment.apiBaseUrl}/api/TblDailyInventory/GetActiveLeanTblDailyInventorys`);
   };
+
+  //https://localhost:7082/api/TblDailyInventory/GetAllTblDailyInventoryforStockEntry
+  //GET ALL
+  // getAllTblDailyInventoryforStockEntry(): Observable<TblDailyInventoryforStockEntry[]> {
+  //   return this.http.get<TblDailyInventoryforStockEntry[]>(`${environment.apiBaseUrl}/api/TblDailyInventory/GetAllTblDailyInventoryforStockEntry`);
+  // };
+
+
+  // Add INSIDE existing TblDailyInventoryService; reuse its HttpClient and environment import.
+getAllTblDailyInventoryforStockEntry(inventoryDate: string) {
+  const params = new HttpParams().set('inventoryDate', inventoryDate);
+  return this.http.get<TblDailyInventoryforStockEntry[]>(
+    `${environment.apiBaseUrl}/api/TblDailyInventory/GetAllTblDailyInventoryforStockEntry`,
+    { params }
+  );
+}
+
+// saveDailyStockEntry(payload: TblDailyInventoryforStockEntry) {
+//   return this.http.post<void>(
+//     `${environment.apiBaseUrl}/api/TblDailyInventory/SaveDailyStockEntry`,
+//     payload
+//   );
+// }
+
+saveDailyStockEntry(
+  payload: DailyStockEntrySaveRequest
+) {
+  return this.http.post<void>(
+    `${environment.apiBaseUrl}/api/TblDailyInventory/SaveDailyStockEntry`,
+    payload
+  );
+}
+
 
   //POST
   addTblDailyInventory(model: TblDailyInventoryAdd): Observable<void> {

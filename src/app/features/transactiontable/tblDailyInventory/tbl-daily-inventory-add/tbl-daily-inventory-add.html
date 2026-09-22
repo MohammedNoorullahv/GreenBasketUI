@@ -1,126 +1,119 @@
-<div class="container grid-page-shell">
+<div class="container grid-page-shell stock-page">
+  <div class="page-header-bar stock-header">
+    <div>
+      <h1 class="page-caption">Today's Vegetables — Stock Entry</h1>
+      <div class="stock-subtitle">Enter new stock and selling rate for each item</div>
+    </div>
+    <div class="stock-date">
+      <label for="inventoryDate" class="form-label">Inventory Date</label>
+      <input id="inventoryDate" type="date" class="form-control" name="inventoryDate" [(ngModel)]="inventoryDate"
+        (change)="onDateChange()" [disabled]="loading || isSaving" />
+    </div>
+  </div>
 
-	<!-- ============================================
-		 Section 1: Caption
-		 ============================================ -->
-	<div class="page-header-bar-simple">
-		<h1 class="page-caption">Add Daily Inventories</h1>
-	</div>
+  <div class="page-card stock-card">
+    <div class="stock-toolbar">
+      <input class="form-control stock-search" type="search" name="stockSearch" placeholder="Search vegetables..."
+        [(ngModel)]="searchText" />
+      <label class="stock-changed-filter">
+        <input type="checkbox" [(ngModel)]="showOnlyChanged" name="showOnlyChanged" />
+        Changed only ({{ changedCount }})
+      </label>
+      <button type="button" class="btn-app btn-outline" (click)="loadStock()"
+        [disabled]="loading || isSaving || changedCount > 0"
+        title="Reload is disabled while there are unsaved changes">Refresh</button>
+    </div>
 
-	<form #form="ngForm" novalidate>
+    <div *ngIf="loading" class="stock-message">Loading today's vegetables...</div>
+    <div *ngIf="!loading && rows.length === 0" class="stock-message">No active items found.</div>
 
-		<!-- ============================================
-			 Section 2: Input fields
-			 ============================================ -->
-		<div class="page-card">
+    <div class="stock-grid-scroll">
 
-			<div class="d-flex flex-row form-row">
-				<div class="col-3 field-group">
-					<label class="form-label" for="fldFKVendorId">F K Vendor Id</label>
-					<select id="fldFKVendorId" class="form-select" name="fldFKVendorId" [(ngModel)]="model.fldFKVendorId" required>
-						<option value="">-- Select --</option>
-						<option *ngFor="let tblProfile of tblProfile$ | async" [value]="tblProfile.fldId">{{ tblProfile.fldFullName }}</option>
-					</select>
-					<div class="text-danger" *ngIf="form.controls['fldFKVendorId']?.touched && form.controls['fldFKVendorId']?.invalid">
-						F K Vendor Id is required and should be greater than 0.
-					</div>
+      <!-- <table class="stock-grid-table"> -->
 
-				</div>
-				<div class="col-3 field-group">
-					<label class="form-label" for="fldFKItemId">F K Item Id</label>
-					<select id="fldFKItemId" class="form-select" name="fldFKItemId" [(ngModel)]="model.fldFKItemId" required>
-						<option value="">-- Select --</option>
-						<option *ngFor="let tblItemMaster of tblItemMaster$ | async" [value]="tblItemMaster.fldId">{{ tblItemMaster.fldItemName }}</option>
-					</select>
-					<div class="text-danger" *ngIf="form.controls['fldFKItemId']?.touched && form.controls['fldFKItemId']?.invalid">
-						F K Item Id is required and should be greater than 0.
-					</div>
+        <div *ngIf="!loading && rows.length > 0" class="stock-table-wrap">
+          <table class="data-table stock-table">
 
-				</div>
-			</div>
+            <thead>
+              <tr>
+                <th class="stock-item-column">Vegetable</th>
+                <th>Available Stock</th>
+                <th>New Stock</th>
+                <th>Current Stock</th>
+                <th>Selling Rate (₹)</th>
+                <th>Available</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of visibleRows; trackBy: trackByItemId" [class.stock-edited]="isChanged(row)">
+                <td>
+                  <div class="stock-item">
+                    <img [src]="getItemImageUrl(row.fldItemImagePath)" [alt]="row.fldItemName" class="vegetable-image"
+                      loading="lazy" />
+                    <div>
+                      <div class="stock-item-name">{{ row.fldItemName }}</div>
+                      <div class="stock-item-tamil" *ngIf="row.fldItemNameTamil">{{ row.fldItemNameTamil }}</div>
+                      <div class="stock-item-unit">{{ row.fldBaseUnit }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="stock-number">{{ row.fldAvailableStock | number:'1.0-2' }}</td>
+                <td>
+                  <input type="number" class="form-control stock-number-input" [name]="'qty-' + row.fldFKItemId"
+                    [(ngModel)]="row.fldNewStock" (ngModelChange)="quantityChanged(row)" [step]="stockStep(row)" min="0"
+                    inputmode="decimal" [attr.aria-label]="'New stock for ' + row.fldItemName" />
+                </td>
+                <td class="stock-number stock-current">{{ row.fldCurrentStock | number:'1.0-2' }}</td>
+                <td>
+                  <input type="number" class="form-control stock-number-input" [name]="'rate-' + row.fldFKItemId"
+                    [(ngModel)]="row.fldSellingRate" (ngModelChange)="rateChanged(row)" min="0.01" step="0.01"
+                    inputmode="decimal" placeholder="Rate" [attr.aria-label]="'Selling rate for ' + row.fldItemName" />
+                </td>
+                <td>
+                  <label class="stock-switch" [attr.aria-label]="'Available: ' + row.fldItemName">
+                    <input type="checkbox" [name]="'available-' + row.fldFKItemId" [(ngModel)]="row.fldIsAvailable"
+                      (ngModelChange)="availabilityChanged(row)" />
+                    <span class="stock-switch-slider"></span>
+                  </label>
+                </td>
+              </tr>
+            </tbody>
+          
+          </table>
 
-			<div class="d-flex flex-row form-row">
-				<div class="col-3 field-group">
-					<label class="form-label" for="fldItemName">Item Name</label>
-					<input type="text" id="fldItemName" class="form-control" name="fldItemName" [(ngModel)]="model.fldItemName" maxlength="100">
-				</div>
-				<div class="col-3 field-group">
-					<label class="form-label" for="fldBaseUnit">Base Unit</label>
-					<input type="text" id="fldBaseUnit" class="form-control" name="fldBaseUnit" [(ngModel)]="model.fldBaseUnit" maxlength="20">
-				</div>
-			</div>
+          <div *ngIf="visibleRows.length === 0" class="stock-message">No items match the filter.</div>
 
-			<div class="d-flex flex-row form-row">
-				<div class="col-3 field-group">
-					<label class="form-label" for="fldInventoryDate">Inventory Date</label>
-					<input type="date" id="fldInventoryDate" class="form-control" name="fldInventoryDate" [(ngModel)]="model.fldInventoryDate" required>
-					<div class="text-danger" *ngIf="form.controls['fldInventoryDate']?.touched && form.controls['fldInventoryDate']?.invalid">
-						Inventory Date is required.
-					</div>
+        </div>
 
-				</div>
-				<div class="col-3 field-group">
-					<label class="form-label" for="fldSellingRate">Selling Rate</label>
-					<input type="number" id="fldSellingRate" class="form-control" name="fldSellingRate" [(ngModel)]="model.fldSellingRate" step="0.01" min="0" required>
-					<div class="text-danger" *ngIf="form.controls['fldSellingRate']?.touched && form.controls['fldSellingRate']?.invalid">
-						Selling Rate is required and should be greater than 0.
-					</div>
 
-				</div>
-			</div>
+    
 
-			<div class="d-flex flex-row form-row">
-				<div class="col-3 field-group">
-					<label class="form-label" for="fldAvailableStock">Available Stock</label>
-					<input type="number" id="fldAvailableStock" class="form-control" name="fldAvailableStock" [(ngModel)]="model.fldAvailableStock" step="0.01" min="0" required>
-					<div class="text-danger" *ngIf="form.controls['fldAvailableStock']?.touched && form.controls['fldAvailableStock']?.invalid">
-						Available Stock is required and should be greater than 0.
-					</div>
+    </div>
 
-				</div>
-				<div class="col-3 field-group">
-					<label class="form-label" for="fldInitialStock">Initial Stock</label>
-					<input type="number" id="fldInitialStock" class="form-control" name="fldInitialStock" [(ngModel)]="model.fldInitialStock" step="0.01" min="0" required>
-					<div class="text-danger" *ngIf="form.controls['fldInitialStock']?.touched && form.controls['fldInitialStock']?.invalid">
-						Initial Stock is required and should be greater than 0.
-					</div>
+  </div>
 
-				</div>
-			</div>
+  <div class="page-actions-bar stock-actions">
+    <span class="stock-save-count">{{ changedCount }} changed item(s)</span>
+    <!-- <button type="button" class="btn-app btn-save" (click)="save(false)"
+      [disabled]="loading || isSaving || changedCount === 0">
+      <i class="bi bi-floppy"></i> Save &amp; Continue
+    </button>
+    <button type="button" class="btn-app btn-new" (click)="save(true)"
+      [disabled]="loading || isSaving || changedCount === 0">
+      <i class="bi bi-check2-circle"></i> Save &amp; Close
+    </button> -->
 
-			<div class="d-flex flex-row form-row">
-				<div class="col-3 field-group field-group-switch">
-					<div class="form-check form-switch">
-						<input class="form-check-input" type="checkbox" id="fldIsAvailable" name="fldIsAvailable" [(ngModel)]="model.fldIsAvailable">
-						<label class="form-check-label" for="fldIsAvailable">Is Available</label>
-					</div>
-					<div class="text-danger" *ngIf="form.controls['fldIsAvailable']?.touched && form.controls['fldIsAvailable']?.invalid">
-						Is Available is required.
-					</div>
+    <!-- <button type="button" class="btn-app btn-save" [disabled]="isSaving || changedCount === 0" (click)="onSave()">
+      {{ isSaving ? 'Saving...' : 'Save' }}
+    </button> -->
 
-				</div>
-			</div>
+    <button type="button" class="btn-app btn-save" [disabled]="isSaving || changedCount === 0" (click)="save(true)">
+      {{ isSaving ? 'Saving...' : 'Save' }}
+    </button>
 
-		</div>
 
-		<!-- ============================================
-			 Section 3: Command buttons
-			 ============================================ -->
-		<div class="page-actions-bar">
-			<button type="button" (click)="OnFormSubmit(form, 'SaveAndAddNew')" class="btn-app btn-save" [disabled]="isSaving">
-				<i class="bi bi-floppy"></i>
-				Save &amp; Add New
-			</button>
-			<button type="button" (click)="OnFormSubmit(form, 'SaveAndClose')" class="btn-app btn-new" [disabled]="isSaving">
-				<i class="bi bi-check2-circle"></i>
-				Save &amp; Close
-			</button>
-			<button type="button" (click)="backToHome()" class="btn-app btn-dark">
-				<i class="bi bi-arrow-left"></i>
-				Back
-			</button>
-		</div>
-
-	</form>
-
+    <button type="button" class="btn-app btn-dark" (click)="backToHome()" [disabled]="isSaving">
+      <i class="bi bi-arrow-left"></i> Back
+    </button>
+  </div>
 </div>

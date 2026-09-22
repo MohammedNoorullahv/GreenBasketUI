@@ -30,11 +30,14 @@
     "AREA_NAME": "பகுதியின் பெயர்",
     "STREET_NAME": "தெரு பெயர்",
     "PINCODE": "அஞ்சல் குறியீட்டு எண்",
+    "ITEM_CATEGORY_NAME": "பொருள் வகைப்பாட்டின் பெயர்",
+    "ITEM_TYPE": "பொருள் வகை",
     "ITEM_NAME": "பொருளின் பெயர்",
-    "ITEM_PRICE": "பொருளின் விலை",
-    "ITEM_QUANTITY": "பொருளின் அளவு",
-    "ITEM_UNIT": "பொருளின் அளவீட்டு அலகு",
-    "ITEM_CATEGORY": "பொருளின் வகை",
-    "ITEM_DESCRIPTION": "பொருளின் விவரம்"
+    "ITEM_NAME_URDU": "பொருளின் பெயர் (உருது)",
+    "ITEM_NAME_TAMIL": "பொருளின் பெயர் (தமிழ்)",
+    "ITEM_BASE_UNIT": "அளவீட்டு அலகு",
+    "ITEM_SUB_UNIT": "துணை அளவீட்டு அலகு",
+    "ITEM_MIN_ORDQTY_STEP": "குறைந்தபட்ச ஆர்டர் அளவு படிநிலை",
+    "ITEM_IMAGE": "பொருளின் புகைப்படம்"
   }
 }

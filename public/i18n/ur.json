@@ -30,11 +30,14 @@
     "AREA_NAME": "علاقے کا نام",
     "STREET_NAME": "گلی کا نام",
     "PINCODE": "پوسٹل کوڈ",
-    "ITEM_NAME": "اشیاء کا نام",
-    "ITEM_PRICE": "اشیاء کی قیمت",
-    "ITEM_QUANTITY": "اشیاء کی مقدار",
-    "ITEM_UNIT": "اشیاء کی پیمائش کی اکائی",
-    "ITEM_CATEGORY": "اشیاء کی قسم",
-    "ITEM_DESCRIPTION": "اشیاء کی تفصیل"
+    "ITEM_CATEGORY_NAME": "اشیاء کے زمرے کا نام",
+    "ITEM_TYPE": "اشیاء کی قسم",
+    "ITEM_NAME": "آئٹم کا نام",
+    "ITEM_NAME_URDU": "آئٹم کا نام (اردو)",
+    "ITEM_NAME_TAMIL": "آئٹم کا نام (تمل)",
+    "ITEM_BASE_UNIT": "پیمائش کی اکائی",
+    "ITEM_SUB_UNIT": "ذیلی پیمائشی اکائی",
+    "ITEM_MIN_ORDQTY_STEP": "آرڈر کی کم از کم مقدار کا مرحلہ",
+    "ITEM_IMAGE": "آئٹم کی تصویر"
   }
 }

@@ -31,11 +31,17 @@
     "AREA_NAME": "Area Name",
     "STREET_NAME": "Street Name",
     "PINCODE": "Pincode",
+    "ITEM_CATEGORY_NAME":"Item Category Name",
+    "ITEM_TYPE":"Item Type",
     "ITEM_NAME": "Item Name",
+    "ITEM_NAME_URDU": "Item Name (Urdu)",
+    "ITEM_NAME_TAMIL": "Item Name (Tamil)",
+    "ITEM_BASE_UNIT":"Measuring Unit",
+    "ITEM_SUB_UNIT":"Sub Measuring Unit",
+    "ITEM_MIN_ORDQTY_STEP":"Min Order Quantity Step",
+    "ITEM_IMAGE":"Item Image",
     "ITEM_PRICE": "Item Price",
-    "ITEM_QUANTITY": "Item Quantity",
-    "ITEM_UNIT": "Item Unit",
-    "ITEM_CATEGORY": "Item Category",
-    "ITEM_DESCRIPTION": "Item Description"
+    "ITEM_QUANTITY": "Item Quantity"
+    
   }
 }

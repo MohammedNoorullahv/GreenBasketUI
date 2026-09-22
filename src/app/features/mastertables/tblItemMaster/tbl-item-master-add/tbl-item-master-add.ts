@@ -9,10 +9,11 @@ import { Router } from '@angular/router';
 import { TblItemMaster } from '../models/tblItemMaster.model';
 import { TblItemMasterAdd } from '../models/tblItemMaster-Add.model';
 import { TblItemMasterService } from '../services/tbl-item-master';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-tbl-item-master-add',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './tbl-item-master-add.html',
   styleUrl: './tbl-item-master-add.css',
 })
@@ -30,7 +31,8 @@ export class TblItemMasterAddComponent implements OnDestroy {
   itemImagePreview: string | null = null;
 
   constructor(private tblItemMasterService: TblItemMasterService,
-    private router: Router, private toastr: ToastrService, private cdr: ChangeDetectorRef) {
+    private router: Router, private toastr: ToastrService, private cdr: ChangeDetectorRef,
+    private translate: TranslateService) {
     this.model = {
       fldId: 0,
       fldItemName: '',
@@ -42,7 +44,7 @@ export class TblItemMasterAddComponent implements OnDestroy {
       fldAllowFractionalQuantity: false,
       fldSubUnitLabel: '',
       fldAllowFlatRupeeValueBooking: true,
-      fldMinOrderQuantityStep: 0,
+      fldMinOrderQuantityStep: 1,
       fldItemImagePath: '',
       fldIsActive: true,
       fldCreatedBy: 0,
@@ -50,19 +52,41 @@ export class TblItemMasterAddComponent implements OnDestroy {
     };
   }
 
+  changeLanguage(language: string) {
+    this.translate.use(language);
+  }
+
+  // onFractionalQuantityChange(allowed: boolean): void {
+  //   if (!allowed) {
+  //     this.model.fldSubUnitLabel = '';
+  //     if (this.model.fldMinOrderQuantityStep != null) {
+  //       this.model.fldMinOrderQuantityStep = Math.trunc(this.model.fldMinOrderQuantityStep);
+  //     }
+  //   }
+  // }
+
   onFractionalQuantityChange(allowed: boolean): void {
-    if (!allowed) {
+
+    if (allowed) {
+
+      // Fractional quantity allowed
+      this.model.fldMinOrderQuantityStep = 0.1;
+
+    } else {
+
+      // Fractional quantity not allowed
       this.model.fldSubUnitLabel = '';
-      if (this.model.fldMinOrderQuantityStep != null) {
-        this.model.fldMinOrderQuantityStep = Math.trunc(this.model.fldMinOrderQuantityStep);
-      }
+
+      this.model.fldMinOrderQuantityStep = 1;
+
     }
+
   }
 
   onMinOrderQuantityChange(): void {
     if (!this.model.fldAllowFractionalQuantity &&
-        this.model.fldMinOrderQuantityStep != null &&
-        Number.isFinite(this.model.fldMinOrderQuantityStep)) {
+      this.model.fldMinOrderQuantityStep != null &&
+      Number.isFinite(this.model.fldMinOrderQuantityStep)) {
       this.model.fldMinOrderQuantityStep = Math.trunc(this.model.fldMinOrderQuantityStep);
     }
   }
@@ -109,7 +133,7 @@ export class TblItemMasterAddComponent implements OnDestroy {
     }
 
     if (!this.model.fldAllowFractionalQuantity &&
-        !Number.isInteger(this.model.fldMinOrderQuantityStep)) {
+      !Number.isInteger(this.model.fldMinOrderQuantityStep)) {
       form.controls['fldMinOrderQuantityStep']?.markAsTouched();
       this.toastr.error('Min Order Quantity Step must be a whole number.');
       return;
@@ -122,6 +146,16 @@ export class TblItemMasterAddComponent implements OnDestroy {
     formData.append(
       'FldItemName',
       this.model.fldItemName
+    );
+
+    formData.append(
+      'FldItemNameTamil',
+      this.model.fldItemNameTamil
+    );
+
+    formData.append(
+      'FldItemNameUrdu',
+      this.model.fldItemNameUrdu
     );
 
     formData.append(
@@ -208,8 +242,8 @@ export class TblItemMasterAddComponent implements OnDestroy {
     this.model.fldId = 0;
     this.model.fldItemName = '';
     this.model.fldItemNameUrdu = '',
-    this.model.fldItemNameTamil ='',
-    this.model.fldItemImagePath = '';
+      this.model.fldItemNameTamil = '',
+      this.model.fldItemImagePath = '';
     this.model.fldCreatedBy = 0;
     this.model.fldCreatedDt = new Date();
 
@@ -264,12 +298,12 @@ export class TblItemMasterAddComponent implements OnDestroy {
     }
 
     if (this.model.fldAllowFractionalQuantity &&
-        !this.model.fldSubUnitLabel?.trim()) {
+      !this.model.fldSubUnitLabel?.trim()) {
       return false;
     }
 
     if (!this.model.fldAllowFractionalQuantity &&
-        !Number.isInteger(this.model.fldMinOrderQuantityStep)) {
+      !Number.isInteger(this.model.fldMinOrderQuantityStep)) {
       return false;
     }
 

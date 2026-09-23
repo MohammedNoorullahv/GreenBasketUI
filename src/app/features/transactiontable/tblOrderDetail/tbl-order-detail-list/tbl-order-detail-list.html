@@ -1,0 +1,124 @@
+<div class="container grid-page-shell">
+
+	<!-- ============================================
+		 Page header: caption + record toggle + New Record
+		 ============================================ -->
+	<div class="page-header-bar">
+
+		<h1 class="page-caption">TblOrderDetailsList</h1>
+
+		<div class="page-header-center">
+			<button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
+				(click)="OnFormSubmit('Load All')"
+				[attr.title]="actionType !== 'Load All' ? 'Loading All Records' : 'All Records'">
+				<i class="bi bi-list-ul"></i>
+				All Records
+			</button>
+
+			<button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Active Only'"
+				(click)="OnFormSubmit('Active Only')"
+				[attr.title]="actionType !== 'Active Only' ? 'Loading Active Records' : 'Active Records'">
+				<i class="bi bi-check-circle"></i>
+				Active Records
+			</button>
+		</div>
+
+		<div class="page-header-right">
+			<a [routerLink]="['add']" class="btn-app btn-new">
+				<i class="bi bi-plus-lg"></i>
+				New Record
+			</a>
+		</div>
+
+	</div>
+
+	<div class="page-card">
+
+		<div class="page-header-bar-secondary">
+
+			<div class="page-header-left">
+				<button type="button" class="btn-app btn-outline">
+					<i class="bi bi-funnel"></i>
+					Filter
+				</button>
+
+				<button type="button" class="btn-app btn-outline">
+					<i class="bi bi-download"></i>
+					Export CSV
+				</button>
+			</div>
+
+			<div class="page-header-right">
+				<ng-container *ngIf="tblOrderDetail$ | async as tblorderdetails">
+					<span class="pagination-info">
+						Showing {{ tblorderdetails.length }} of {{ tblorderdetails.length }} Records
+					</span>
+				</ng-container>
+
+				<button type="button" class="pager-btn" disabled>
+					<i class="bi bi-chevron-left"></i>
+				</button>
+				<button type="button" class="pager-btn" disabled>
+					<i class="bi bi-chevron-right"></i>
+				</button>
+			</div>
+
+		</div>
+
+		<ng-container *ngIf="tblOrderDetail$ | async as tblorderdetails">
+
+			<table class="data-table">
+				<thead>
+					<tr>
+						<th>Id</th>
+						<th>F K Order Header Id</th>
+						<th>F K Item Id</th>
+						<th>F K Daily Inventory Id</th>
+						<th>Quantity</th>
+						<th>Unit</th>
+						<th>Rate</th>
+						<th>Flat Rupee Booking Value</th>
+						<th>Value</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+
+				<tbody>
+					<tr *ngFor="let tblorderdetail of tblorderdetails">
+						<td class="cell-code">{{tblorderdetail.fldId}}</td>
+						<td>{{tblorderdetail.fldFKOrderHeaderId}}</td>
+						<td>{{tblorderdetail.fldFKItemId}}</td>
+						<td>{{tblorderdetail.fldFKDailyInventoryId}}</td>
+						<td>{{tblorderdetail.fldQuantity}}</td>
+						<td class="cell-primary">{{tblorderdetail.fldUnit}}</td>
+						<td>{{tblorderdetail.fldRate}}</td>
+						<td>{{tblorderdetail.fldFlatRupeeBookingValue}}</td>
+						<td>{{tblorderdetail.value}}</td>
+						<td>
+							<div class="row-actions">
+								<a class="icon-btn edit" title="Edit"
+									[routerLink]="['/transactiontables/tblOrderDetail/Edit', tblorderdetail.fldId]"
+									[queryParams]="{ action: 'Edit' }">
+									<i class="bi bi-pencil-square"></i>
+								</a>
+								<a class="icon-btn delete" title="Delete"
+									[routerLink]="['/transactiontables/tblOrderDetail/Edit', tblorderdetail.fldId]"
+									[queryParams]="{ action: 'Delete' }">
+									<i class="bi bi-trash3"></i>
+								</a>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+
+			</table>
+
+			<p class="grid-footnote" *ngIf="tblorderdetails.length === 0">
+				No records found.
+			</p>
+
+		</ng-container>
+
+	</div>
+
+</div>

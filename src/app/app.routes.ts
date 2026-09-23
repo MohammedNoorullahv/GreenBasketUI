@@ -13,6 +13,12 @@ import { TblItemMasterAddComponent } from './features/mastertables/tblItemMaster
 import { TblItemMasterUpdateComponent } from './features/mastertables/tblItemMaster/tbl-item-master-update/tbl-item-master-update';
 import { TblDailyInventoryListComponent } from './features/transactiontable/tblDailyInventory/tbl-daily-inventory-list/tbl-daily-inventory-list';
 import { TblDailyInventoryAddComponent } from './features/transactiontable/tblDailyInventory/tbl-daily-inventory-add/tbl-daily-inventory-add';
+import { TblOrderListComponent } from './features/transactiontable/tblOrder/tbl-order-list/tbl-order-list';
+import { TblOrderAddComponent } from './features/transactiontable/tblOrder/tbl-order-add/tbl-order-add';
+import { TblOrderUpdateComponent } from './features/transactiontable/tblOrder/tbl-order-update/tbl-order-update';
+import { TblOrderDetailListComponent } from './features/transactiontable/tblOrderDetail/tbl-order-detail-list/tbl-order-detail-list';
+import { TblOrderDetailAddComponent } from './features/transactiontable/tblOrderDetail/tbl-order-detail-add/tbl-order-detail-add';
+import { TblOrderDetailUpdateComponent } from './features/transactiontable/tblOrderDetail/tbl-order-detail-update/tbl-order-detail-update';
 
 // import { TblCityorTownMasterListComponent }
 //   from './features/mastertables/tblCityorTownMaster/tbl-cityor-town-master-list/tbl-cityor-town-master-list';
@@ -73,7 +79,36 @@ export const routes: Routes = [
       {
         path: 'transactiontables/tblDailyInventory/add',
         component: TblDailyInventoryAddComponent,
+      },
+      {
+        path: 'transactiontables/tblOrder',
+        component: TblOrderListComponent,
+      },
+      {
+        path: 'transactiontables/tblOrder/add',
+        component: TblOrderAddComponent,
+      },
+      {
+        path: 'transactiontables/tblOrder/Edit/:id',
+        component: TblOrderUpdateComponent,
+      },
+      {
+        path: 'transactiontables/tblOrderDetail',
+        component: TblOrderDetailListComponent,
+      },
+      {
+        path: 'transactiontables/tblOrderDetail/add',
+        component: TblOrderDetailAddComponent,
+      },
+      {
+        path: 'transactiontables/tblOrderDetail/Edit/:id',
+        component: TblOrderDetailUpdateComponent,
       }
+
+
+
+
+
 
 
 

@@ -1,0 +1,132 @@
+<div class="container grid-page-shell">
+
+	<!-- ============================================
+		 Section 1: Caption
+		 ============================================ -->
+	<div class="page-header-bar-simple">
+		<h1 class="page-caption">Add Orders</h1>
+	</div>
+
+	<form #form="ngForm" novalidate>
+
+		<!-- ============================================
+			 Section 2: Input fields
+			 ============================================ -->
+		<div class="page-card">
+
+			<div class="d-flex flex-row form-row">
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldFKCustomerId">F K Customer Id</label>
+					<select id="fldFKCustomerId" class="form-select" name="fldFKCustomerId" [(ngModel)]="model.fldFKCustomerId" required>
+						<option value="">-- Select --</option>
+						<option *ngFor="let tblProfile of tblProfile$ | async" [value]="tblProfile.fldId">{{ tblProfile.fldDescription }}</option>
+					</select>
+					<div class="text-danger" *ngIf="form.controls['fldFKCustomerId']?.touched && form.controls['fldFKCustomerId']?.invalid">
+						F K Customer Id is required and should be greater than 0.
+					</div>
+
+				</div>
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldFKVendorId">F K Vendor Id</label>
+					<select id="fldFKVendorId" class="form-select" name="fldFKVendorId" [(ngModel)]="model.fldFKVendorId" required>
+						<option value="">-- Select --</option>
+						<option *ngFor="let tblProfile of tblProfile$ | async" [value]="tblProfile.fldId">{{ tblProfile.fldDescription }}</option>
+					</select>
+					<div class="text-danger" *ngIf="form.controls['fldFKVendorId']?.touched && form.controls['fldFKVendorId']?.invalid">
+						F K Vendor Id is required and should be greater than 0.
+					</div>
+
+				</div>
+			</div>
+
+			<div class="d-flex flex-row form-row">
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldOrderNumber">Order Number</label>
+					<input type="text" id="fldOrderNumber" class="form-control" name="fldOrderNumber" [(ngModel)]="model.fldOrderNumber" maxlength="30" required>
+					<div class="text-danger" *ngIf="form.controls['fldOrderNumber']?.touched && form.controls['fldOrderNumber']?.invalid">
+						Order Number is required.
+					</div>
+
+				</div>
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldOrderDate">Order Date</label>
+					<input type="date" id="fldOrderDate" class="form-control" name="fldOrderDate" [(ngModel)]="model.fldOrderDate" required>
+					<div class="text-danger" *ngIf="form.controls['fldOrderDate']?.touched && form.controls['fldOrderDate']?.invalid">
+						Order Date is required.
+					</div>
+
+				</div>
+			</div>
+
+			<div class="d-flex flex-row form-row">
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldItemSubTotal">Item Sub Total</label>
+					<input type="number" id="fldItemSubTotal" class="form-control" name="fldItemSubTotal" [(ngModel)]="model.fldItemSubTotal" step="0.01" min="0" required>
+					<div class="text-danger" *ngIf="form.controls['fldItemSubTotal']?.touched && form.controls['fldItemSubTotal']?.invalid">
+						Item Sub Total is required and should be greater than 0.
+					</div>
+
+				</div>
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldDeliveryCharges">Delivery Charges</label>
+					<input type="number" id="fldDeliveryCharges" class="form-control" name="fldDeliveryCharges" [(ngModel)]="model.fldDeliveryCharges" step="0.01" min="0" required>
+					<div class="text-danger" *ngIf="form.controls['fldDeliveryCharges']?.touched && form.controls['fldDeliveryCharges']?.invalid">
+						Delivery Charges is required and should be greater than 0.
+					</div>
+
+				</div>
+			</div>
+
+			<div class="d-flex flex-row form-row">
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldGrandTotal">Grand Total</label>
+					<input type="number" id="fldGrandTotal" class="form-control" name="fldGrandTotal" [(ngModel)]="model.fldGrandTotal" step="0.01" min="0" required>
+					<div class="text-danger" *ngIf="form.controls['fldGrandTotal']?.touched && form.controls['fldGrandTotal']?.invalid">
+						Grand Total is required and should be greater than 0.
+					</div>
+
+				</div>
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldOrderStatus">Order Status</label>
+					<input type="text" id="fldOrderStatus" class="form-control" name="fldOrderStatus" [(ngModel)]="model.fldOrderStatus" maxlength="25" required>
+					<div class="text-danger" *ngIf="form.controls['fldOrderStatus']?.touched && form.controls['fldOrderStatus']?.invalid">
+						Order Status is required.
+					</div>
+
+				</div>
+			</div>
+
+			<div class="d-flex flex-row form-row">
+				<div class="col-3 field-group">
+					<label class="form-label" for="fldDeliveryGPSLocation">Delivery G P S Location</label>
+					<input type="text" id="fldDeliveryGPSLocation" class="form-control" name="fldDeliveryGPSLocation" [(ngModel)]="model.fldDeliveryGPSLocation" maxlength="100" required>
+					<div class="text-danger" *ngIf="form.controls['fldDeliveryGPSLocation']?.touched && form.controls['fldDeliveryGPSLocation']?.invalid">
+						Delivery G P S Location is required.
+					</div>
+
+				</div>
+			</div>
+
+		</div>
+
+		<!-- ============================================
+			 Section 3: Command buttons
+			 ============================================ -->
+		<div class="page-actions-bar">
+			<button type="button" (click)="OnFormSubmit(form, 'SaveAndAddNew')" class="btn-app btn-save" [disabled]="isSaving">
+				<i class="bi bi-floppy"></i>
+				Save &amp; Add New
+			</button>
+			<button type="button" (click)="OnFormSubmit(form, 'SaveAndClose')" class="btn-app btn-new" [disabled]="isSaving">
+				<i class="bi bi-check2-circle"></i>
+				Save &amp; Close
+			</button>
+			<button type="button" (click)="backToHome()" class="btn-app btn-dark">
+				<i class="bi bi-arrow-left"></i>
+				Back
+			</button>
+		</div>
+
+	</form>
+
+</div>

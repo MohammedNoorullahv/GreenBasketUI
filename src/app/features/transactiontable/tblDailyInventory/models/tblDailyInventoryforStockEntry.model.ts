@@ -2,10 +2,10 @@ export interface TblDailyInventoryforStockEntry {
     fldId: number;
     fldFKVendorId: number;
 
-    
+
 
     fldFKItemId: number;
-    
+
     fldCategoryName: string;
     fldType: string;
 
@@ -32,6 +32,13 @@ export interface TblDailyInventoryforStockEntry {
     fldDeletedDt: Date;
 
     fldItemImagePath: string;
+
+    fldSlNo: number;
+    fldSubSlNo: number;
+    fldFKItemMasterId: number;
+
+    fldIsAddMore: boolean;
+    fldIsDisplay: boolean;
 }
 
 
@@ -56,7 +63,7 @@ export interface StockEntryRow extends StockEntryItem {
     quantityEdited: boolean;
     rateEdited: boolean;
     availabilityEdited: boolean;
-    
+
 
 }
 

@@ -62,18 +62,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
       this.inventoryService.getAllTblDailyInventoryforStockEntry(this.inventoryDate)
         .subscribe({
           next: (items: StockEntryItem[]) => {
-
-            console.log('API Response:', items);
-
-            console.log('Is Array:', Array.isArray(items));
-
-            console.log('Total API Items:', items?.length);
-
-            console.log(
-              'Active Items:',
-              items?.filter(x => x.fldIsActive).length
-            );
-
+           
             this.rows = items
               .filter(x => x.fldIsActive)
               .map((item): StockEntryRow => {
@@ -87,6 +76,11 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
 
                 return {
                   ...item,
+
+                  fldFKItemMasterId: item.fldFKItemMasterId,
+
+                  fldIsDisplay: item.fldIsDisplay,
+                  fldIsAddMore: item.fldIsAddMore,
 
                   fldAvailableStock: availableStock,
                   fldNewStock: newStock,
@@ -108,21 +102,18 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
 
               });
 
-            console.log('Grid Rows:', this.rows);
-
-            console.log('Grid Row Count:', this.rows.length);
+            
 
             this.loadedDate = this.inventoryDate;
             this.loading = false;
 
-            console.log('Loading Status:', this.loading);
-            console.log('Rows to Display:', this.rows.length);
+            
 
             this.cdr.detectChanges();
           },
           error: err => {
             this.loading = false;
-            console.error('Stock entry GET failed', err);
+            
             this.toastr.error('Unable to load stock-entry items.');
           },
         })
@@ -130,12 +121,27 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
   }
 
   get visibleRows(): StockEntryRow[] {
+
     const q = this.searchText.trim().toLowerCase();
+
     return this.rows.filter(row =>
+
+      // Display only rows marked as visible
+      row.fldIsDisplay &&
+
+      // Existing Changed Only filter
       (!this.showOnlyChanged || this.isChanged(row)) &&
-      (!q || [row.fldItemName, row.fldItemNameTamil ?? '', row.fldItemNameUrdu ?? '', row.fldCategoryName]
-        .some(text => text.toLowerCase().includes(q)))
+
+      // Existing search filter
+      (!q || [
+        row.fldItemName,
+        row.fldItemNameTamil ?? '',
+        row.fldItemNameUrdu ?? '',
+        row.fldCategoryName
+      ].some(text => text.toLowerCase().includes(q)))
+
     );
+
   }
 
   isChanged(row: StockEntryRow): boolean {
@@ -192,13 +198,16 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
     const payload: DailyStockEntrySaveRequest = {
       fldInventoryDate: this.inventoryDate,
       items: changed.map(row => ({
-        fldFKItemMasterId: row.fldFKItemId,
+        ...row,
+
+        fldFKItemMasterId: row.fldFKItemMasterId,
         fldNewStock: Number(row.fldNewStock),
         fldSellingRate: Number(row.fldSellingRate),
         fldIsAvailable: row.fldIsAvailable,
       })),
     };
     this.isSaving = true;
+
     this.subscriptions.add(
       this.inventoryService.saveDailyStockEntry(payload).subscribe({
         next: () => {
@@ -260,4 +269,65 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
 
     return `${baseUrl}${encodeURI(path)}`;
   }
+
+  trackByStockRow(
+    index: number,
+    row: StockEntryRow
+  ): string {
+    return `${row.fldFKItemMasterId}-${row.fldSubSlNo}`;
+  }
+
+  addMoreStockRow(currentRow: StockEntryRow): void {
+
+    // Step 1: Check whether both quantity and rate are zero.
+    const quantity = Number(currentRow.fldNewStock) || 0;
+    const rate = Number(currentRow.fldSellingRate) || 0;
+
+    if (quantity === 0 && rate === 0) {
+
+      const confirmed = window.confirm(
+        `You have not entered the quantity and selling rate for ` +
+        `${currentRow.fldItemName}.\n\n` +
+        `Do you still want to add another stock entry?`
+      );
+
+      // If user clicks Cancel, do nothing.
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    // Step 2: Find the next hidden row for the same vegetable.
+    const nextRow = this.rows
+      .filter(row =>
+        row.fldFKItemMasterId === currentRow.fldFKItemMasterId &&
+        row.fldSubSlNo > currentRow.fldSubSlNo &&
+        !row.fldIsDisplay
+      )
+      .sort((a, b) => a.fldSubSlNo - b.fldSubSlNo)[0];
+
+    if (!nextRow) {
+      this.toastr.warning(
+        `No additional row available for ${currentRow.fldItemName}.`
+      );
+      return;
+    }
+
+    // Step 3: Hide + on the current row.
+    currentRow.fldIsAddMore = false;
+
+    // Step 4: Display the next row.
+    nextRow.fldIsDisplay = true;
+
+    // Step 5: Show + on the new row only if another hidden row exists.
+    nextRow.fldIsAddMore = this.rows.some(row =>
+      row.fldFKItemMasterId === currentRow.fldFKItemMasterId &&
+      row.fldSubSlNo > nextRow.fldSubSlNo &&
+      !row.fldIsDisplay
+    );
+
+    this.cdr.detectChanges();
+  }
+
+
 }

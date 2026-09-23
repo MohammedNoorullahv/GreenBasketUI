@@ -53,11 +53,12 @@ getAllTblDailyInventoryforStockEntry(inventoryDate: string) {
 //   );
 // }
 
+//https://localhost:7082/api/TblDailyInventory/CreateTblDailyInventoryStockEntry
 saveDailyStockEntry(
   payload: DailyStockEntrySaveRequest
 ) {
   return this.http.post<void>(
-    `${environment.apiBaseUrl}/api/TblDailyInventory/SaveDailyStockEntry`,
+    `${environment.apiBaseUrl}/api/TblDailyInventory/CreateTblDailyInventoryStockEntry`,
     payload
   );
 }

@@ -19,6 +19,7 @@ import { TblOrderUpdateComponent } from './features/transactiontable/tblOrder/tb
 import { TblOrderDetailListComponent } from './features/transactiontable/tblOrderDetail/tbl-order-detail-list/tbl-order-detail-list';
 import { TblOrderDetailAddComponent } from './features/transactiontable/tblOrderDetail/tbl-order-detail-add/tbl-order-detail-add';
 import { TblOrderDetailUpdateComponent } from './features/transactiontable/tblOrderDetail/tbl-order-detail-update/tbl-order-detail-update';
+import { TblOrderShoppingComponent } from './features/transactiontable/tblOrder/tbl-order-list/tbl-order-shopping';
 
 // import { TblCityorTownMasterListComponent }
 //   from './features/mastertables/tblCityorTownMaster/tbl-cityor-town-master-list/tbl-cityor-town-master-list';
@@ -82,7 +83,8 @@ export const routes: Routes = [
       },
       {
         path: 'transactiontables/tblOrder',
-        component: TblOrderListComponent,
+        component: TblOrderShoppingComponent,
+        // component: TblOrderListComponent,
       },
       {
         path: 'transactiontables/tblOrder/add',
@@ -103,7 +105,9 @@ export const routes: Routes = [
       {
         path: 'transactiontables/tblOrderDetail/Edit/:id',
         component: TblOrderDetailUpdateComponent,
-      }
+      },
+      { path: 'transactiontables/tblOrder/shop', component: TblOrderShoppingComponent }
+
 
 
 

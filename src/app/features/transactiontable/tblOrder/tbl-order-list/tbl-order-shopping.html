@@ -1,0 +1,898 @@
+<div class="gb-page">
+
+  <!-- =====================================================
+       HEADER
+       ===================================================== -->
+
+  <header class="gb-header">
+
+    <div class="gb-brand">
+      🛒 Green Basket
+    </div>
+
+    <span class="gb-cart-badge">
+      {{ cart.length }} items
+    </span>
+
+  </header>
+
+
+  <!-- =====================================================
+       VENDOR AND ORDER OPTIONS
+       ===================================================== -->
+
+  <section class="gb-controls">
+
+    <label for="gbVendor">
+      Select Vendor
+    </label>
+
+    <select id="gbVendor" class="gb-input" [ngModel]="vendorId" (ngModelChange)="changeVendor($event)">
+
+      <option [ngValue]="0">
+        -- Select vendor --
+      </option>
+
+      <option *ngFor="let vendor of vendorOptions" [ngValue]="vendor.fldId">
+        {{ vendor.fldDescription }}
+      </option>
+
+    </select>
+
+
+    <!-- ORDER OPTION -->
+
+    <div class="gb-order-options">
+
+      <label>
+
+        <input type="radio" name="orderOption" value="Current Day Order" [(ngModel)]="orderOption"
+          (ngModelChange)="onOrderOptionChange()" />
+
+        Current Day Order
+
+      </label>
+
+
+      <label>
+
+        <input type="radio" name="orderOption" value="Advance Order" [(ngModel)]="orderOption"
+          [disabled]="vendorProfile?.fldAllowAdvanceOrder !== true" (ngModelChange)="onOrderOptionChange()" />
+
+        Advance Order
+
+      </label>
+
+    </div>
+
+
+    <!-- =====================================================
+         DELIVERY OPTIONS
+         ===================================================== -->
+
+    <div class="gb-delivery-options">
+
+      <!-- SELF PICKUP -->
+
+      <label>
+
+        <input type="radio" name="orderType" value="Self Pickup" [(ngModel)]="fldOrderType"
+          (ngModelChange)="onDeliveryTypeChange()" />
+
+        Self Pickup — Free
+
+      </label>
+
+
+      <!-- REGULAR DELIVERY: CURRENT DAY ONLY -->
+
+      <label *ngIf="orderOption === 'Current Day Order'">
+
+        <input type="radio" name="orderType" value="Normal Delivery" [(ngModel)]="fldOrderType"
+          (ngModelChange)="onDeliveryTypeChange()" />
+
+        Regular Delivery
+
+        <small *ngIf="vendorProfile">
+          — ₹{{ (vendorProfile.fldRDCharges ?? 0) | number:'1.2-2' }}
+        </small>
+
+      </label>
+
+
+      <!-- PRIORITY DELIVERY: CURRENT DAY ONLY -->
+
+      <label *ngIf="
+          orderOption === 'Current Day Order' &&
+          vendorProfile?.fldAcceptingPriortyOrder === true
+        ">
+
+        <input type="radio" name="orderType" value="Priority Delivery" [(ngModel)]="fldOrderType"
+          (ngModelChange)="onDeliveryTypeChange()" />
+
+        Priority Delivery
+
+        <small *ngIf="vendorProfile">
+          — ₹{{ (vendorProfile.fldPDCharges ?? 0) | number:'1.2-2' }}
+        </small>
+
+      </label>
+
+
+      <!-- ADVANCE DELIVERY -->
+
+      <label *ngIf="orderOption === 'Advance Order'">
+
+        <input type="radio" name="orderType" value="Advance Delivery" [(ngModel)]="fldOrderType"
+          (ngModelChange)="onDeliveryTypeChange()" />
+
+        Advance Delivery
+
+        <small *ngIf="vendorProfile">
+          — ₹{{ (vendorProfile.fldADCharges ?? 0) | number:'1.2-2' }}
+        </small>
+
+      </label>
+
+    </div>
+
+
+    <!-- =====================================================
+         ADVANCE ORDER DETAILS
+         ===================================================== -->
+
+    <div *ngIf="orderOption === 'Advance Order'" class="gb-advance">
+
+      <label for="requestedDeliveryDate">
+        Requested Delivery Date
+      </label>
+
+      <input id="requestedDeliveryDate" type="date" class="gb-input" name="requestedDeliveryDate"
+        [(ngModel)]="requestedDeliveryDate" [min]="getTomorrowDate()" (ngModelChange)="updateDeliveryEstimate()" />
+
+      <p>
+        Prices may change before delivery.
+        The earliest available delivery date is tomorrow.
+      </p>
+
+
+      <label>
+
+        <input type="radio" name="priceChoice" value="Auto Apply" [(ngModel)]="priceChangeOption" />
+
+        Auto apply updated prices
+
+      </label>
+
+
+      <label>
+
+        <input type="radio" name="priceChoice" value="Get Confirmation" [(ngModel)]="priceChangeOption" />
+
+        Get my confirmation before applying price changes
+
+      </label>
+
+    </div>
+
+
+    <!-- DELIVERY ESTIMATE -->
+
+    <div class="gb-estimate">
+
+      🕒 Estimated delivery / pickup:
+      {{ deliveryEstimate }}
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       VEGETABLE SHOPPING SCREEN
+       ===================================================== -->
+
+  <ng-container *ngIf="!showCheckout; else checkout">
+
+
+    <!-- SEARCH AND CATEGORY FILTER -->
+
+    <section class="gb-controls">
+
+      <input class="gb-input" type="search" placeholder="Search vegetables..." [(ngModel)]="searchText" />
+
+
+      <div class="gb-categories">
+
+        <button type="button" *ngFor="let c of categories" [class.active]="category === c" (click)="category = c">
+
+          {{ c }}
+
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- MESSAGES -->
+
+    <div class="gb-message" *ngIf="!vendorId">
+
+      Select a vendor to load available vegetables.
+
+    </div>
+
+
+    <div class="gb-message" *ngIf="loading">
+
+      Loading available vegetables...
+
+    </div>
+
+
+    <div class="gb-message" *ngIf="
+        vendorId &&
+        !loading &&
+        visibleStock.length === 0
+      ">
+
+      No available vegetables match your selection.
+
+    </div>
+
+
+    <!-- =====================================================
+         VEGETABLE LIST
+         ===================================================== -->
+
+    <section class="gb-products">
+
+
+      <article class="gb-product" *ngFor="let item of visibleStock">
+
+
+        <!-- ITEM IMAGE -->
+
+        <img class="gb-product-image" [src]="imageUrl(item.fldItemImagePath)" [alt]="item.fldItemName" loading="lazy" />
+
+
+        <!-- ITEM INFORMATION -->
+
+        <div class="gb-product-info">
+
+          <strong>
+            {{ item.fldItemName }}
+          </strong>
+
+
+          <small *ngIf="item.fldItemNameTamil">
+            {{ item.fldItemNameTamil }}
+          </small>
+
+
+          <span>
+
+            ₹{{ item.fldSellingRate | number:'1.2-2' }}
+
+            / {{ item.fldBaseUnit }}
+            : {{ item.fldAvailableStock | number:'1.0-3' }}
+          </span>
+
+
+          <!-- AVAILABLE STOCK -->
+
+          <small>
+            Available Stock:
+            <strong>
+              {{ item.fldAvailableStock | number:'1.0-3' }}
+            </strong>
+            {{ item.fldBaseUnit }}
+          </small>
+
+
+          <!-- INVENTORY ID: USEFUL FOR MULTIPLE RATES -->
+
+          <!-- <small>
+            Stock ID: {{ item.fldId }}
+          </small> -->
+
+
+          <!-- SELECTED ITEM VALUE -->
+
+          <small *ngIf="quantityFor(item.fldId) > 0" style="color:#087f5b;font-weight:700;">
+
+            Selected Value:
+
+            ₹{{
+            flatValueFor(item.fldId) > 0
+            ? (flatValueFor(item.fldId) | number:'1.2-2')
+            : (
+            quantityFor(item.fldId) *
+            item.fldSellingRate
+            | number:'1.2-2'
+            )
+            }}
+
+          </small>
+
+        </div>
+
+
+        <!-- =================================================
+             NORMAL QUANTITY BOOKING
+             ================================================= -->
+
+        <div class="gb-quantity-entry" *ngIf="!item.fldAllowFlatRupeeValueBooking">
+
+
+          <label class="gb-entry-label">
+
+            Quantity
+
+          </label>
+
+
+          <div class="gb-quantity">
+
+
+            <!-- MINUS -->
+
+            <button type="button" (click)="adjust(item, -1)" [disabled]="quantityFor(item.fldId) <= 0">
+
+              −
+
+            </button>
+
+
+            <!-- MANUAL QUANTITY INPUT -->
+
+            <input type="number" class="gb-quantity-input" min="0" [max]="item.fldAvailableStock" [step]="step(item)"
+              [value]="quantityFor(item.fldId)" (change)="
+                setQuantity(
+                  item,
+                  $any($event.target).value
+                )
+              " />
+
+
+            <!-- PLUS -->
+
+            <button type="button" (click)="adjust(item, 1)" [disabled]="
+                quantityFor(item.fldId) + 1 >
+                item.fldAvailableStock
+              ">
+
+              +
+
+            </button>
+
+          </div>
+
+
+          <small *ngIf="item.fldAllowFractionalQuantity">
+
+            Manual quantity step:
+            {{ step(item) }}
+
+          </small>
+
+
+          <small *ngIf="!item.fldAllowFractionalQuantity">
+
+            Whole-number quantities only
+
+          </small>
+
+        </div>
+
+
+        <!-- =================================================
+             FLAT RUPEE VALUE BOOKING
+             ================================================= -->
+
+        <div class="gb-flat-booking" *ngIf="item.fldAllowFlatRupeeValueBooking">
+
+
+          <label class="gb-entry-label">
+
+            Enter Amount (₹)
+
+          </label>
+
+
+          <input type="number" class="gb-input" min="0" step="0.01" [max]="
+              item.fldAvailableStock *
+              item.fldSellingRate
+            " [value]="flatValueFor(item.fldId)" (change)="
+              setFlatValue(
+                item,
+                $any($event.target).value
+              )
+            " />
+
+
+          <!-- QUANTITY EQUIVALENT -->
+
+          <small *ngIf="flatValueFor(item.fldId) > 0">
+
+            Approximate Quantity:
+
+            {{
+            quantityFor(item.fldId)
+            | number:'1.0-3'
+            }}
+
+            {{ item.fldBaseUnit }}
+
+          </small>
+
+
+          <!-- MAXIMUM AVAILABLE VALUE -->
+
+          <small>
+
+            Maximum Available Value:
+
+            ₹{{
+            item.fldAvailableStock *
+            item.fldSellingRate
+            | number:'1.2-2'
+            }}
+
+          </small>
+
+        </div>
+
+
+      </article>
+
+
+    </section>
+
+
+    <!-- =====================================================
+         SHOPPING FOOTER
+         ===================================================== -->
+
+    <footer class="gb-footer">
+
+
+      <div>
+
+        <strong>
+
+          ₹{{ grandTotal | number:'1.2-2' }}
+
+        </strong>
+
+
+        <small>
+
+          {{ cart.length }} items
+
+        </small>
+
+      </div>
+
+
+      <button type="button" (click)="previewOrder()" [disabled]="cart.length === 0">
+
+        View Cart →
+
+      </button>
+
+
+    </footer>
+
+
+  </ng-container>
+
+
+  <!-- =====================================================
+       CHECKOUT SCREEN
+       ===================================================== -->
+
+  <ng-template #checkout>
+
+
+    <section class="gb-checkout">
+
+
+      <!-- CHECKOUT HEADER -->
+
+      <div class="gb-checkout-title">
+
+
+        <h2>
+
+          Your Cart ({{ cart.length }} items)
+
+        </h2>
+
+
+        <button type="button" (click)="showCheckout = false">
+
+          ← Back
+
+        </button>
+
+
+      </div>
+
+
+      <!-- =================================================
+           CART ITEMS
+           ================================================= -->
+
+      <article class="gb-product" *ngFor="let line of cart">
+
+
+        <!-- IMAGE -->
+
+        <img class="gb-product-image" [src]="imageUrl(line.stock.fldItemImagePath)" [alt]="line.stock.fldItemName" />
+
+
+        <!-- ITEM DETAILS -->
+
+        <div class="gb-product-info">
+
+
+          <strong>
+
+            {{ line.stock.fldItemName }}
+
+          </strong>
+
+
+          <small>
+
+            ₹{{
+            line.stock.fldSellingRate
+            | number:'1.2-2'
+            }}
+
+            / {{ line.stock.fldBaseUnit }}
+
+          </small>
+
+
+          <small>
+
+            Available:
+
+            {{
+            line.stock.fldAvailableStock
+            | number:'1.0-3'
+            }}
+
+            {{ line.stock.fldBaseUnit }}
+
+          </small>
+
+
+          <!-- <small>
+
+            Inventory #{{ line.stock.fldId }}
+
+          </small> -->
+
+
+        </div>
+
+
+        <!-- =================================================
+             CART ACTIONS
+             ================================================= -->
+
+        <div class="gb-cart-actions">
+
+
+          <!-- NORMAL QUANTITY BOOKING -->
+
+          <div *ngIf="
+              !line.stock.fldAllowFlatRupeeValueBooking
+            ">
+
+
+            <div class="gb-quantity">
+
+
+              <button type="button" (click)="adjust(line.stock, -1)" [disabled]="line.quantity <= 0">
+
+                −
+
+              </button>
+
+
+              <input type="number" class="gb-quantity-input" min="0" [max]="line.stock.fldAvailableStock"
+                [step]="step(line.stock)" [value]="line.quantity" (change)="
+                  setQuantity(
+                    line.stock,
+                    $any($event.target).value
+                  )
+                " />
+
+
+              <button type="button" (click)="adjust(line.stock, 1)" [disabled]="
+                  line.quantity + 1 >
+                  line.stock.fldAvailableStock
+                ">
+
+                +
+
+              </button>
+
+
+            </div>
+
+
+          </div>
+
+
+          <!-- FLAT RUPEE BOOKING -->
+
+          <div class="gb-flat-booking" *ngIf="
+              line.stock.fldAllowFlatRupeeValueBooking
+            ">
+
+
+            <label>
+
+              Amount (₹)
+
+            </label>
+
+
+            <input type="number" class="gb-input" min="0" step="0.01" [max]="
+                line.stock.fldAvailableStock *
+                line.stock.fldSellingRate
+              " [value]="line.flatRupeeBookingValue" (change)="
+                setFlatValue(
+                  line.stock,
+                  $any($event.target).value
+                )
+              " />
+
+
+            <small>
+
+              Quantity:
+
+              {{
+              line.quantity
+              | number:'1.0-3'
+              }}
+
+              {{ line.stock.fldBaseUnit }}
+
+            </small>
+
+
+          </div>
+
+
+          <!-- ITEM TOTAL -->
+
+          <strong>
+
+            ₹{{
+            lineTotal(line)
+            | number:'1.2-2'
+            }}
+
+          </strong>
+
+
+          <!-- REMOVE -->
+
+          <button type="button" class="gb-remove" (click)="remove(line.stock.fldId)">
+
+            Remove
+
+          </button>
+
+
+        </div>
+
+
+      </article>
+
+
+      <!-- CUSTOMER ADDRESS / PICKUP CONTACT -->
+      <section class="gb-bill" aria-label="Customer address">
+        <h3>{{ fldOrderType === 'Self Pickup' ? 'Customer Contact / Pickup' : 'Delivery Address' }}</h3>
+        <p *ngIf="customerLoading">Loading registered customer details...</p>
+        <ng-container *ngIf="customerProfile as customer; else noCustomerProfile">
+          <p><strong>{{ customer.fldFullName }}</strong><br />
+            {{ customer.fldContactNumber }}
+            <ng-container *ngIf="customer.fldAlternateContactNumber"> / {{ customer.fldAlternateContactNumber }}</ng-container>
+          </p>
+          <p *ngIf="customerAddress">{{ customerAddress }}</p>
+          <p *ngIf="customer.fldGPSLocation">Location: {{ customer.fldGPSLocation }}</p>
+          <img *ngIf="customer.fldHouseImagePath"
+               [src]="imageUrl(customer.fldHouseImagePath)"
+               alt="Registered house photograph"
+               style="display:block;max-width:240px;width:100%;height:auto;border-radius:10px;margin-top:12px" />
+          <p *ngIf="fldOrderType === 'Self Pickup'">
+            Self Pickup selected: this customer address is for contact/reference, not the pickup point.
+            Confirm the vendor's shop address before collection.
+          </p>
+        </ng-container>
+        <ng-template #noCustomerProfile>
+          <p *ngIf="!customerLoading">Registered customer address is unavailable. Please check the customer profile.</p>
+        </ng-template>
+      </section>
+
+      <!-- PAYMENT METHOD -->
+      <section class="gb-bill" aria-label="Payment method">
+        <h3>Payment Method</h3>
+        <label style="display:block;margin:10px 0">
+          <input type="radio" name="paymentMethod" value="COD"
+                 [(ngModel)]="paymentMethod" (ngModelChange)="onPaymentMethodChange()" />
+          Cash on Delivery (COD)
+        </label>
+        <label style="display:block;margin:10px 0">
+          <input type="radio" name="paymentMethod" value="UPI"
+                 [(ngModel)]="paymentMethod" (ngModelChange)="onPaymentMethodChange()" />
+          UPI Payment
+        </label>
+      </section>
+
+      <!-- =================================================
+           BILL SUMMARY
+           ================================================= -->
+
+      <div class="gb-bill">
+
+
+        <h3>
+
+          Bill Summary
+
+        </h3>
+
+
+        <div>
+
+          <span>
+
+            Item Total
+
+          </span>
+
+
+          <strong>
+
+            ₹{{ subtotal | number:'1.2-2' }}
+
+          </strong>
+
+        </div>
+
+
+        <div>
+
+          <span>
+
+            Delivery Charges
+
+          </span>
+
+
+          <strong>
+
+            ₹{{ charge | number:'1.2-2' }}
+
+          </strong>
+
+        </div>
+
+
+        <div class="gb-grand">
+
+          <span>
+
+            Grand Total
+
+          </span>
+
+
+          <strong>
+
+            ₹{{ grandTotal | number:'1.2-2' }}
+
+          </strong>
+
+        </div>
+
+
+        <!-- ADVANCE ORDER NOTE -->
+
+        <p *ngIf="orderOption === 'Advance Order'">
+
+          Advance order: prices may change.
+
+          Preference: {{ priceChangeOption }}.
+
+        </p>
+
+
+        <p>
+
+          Estimated delivery / pickup:
+
+          {{ deliveryEstimate }}
+
+        </p>
+
+
+      </div>
+
+
+      <!-- UPI PAYMENT REQUEST: shown on the bill only when selected -->
+      <section class="gb-bill" *ngIf="paymentMethod === 'UPI'" aria-label="UPI payment details">
+        <h3>Pay Vendor by UPI</h3>
+        <p><strong>Payee:</strong> {{ vendorUpiPayeeName || 'Not configured' }}</p>
+        <p><strong>UPI ID:</strong> {{ vendorUpiId || 'Not configured' }}</p>
+        <p><strong>Amount:</strong> ₹{{ grandTotal | number:'1.2-2' }}</p>
+        <p *ngIf="upiQrLoading">Generating payment QR...</p>
+        <p *ngIf="upiQrError" style="color:#a11">{{ upiQrError }}</p>
+        <img *ngIf="upiQrDataUrl" [src]="upiQrDataUrl"
+             alt="UPI QR code for vendor and current grand total"
+             style="display:block;width:240px;max-width:100%;height:auto;background:white;padding:10px;margin:12px 0" />
+        <label for="upiReference" style="display:block;margin-top:12px">UPI transaction reference (optional)</label>
+        <input id="upiReference" class="gb-input" type="text" maxlength="100"
+               [(ngModel)]="upiTransactionReference"
+               placeholder="Enter reference after payment" />
+        <p>Payment remains pending verification until the vendor confirms receipt.
+           A QR scan or entered reference is not proof of successful payment.</p>
+      </section>
+      <section class="gb-bill" *ngIf="paymentMethod === 'COD'">
+        <p>Cash on Delivery selected. Payment will be collected at delivery or pickup.</p>
+      </section>
+
+      <!-- =================================================
+           ORDER JSON PREVIEW
+           ================================================= -->
+
+      <div class="gb-preview">
+
+
+        <h3>
+
+          Order JSON — Preview only
+
+        </h3>
+
+
+        <p>
+
+          Order Header and Order Details have not
+          been saved yet.
+
+          The combined Save API will be connected later.
+
+        </p>
+
+
+        <pre>{{ requestPreview | json }}</pre>
+
+
+        <button type="button" (click)="copyRequest()" [disabled]="!requestPreview">
+
+          Copy Order JSON
+
+        </button>
+
+
+      </div>
+
+
+    </section>
+
+
+  </ng-template>
+
+
+</div>

@@ -1,9 +1,11 @@
+import { TblProfile } from "../../../mastertables/tblProfile/models/tblProfile.model";
+
 export interface TblOrder {
 	fldId: number;
 	fldFKCustomerId: number;
-tblProfileId: TblProfile;
+	tblCustomerProfileId: TblProfile;
 	fldFKVendorId: number;
-tblProfileId: TblProfile;
+	tblVendorProfileId: TblProfile;
 	fldOrderNumber: string;
 	fldOrderDate: Date;
 	fldItemSubTotal: number;

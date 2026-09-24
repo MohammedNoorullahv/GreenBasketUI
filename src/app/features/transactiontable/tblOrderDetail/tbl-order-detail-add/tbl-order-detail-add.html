@@ -19,7 +19,7 @@
 					<label class="form-label" for="fldFKOrderHeaderId">F K Order Header Id</label>
 					<select id="fldFKOrderHeaderId" class="form-select" name="fldFKOrderHeaderId" [(ngModel)]="model.fldFKOrderHeaderId" required>
 						<option value="">-- Select --</option>
-						<option *ngFor="let tblOrder of tblOrder$ | async" [value]="tblOrder.fldId">{{ tblOrder.fldDescription }}</option>
+						<option *ngFor="let tblOrder of tblOrder$ | async" [value]="tblOrder.fldId">{{ tblOrder.fldOrderNumber }}</option>
 					</select>
 					<div class="text-danger" *ngIf="form.controls['fldFKOrderHeaderId']?.touched && form.controls['fldFKOrderHeaderId']?.invalid">
 						F K Order Header Id is required and should be greater than 0.
@@ -30,7 +30,7 @@
 					<label class="form-label" for="fldFKItemId">F K Item Id</label>
 					<select id="fldFKItemId" class="form-select" name="fldFKItemId" [(ngModel)]="model.fldFKItemId" required>
 						<option value="">-- Select --</option>
-						<option *ngFor="let tblItemMaster of tblItemMaster$ | async" [value]="tblItemMaster.fldId">{{ tblItemMaster.fldDescription }}</option>
+						<option *ngFor="let tblItemMaster of tblItemMaster$ | async" [value]="tblItemMaster.fldId">{{ tblItemMaster.fldItemName }}</option>
 					</select>
 					<div class="text-danger" *ngIf="form.controls['fldFKItemId']?.touched && form.controls['fldFKItemId']?.invalid">
 						F K Item Id is required and should be greater than 0.
@@ -44,7 +44,7 @@
 					<label class="form-label" for="fldFKDailyInventoryId">F K Daily Inventory Id</label>
 					<select id="fldFKDailyInventoryId" class="form-select" name="fldFKDailyInventoryId" [(ngModel)]="model.fldFKDailyInventoryId" required>
 						<option value="">-- Select --</option>
-						<option *ngFor="let tblDailyInventory of tblDailyInventory$ | async" [value]="tblDailyInventory.fldId">{{ tblDailyInventory.fldDescription }}</option>
+						<option *ngFor="let tblDailyInventory of tblDailyInventory$ | async" [value]="tblDailyInventory.fldId">{{ tblDailyInventory.fldItemName }}</option>
 					</select>
 					<div class="text-danger" *ngIf="form.controls['fldFKDailyInventoryId']?.touched && form.controls['fldFKDailyInventoryId']?.invalid">
 						F K Daily Inventory Id is required and should be greater than 0.

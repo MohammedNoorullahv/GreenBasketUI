@@ -20,7 +20,7 @@
 						<label class="form-label" for="fldFKCustomerId">F K Customer Id</label>
 						<select id="fldFKCustomerId" class="form-select" name="fldFKCustomerId" [(ngModel)]="tblOrder.fldFKCustomerId" required>
 							<option value="">-- Select --</option>
-							<option *ngFor="let tblProfile of tblProfile$ | async" [value]="tblProfile.fldId"> {{ tblProfile.fldDescription }}</option>
+							<option *ngFor="let tblProfile of tblCustomerProfile$ | async" [value]="tblProfile.fldId"> {{ tblProfile.fldFullName }}</option>
 						</select>
 						<div class="text-danger" *ngIf="form.controls['fldFKCustomerId']?.touched && form.controls['fldFKCustomerId']?.invalid">
 							F K Customer Id is required and should be greater than 0.
@@ -30,7 +30,7 @@
 						<label class="form-label" for="fldFKVendorId">F K Vendor Id</label>
 						<select id="fldFKVendorId" class="form-select" name="fldFKVendorId" [(ngModel)]="tblOrder.fldFKVendorId" required>
 							<option value="">-- Select --</option>
-							<option *ngFor="let tblProfile of tblProfile$ | async" [value]="tblProfile.fldId"> {{ tblProfile.fldDescription }}</option>
+							<option *ngFor="let tblProfile of tblVendorProfile$ | async" [value]="tblProfile.fldId"> {{ tblProfile.fldFullName }}</option>
 						</select>
 						<div class="text-danger" *ngIf="form.controls['fldFKVendorId']?.touched && form.controls['fldFKVendorId']?.invalid">
 							F K Vendor Id is required and should be greater than 0.

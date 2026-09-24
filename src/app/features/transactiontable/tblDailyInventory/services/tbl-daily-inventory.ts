@@ -6,6 +6,7 @@ import { TblDailyInventoryAdd } from '../models/tblDailyInventory-Add.model';
 import { TblDailyInventoryUpdate } from '../models/tblDailyInventory-Update.model';
 import { environment } from '../../../../../environments/environment.development';
 import { DailyStockEntrySaveRequest, TblDailyInventoryforStockEntry } from '../models/tblDailyInventoryforStockEntry.model';
+import { OrderStockItem } from '../../tblOrder/models/tbl-order-shopping.model';
 
 
 @Injectable({
@@ -30,38 +31,47 @@ export class TblDailyInventoryService {
     return this.http.get<TblDailyInventory[]>(`${environment.apiBaseUrl}/api/TblDailyInventory/GetActiveLeanTblDailyInventorys`);
   };
 
-  //https://localhost:7082/api/TblDailyInventory/GetAllTblDailyInventoryforStockEntry
-  //GET ALL
-  // getAllTblDailyInventoryforStockEntry(): Observable<TblDailyInventoryforStockEntry[]> {
-  //   return this.http.get<TblDailyInventoryforStockEntry[]>(`${environment.apiBaseUrl}/api/TblDailyInventory/GetAllTblDailyInventoryforStockEntry`);
-  // };
-
 
   // Add INSIDE existing TblDailyInventoryService; reuse its HttpClient and environment import.
-getAllTblDailyInventoryforStockEntry(inventoryDate: string) {
-  const params = new HttpParams().set('inventoryDate', inventoryDate);
-  return this.http.get<TblDailyInventoryforStockEntry[]>(
-    `${environment.apiBaseUrl}/api/TblDailyInventory/GetAllTblDailyInventoryforStockEntry`,
-    { params }
-  );
-}
+  getAllTblDailyInventoryforStockEntry(inventoryDate: string) {
+    const params = new HttpParams().set('inventoryDate', inventoryDate);
+    return this.http.get<TblDailyInventoryforStockEntry[]>(
+      `${environment.apiBaseUrl}/api/TblDailyInventory/GetAllTblDailyInventoryforStockEntry`,
+      { params }
+    );
+  }
 
-// saveDailyStockEntry(payload: TblDailyInventoryforStockEntry) {
-//   return this.http.post<void>(
-//     `${environment.apiBaseUrl}/api/TblDailyInventory/SaveDailyStockEntry`,
-//     payload
-//   );
-// }
+  // saveDailyStockEntry(payload: TblDailyInventoryforStockEntry) {
+  //   return this.http.post<void>(
+  //     `${environment.apiBaseUrl}/api/TblDailyInventory/SaveDailyStockEntry`,
+  //     payload
+  //   );
+  // }
 
-//https://localhost:7082/api/TblDailyInventory/CreateTblDailyInventoryStockEntry
-saveDailyStockEntry(
-  payload: DailyStockEntrySaveRequest
-) {
-  return this.http.post<void>(
-    `${environment.apiBaseUrl}/api/TblDailyInventory/CreateTblDailyInventoryStockEntry`,
-    payload
-  );
-}
+  //https://localhost:7082/api/TblDailyInventory/CreateTblDailyInventoryStockEntry
+  saveDailyStockEntry(
+    payload: DailyStockEntrySaveRequest
+  ) {
+    return this.http.post<void>(
+      `${environment.apiBaseUrl}/api/TblDailyInventory/CreateTblDailyInventoryStockEntry`,
+      payload
+    );
+  }
+
+  //https://localhost:7082/api/TblDailyInventory/GetAvailableStockForOrder?FldFKVendorId=1
+  getAvailableStockForOrder(
+    vendorId: number
+  ): Observable<OrderStockItem[]> {
+
+    const params = new HttpParams()
+      .set('FldFKVendorId', vendorId.toString());
+
+    return this.http.get<OrderStockItem[]>(
+      `${environment.apiBaseUrl}/api/TblDailyInventory/GetAvailableStockForOrder`,
+      { params }
+    );
+
+  }
 
 
   //POST

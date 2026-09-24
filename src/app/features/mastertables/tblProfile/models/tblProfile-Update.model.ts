@@ -16,4 +16,16 @@ export interface TblProfileUpdate {
 	fldCreatedDt: Date;
 	fldModifiedBy: number;
 	fldModifiedDt: Date;
+
+	fldAllowAdvanceOrder?: boolean;
+	fldADEndTime?: string;
+	fldADCharges?: number;
+	fldRegularDeliveryStartTime?: string;
+	fldRDCharges?: number;
+	fldAcceptingPriortyOrder?: boolean;
+	fldPDDuration?: string;
+	fldPDCharges?: number;
+	fldCoveredRadius?: number;
+	fldAdditionalChargesPerKm?: number;
+	fldMaxCoveredRadius?: number;
 }

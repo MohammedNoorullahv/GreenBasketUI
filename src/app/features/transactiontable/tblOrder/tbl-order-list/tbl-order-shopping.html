@@ -706,14 +706,14 @@
         <ng-container *ngIf="customerProfile as customer; else noCustomerProfile">
           <p><strong>{{ customer.fldFullName }}</strong><br />
             {{ customer.fldContactNumber }}
-            <ng-container *ngIf="customer.fldAlternateContactNumber"> / {{ customer.fldAlternateContactNumber }}</ng-container>
+            <ng-container *ngIf="customer.fldAlternateContactNumber"> / {{ customer.fldAlternateContactNumber
+              }}</ng-container>
           </p>
           <p *ngIf="customerAddress">{{ customerAddress }}</p>
           <p *ngIf="customer.fldGPSLocation">Location: {{ customer.fldGPSLocation }}</p>
-          <img *ngIf="customer.fldHouseImagePath"
-               [src]="imageUrl(customer.fldHouseImagePath)"
-               alt="Registered house photograph"
-               style="display:block;max-width:240px;width:100%;height:auto;border-radius:10px;margin-top:12px" />
+          <img *ngIf="customer.fldHouseImagePath" [src]="imageUrl(customer.fldHouseImagePath)"
+            alt="Registered house photograph"
+            style="display:block;max-width:240px;width:100%;height:auto;border-radius:10px;margin-top:12px" />
           <p *ngIf="fldOrderType === 'Self Pickup'">
             Self Pickup selected: this customer address is for contact/reference, not the pickup point.
             Confirm the vendor's shop address before collection.
@@ -728,13 +728,13 @@
       <section class="gb-bill" aria-label="Payment method">
         <h3>Payment Method</h3>
         <label style="display:block;margin:10px 0">
-          <input type="radio" name="paymentMethod" value="COD"
-                 [(ngModel)]="paymentMethod" (ngModelChange)="onPaymentMethodChange()" />
+          <input type="radio" name="paymentMethod" value="COD" [(ngModel)]="paymentMethod"
+            (ngModelChange)="onPaymentMethodChange()" />
           Cash on Delivery (COD)
         </label>
         <label style="display:block;margin:10px 0">
-          <input type="radio" name="paymentMethod" value="UPI"
-                 [(ngModel)]="paymentMethod" (ngModelChange)="onPaymentMethodChange()" />
+          <input type="radio" name="paymentMethod" value="UPI" [(ngModel)]="paymentMethod"
+            (ngModelChange)="onPaymentMethodChange()" />
           UPI Payment
         </label>
       </section>
@@ -838,15 +838,13 @@
         <p><strong>Amount:</strong> ₹{{ grandTotal | number:'1.2-2' }}</p>
         <p *ngIf="upiQrLoading">Generating payment QR...</p>
         <p *ngIf="upiQrError" style="color:#a11">{{ upiQrError }}</p>
-        <img *ngIf="upiQrDataUrl" [src]="upiQrDataUrl"
-             alt="UPI QR code for vendor and current grand total"
-             style="display:block;width:240px;max-width:100%;height:auto;background:white;padding:10px;margin:12px 0" />
+        <img *ngIf="upiQrDataUrl" [src]="upiQrDataUrl" alt="UPI QR code for vendor and current grand total"
+          style="display:block;width:240px;max-width:100%;height:auto;background:white;padding:10px;margin:12px 0" />
         <label for="upiReference" style="display:block;margin-top:12px">UPI transaction reference (optional)</label>
-        <input id="upiReference" class="gb-input" type="text" maxlength="100"
-               [(ngModel)]="upiTransactionReference"
-               placeholder="Enter reference after payment" />
+        <input id="upiReference" class="gb-input" type="text" maxlength="100" [(ngModel)]="upiTransactionReference"
+          placeholder="Enter reference after payment" />
         <p>Payment remains pending verification until the vendor confirms receipt.
-           A QR scan or entered reference is not proof of successful payment.</p>
+          A QR scan or entered reference is not proof of successful payment.</p>
       </section>
       <section class="gb-bill" *ngIf="paymentMethod === 'COD'">
         <p>Cash on Delivery selected. Payment will be collected at delivery or pickup.</p>
@@ -856,7 +854,7 @@
            ORDER JSON PREVIEW
            ================================================= -->
 
-      <div class="gb-preview">
+      <!-- <div class="gb-preview">
 
 
         <h3>
@@ -886,9 +884,28 @@
         </button>
 
 
+      </div> -->
+
+      <div class="gb-checkout-actions">
+
+        <button type="button" class="gb-place-order-btn" (click)="saveOrder()" [disabled]="
+      savingOrder ||
+      orderSaved ||
+      cart.length === 0 ||
+      (paymentMethod === 'UPI' && !vendorUpiId)
+    ">
+
+          {{
+          savingOrder
+          ? 'Placing Order...'
+          : orderSaved
+          ? 'Order Placed Successfully'
+          : 'Place Order'
+          }}
+
+        </button>
+
       </div>
-
-
     </section>
 
 

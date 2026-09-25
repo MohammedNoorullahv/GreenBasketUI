@@ -1,4 +1,4 @@
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { TblProfile } from '../models/tblProfile.model';
@@ -33,6 +33,22 @@ export class TblProfileService {
   addTblProfile(model: TblProfileAdd): Observable<void> {
     return this.http.post<void>(`${environment.apiBaseUrl}/api/TblProfile/CreateTblProfile`, model);
   };
+
+  //https://localhost:7082/api/TblProfile/GetActiveLeanTblProfilesByUserType?FldUserType=Vendor
+  // GET ACTIVE LEAN PROFILES BY USER TYPE
+  getActiveLeanTblProfilesByUserType(
+    fldUserType: string
+  ): Observable<TblProfile[]> {
+
+    const params = new HttpParams()
+      .set('FldUserType', fldUserType);
+
+    return this.http.get<TblProfile[]>(
+      `${environment.apiBaseUrl}/api/TblProfile/GetActiveLeanTblProfilesByUserType`,
+      { params }
+    );
+
+  }
 
   //GET
   getTblProfileById(id: number): Observable<TblProfile> {

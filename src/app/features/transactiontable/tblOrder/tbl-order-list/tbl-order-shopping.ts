@@ -10,6 +10,7 @@ import { TblDailyInventoryService } from '../../tblDailyInventory/services/tbl-d
 import { TblProfile } from '../../../mastertables/tblProfile/models/tblProfile.model';
 import { OrderCartLine, OrderShoppingRequest, OrderStockItem, OrderVendorOption } from '../models/tbl-order-shopping.model';
 import { TblProfileService } from '../../../mastertables/tblProfile/services/tbl-profile';
+import { TblOrderService } from '../services/tbl-order';
 
 @Component({
   selector: 'app-tbl-order-shopping',
@@ -22,16 +23,11 @@ import { TblProfileService } from '../../../mastertables/tblProfile/services/tbl
 export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
   // Pass these from your authenticated customer/session and vendor selection API.
   @Input() customerId = 2;
-  @Input() vendorOptions: OrderVendorOption[] = [
-    {
-      fldId: 1,
-      fldDescription: 'Green Basket Vendor'
-    }
-  ];
+  @Input() vendorOptions: OrderVendorOption[] = [];
   @Input() deliveryCharges = 0; // MUST be calculated/validated from vendor policy on server.
   @Input() deliveryEstimate = 'Confirm with vendor';
 
-  vendorId = 1;
+  vendorId = 0;
   orderOption: 'Current Day Order' | 'Advance Order' = 'Current Day Order';
   // fldOrderType: 'Self Pickup' | 'Regular Delivery' | 'Priority Delivery' | 'Advance Delivery';
   priceChangeOption: 'Auto Apply' | 'Get Confirmation' = 'Get Confirmation';
@@ -53,7 +49,8 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
   upiQrError = '';
   upiQrLoading = false;
   readonly imageBaseUrl = environment.apiBaseUrl.replace(/\/$/, '');
-
+  savingOrder = false;
+  orderSaved = false;
 
   // Vendor profile.
   vendorProfile: TblProfile | null = null;
@@ -61,12 +58,13 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
 
   constructor(private inventoryService: TblDailyInventoryService,
     private profileService: TblProfileService,
+    private orderService: TblOrderService,
     private toastr: ToastrService, private cdr: ChangeDetectorRef) { }
 
   ngOnInit(): void {
     // Temporary configuration until Login is completed.
     this.customerId = 2;
-    this.vendorId = 1;
+    // this.vendorId = 1;
 
     console.log('Customer ID:', this.customerId);
     console.log('Vendor ID:', this.vendorId);
@@ -75,6 +73,7 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
     // if (this.vendorId > 0) this.loadStock();
 
     this.loadStock();
+    this.loadVendors();
 
     this.loadVendorProfile();
     this.loadCustomerProfile();
@@ -949,4 +948,148 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
 
   }
 
+  loadVendors(): void {
+
+    this.profileService
+      .getActiveLeanTblProfilesByUserType('Vendor')
+      .subscribe({
+
+        next: (vendors: TblProfile[]) => {
+
+          this.vendorOptions = vendors.map(vendor => ({
+            fldId: vendor.fldId,
+            fldDescription: vendor.fldFullName
+          }));
+
+          console.log(
+            'Loaded Vendors:',
+            this.vendorOptions
+          );
+
+          // Auto-select only when one vendor exists.
+          if (this.vendorOptions.length === 1) {
+            this.changeVendor(
+              this.vendorOptions[0].fldId
+            );
+          }
+
+          this.cdr.detectChanges();
+
+        },
+
+        error: err => {
+
+          console.error(
+            'Unable to load vendors:',
+            err
+          );
+
+          this.toastr.error(
+            'Unable to load vendor list.'
+          );
+
+        }
+
+      });
+
+  }
+
+  saveOrder(): void {
+
+    if (this.savingOrder) {
+      return;
+    }
+
+    const payload = this.requestPreview;
+
+    if (!payload) {
+
+      this.toastr.warning(
+        'Please select at least one vegetable.'
+      );
+
+      return;
+    }
+
+    if (this.vendorId <= 0) {
+
+      this.toastr.warning(
+        'Please select a vendor.'
+      );
+
+      return;
+    }
+
+    if (
+      this.fldOrderType !== 'Self Pickup' &&
+      !this.customerAddress
+    ) {
+
+      this.toastr.warning(
+        'Customer delivery address is not available.'
+      );
+
+      return;
+    }
+
+    if (
+      this.paymentMethod === 'UPI' &&
+      !this.vendorUpiId
+    ) {
+
+      this.toastr.warning(
+        'Vendor UPI information is not configured.'
+      );
+
+      return;
+    }
+
+    if (!confirm('Do you want to place this order?')) {
+      return;
+    }
+
+    this.savingOrder = true;
+
+    this.orderService
+      .addTblOrderwithDetail(payload)
+      .subscribe({
+
+        next: () => {
+
+          this.savingOrder = false;
+          this.orderSaved = true;
+
+          this.toastr.success(
+            'Order placed successfully.'
+          );
+
+          console.log(
+            'Saved Order:',
+            payload
+          );
+
+          this.cdr.detectChanges();
+
+        },
+
+        error: err => {
+
+          this.savingOrder = false;
+
+          console.error(
+            'Order save failed:',
+            err
+          );
+
+          this.toastr.error(
+            'Unable to place order. Please try again.'
+          );
+
+          this.cdr.detectChanges();
+
+        }
+
+      });
+
+  }
 }

@@ -11,6 +11,7 @@ import { TblProfile } from '../../../mastertables/tblProfile/models/tblProfile.m
 import { OrderCartLine, OrderShoppingRequest, OrderStockItem, OrderVendorOption } from '../models/tbl-order-shopping.model';
 import { TblProfileService } from '../../../mastertables/tblProfile/services/tbl-profile';
 import { TblOrderService } from '../services/tbl-order';
+import { TblPendingOrderDto } from '../models/tbl-pending-order.model';
 
 @Component({
   selector: 'app-tbl-order-shopping',
@@ -62,29 +63,51 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
     private toastr: ToastrService, private cdr: ChangeDetectorRef) { }
 
   ngOnInit(): void {
-    // Temporary configuration until Login is completed.
+    // Temporary until customer login is completed.
     this.customerId = 2;
-    // this.vendorId = 1;
 
-    console.log('Customer ID:', this.customerId);
-    console.log('Vendor ID:', this.vendorId);
+    // Do not load vendors, stock or profiles here.
+    // Wait for the pending-order API response.
+    this.checkCustomerPendingOrders();
 
-    // if (this.vendorOptions.length === 1) this.vendorId = this.vendorOptions[0].fldId;
-    // if (this.vendorId > 0) this.loadStock();
+    // Temporary configuration until Login is completed.
+    // this.customerId = 2;
+    // // this.vendorId = 1;
 
-    this.loadStock();
-    this.loadVendors();
 
-    this.loadVendorProfile();
-    this.loadCustomerProfile();
+    // // First check whether this customer
+    // // already has pending orders.
+    // this.checkCustomerPendingOrders();
+
+    // // if (this.vendorOptions.length === 1) this.vendorId = this.vendorOptions[0].fldId;
+    // // if (this.vendorId > 0) this.loadStock();
+
+
+    // this.loadVendors();
+
+    // this.loadVendorProfile();
+    // this.loadCustomerProfile();
+
+    // this.loadStock();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['vendorOptions'] && this.vendorOptions.length === 1 && !this.vendorId) {
-      this.vendorId = this.vendorOptions[0].fldId;
-      this.loadStock();
+
+    if (
+      this.shoppingStarted &&
+      changes['vendorOptions'] &&
+      this.vendorOptions.length === 1 &&
+      !this.vendorId
+    ) {
+
+      this.changeVendor(
+        this.vendorOptions[0].fldId
+      );
+
     }
+
   }
+
 
   private today(): string {
     const d = new Date();
@@ -600,6 +623,12 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
     this.request?.unsubscribe();
     this.profileRequest?.unsubscribe();
     this.customerRequest?.unsubscribe();
+
+
+    this.pendingOrderRequest?.unsubscribe();
+
+
+
   }
 
   loadVendorProfile(): void {
@@ -1090,6 +1119,220 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
         }
 
       });
+
+  }
+
+  // =====================================================
+  // CUSTOMER ORDER TRACKING
+  // =====================================================
+
+  pendingOrders: TblPendingOrderDto[] = [];
+
+  checkingPendingOrders = false;
+
+  pendingOrderLoadError = false;
+
+  // Controls which screen is displayed.
+  showPendingOrders = false;
+
+  // Existing shopping screen should not load
+  // until pending-order verification is complete.
+  shoppingStarted = false;
+
+  private pendingOrderRequest?: Subscription;
+
+  checkCustomerPendingOrders(): void {
+
+    if (this.customerId <= 0) {
+
+      this.toastr.warning(
+        'Customer information is not available.'
+      );
+
+      return;
+    }
+
+    this.pendingOrderRequest?.unsubscribe();
+
+    this.checkingPendingOrders = true;
+
+    this.pendingOrderLoadError = false;
+
+    this.showPendingOrders = false;
+
+    this.shoppingStarted = false;
+
+    this.pendingOrders = [];
+
+    this.pendingOrderRequest = this.orderService
+      .getTblPendingOrderBys(
+        'Customer',
+        this.customerId
+      )
+      .subscribe({
+
+        next: (orders: TblPendingOrderDto[]) => {
+
+          this.checkingPendingOrders = false;
+
+          this.pendingOrders =
+            Array.isArray(orders) ? orders : [];
+
+          console.log(
+            'Customer Pending Orders:',
+            this.pendingOrders
+          );
+
+          if (this.pendingOrders.length > 0) {
+
+            // Customer has pending orders.
+            // Display Order Tracking first.
+
+            this.showPendingOrders = true;
+
+            this.shoppingStarted = false;
+
+          } else {
+
+            // No pending orders.
+            // Continue with existing shopping process.
+
+            this.startNewOrder();
+
+          }
+
+          this.cdr.detectChanges();
+
+        },
+
+        error: err => {
+
+          this.checkingPendingOrders = false;
+
+          this.pendingOrderLoadError = true;
+
+          console.error(
+            'Unable to fetch pending orders:',
+            err
+          );
+
+          this.toastr.error(
+            'Unable to check your existing orders.'
+          );
+
+          this.cdr.detectChanges();
+
+        }
+
+      });
+
+  }
+
+  startNewOrder(): void {
+
+    this.showPendingOrders = false;
+
+    this.shoppingStarted = true;
+
+    this.showCheckout = false;
+
+    this.orderSaved = false;
+
+    // Clear previous shopping selection.
+    this.cart = [];
+
+    this.stock = [];
+
+    this.vendorId = 0;
+
+    this.vendorProfile = null;
+
+    this.deliveryCharges = 0;
+
+    this.searchText = '';
+
+    this.category = 'All';
+
+    this.orderOption = 'Current Day Order';
+
+    this.fldOrderType = 'Normal Delivery';
+
+    this.requestedDeliveryDate = this.today();
+
+    // Load available vendors.
+    this.loadVendors();
+
+    // Load logged-in customer's
+    // registered address and house image.
+    this.loadCustomerProfile();
+
+    this.cdr.detectChanges();
+
+  }
+
+  isStageCompleted(
+    executedAt: string | null | undefined
+  ): boolean {
+
+    return !!executedAt;
+
+  }
+
+  getStageTime(
+    executedAt: string | null | undefined
+  ): string {
+
+    if (!executedAt) {
+      return 'Not yet completed';
+    }
+
+    return new Date(executedAt).toLocaleString(
+      'en-IN',
+      {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      }
+    );
+
+  }
+
+  selectedPendingOrder: TblPendingOrderDto | null = null;
+
+  // Zero-based index of the order selected for viewing.
+  selectedPendingOrderIndex = 0;
+
+  viewPendingOrderDetails(
+    order: TblPendingOrderDto,
+    index: number
+  ): void {
+
+    this.selectedPendingOrder = order;
+
+    this.selectedPendingOrderIndex = index;
+
+    this.cdr.detectChanges();
+
+  }
+
+  closePendingOrderDetails(): void {
+
+    this.selectedPendingOrder = null;
+
+    this.cdr.detectChanges();
+
+  }
+
+  get selectedOrderPosition(): number {
+
+    if (this.pendingOrders.length === 0) {
+      return 0;
+    }
+
+    return this.selectedPendingOrderIndex + 1;
 
   }
 }

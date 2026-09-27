@@ -1,0 +1,791 @@
+/* =========================================
+   GREEN BASKET - PREMIUM LOGIN
+========================================= */
+
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.login-page {
+  min-height: 100dvh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 22px;
+
+  background:
+    radial-gradient(circle at 10% 10%,
+      #e9fff3 0%,
+      transparent 35%),
+    linear-gradient(145deg,
+      #f4fff8,
+      #edfbf1);
+
+  font-family:
+    "Segoe UI",
+    Arial,
+    sans-serif;
+}
+
+/* =========================================
+   MAIN CARD
+========================================= */
+
+.login-card {
+  width: 100%;
+  max-width: 365px;
+
+  background: #ffffff;
+
+  border-radius: 18px;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 16px 45px rgba(20, 83, 45, 0.08),
+    0 3px 12px rgba(20, 83, 45, 0.04);
+}
+
+/* =========================================
+   GREEN BASKET BRAND HEADER
+========================================= */
+
+.brand-header {
+  width: 100%;
+
+  background: #ffffff;
+
+  padding: 8px 12px;
+
+  border-bottom: 1px solid #edf2ed;
+}
+
+/* Logo + Text Horizontal Alignment */
+
+.brand-container {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 7px;
+
+  width: 100%;
+}
+
+/* Logo */
+
+.brand-icon {
+  width: 45px;
+  height: 45px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  margin: 0;
+}
+
+.brand-icon img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  display: block;
+}
+
+/* Brand Text */
+
+.brand-text {
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  min-width: 0;
+}
+
+/* Green Basket */
+
+.brand-text h1 {
+  margin: 0;
+
+  padding: 0;
+
+  color: #087a3b;
+
+  font-family: "Segoe UI", Arial, sans-serif;
+
+  font-size: 22px;
+
+  font-weight: 750;
+
+  line-height: 1.1;
+
+  letter-spacing: -0.5px;
+}
+
+/* Tagline */
+
+.brand-text p {
+  margin: 2px 0 0;
+
+  padding: 0;
+
+  color: #165d42;
+
+  font-family: "Segoe UI", Arial, sans-serif;
+
+  font-size: 10px;
+
+  font-weight: 400;
+
+  line-height: 1.2;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================
+   BRAND
+========================================= */
+
+
+
+
+
+
+/* =========================================
+   VEGETABLE BANNERS
+========================================= */
+
+.vegetable-banner {
+  width: 100%;
+
+  background-repeat: no-repeat;
+
+  background-position: center;
+
+  background-size: cover;
+}
+
+.top-banner {
+  height: 112px;
+
+  background-image:
+    url('/Images/green-basket-top.png');
+
+  background-color: #f0f8e8;
+}
+
+.bottom-banner {
+  height: 115px;
+
+  background-image:
+    url('/Images/green-basket-bottom.png');
+
+  background-color: #f0f8e8;
+}
+
+/* =========================================
+   LOGIN CONTENT
+========================================= */
+
+.login-content {
+  padding: 17px 22px 19px;
+
+  text-align: center;
+
+  background: #ffffff;
+}
+
+.login-content h2 {
+  margin: 0;
+
+  color: #273a2e;
+
+  font-size: 17px;
+
+  font-weight: 600;
+
+  line-height: 1.25;
+
+  letter-spacing: -0.3px;
+}
+
+.login-content h2 span {
+  display: block;
+
+  color: #087a3b;
+
+  font-size: 23px;
+
+  font-weight: 750;
+
+  margin-top: 2px;
+}
+
+.login-subtitle {
+  margin: 8px 0 19px;
+
+  color: #73877b;
+
+  font-size: 9px;
+
+  font-weight: 400;
+
+  letter-spacing: 0.05px;
+}
+
+/* =========================================
+   INPUT
+========================================= */
+
+.input-label {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: #44584b;
+
+  text-align: left;
+
+  font-size: 11px;
+
+  font-weight: 500;
+}
+
+.mobile-input-wrapper {
+  display: flex;
+
+  align-items: center;
+
+  width: 100%;
+
+  height: 41px;
+
+  background: #ffffff;
+
+  border: 1px solid #d5e4d9;
+
+  border-radius: 5px;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.mobile-input-wrapper:focus-within {
+  border-color: #14934f;
+
+  box-shadow:
+    0 0 0 3px rgba(20, 147, 79, 0.08);
+}
+
+.country-code {
+  padding: 0 11px;
+
+  color: #314c3b;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  border-right:
+    1px solid #e5eee7;
+}
+
+.mobile-input-wrapper input {
+  flex: 1;
+
+  min-width: 0;
+
+  height: 100%;
+
+  padding: 0 11px;
+
+  border: none;
+
+  outline: none;
+
+  background: transparent;
+
+  color: #263b2d;
+
+  font-family: inherit;
+
+  font-size: 12px;
+}
+
+.mobile-input-wrapper input::placeholder {
+  color: #a3b1a7;
+
+  font-weight: 400;
+}
+
+/* =========================================
+   PRIMARY BUTTON
+========================================= */
+
+.primary-button {
+  display: block;
+
+  width: 100%;
+
+  height: 39px;
+
+  margin-top: 12px;
+
+  border: none;
+
+  border-radius: 5px;
+
+  background:
+    linear-gradient(135deg,
+      #0b9850,
+      #087b3d);
+
+  color: #ffffff;
+
+  font-family: inherit;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  letter-spacing: 0.15px;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 3px 9px rgba(8, 124, 54, 0.12);
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.primary-button:hover:not(:disabled) {
+  background:
+    linear-gradient(135deg,
+      #0a8948,
+      #066b34);
+
+  transform: translateY(-1px);
+}
+
+.primary-button:disabled {
+  opacity: 0.65;
+
+  cursor: not-allowed;
+}
+
+/* =========================================
+   REGISTRATION
+========================================= */
+
+.register-section {
+  margin-top: 19px;
+
+  padding: 10px;
+
+  border: 1px solid #0b9850;
+
+  border-radius: 5px;
+
+  background: #ffffff;
+
+  color: #5c7062;
+
+  font-size: 11px;
+}
+
+.register-section a {
+  margin-left: 4px;
+
+  color: #087b3d;
+
+  font-weight: 650;
+
+  text-decoration: none;
+}
+
+.register-section a:hover {
+  text-decoration: underline;
+}
+
+/* =========================================
+   OTP
+========================================= */
+
+.otp-description {
+  margin: 0 0 14px;
+
+  color: #718376;
+
+  font-size: 11px;
+
+  line-height: 1.7;
+}
+
+.otp-description strong {
+  display: block;
+
+  color: #087b3d;
+
+  font-size: 12px;
+}
+
+.otp-input {
+  width: 100%;
+
+  height: 42px;
+
+  border: 1px solid #d5e4d9;
+
+  border-radius: 5px;
+
+  background: #ffffff;
+
+  color: #263b2d;
+
+  text-align: center;
+
+  font-size: 19px;
+
+  letter-spacing: 7px;
+
+  outline: none;
+}
+
+.otp-input:focus {
+  border-color: #14934f;
+
+  box-shadow:
+    0 0 0 3px rgba(20, 147, 79, 0.08);
+}
+
+.text-button {
+  margin-top: 13px;
+
+  border: none;
+
+  background: transparent;
+
+  color: #087b3d;
+
+  font-size: 11px;
+
+  cursor: pointer;
+}
+
+/* =========================================
+   MESSAGES
+========================================= */
+
+.message {
+  margin-bottom: 12px;
+
+  padding: 9px 11px;
+
+  border-radius: 5px;
+
+  text-align: left;
+
+  font-size: 11px;
+
+  line-height: 1.5;
+}
+
+.error-message {
+  background: #fff1f0;
+
+  color: #b42318;
+}
+
+.success-message {
+  background: #edf9f0;
+
+  color: #087b3d;
+}
+
+/* =========================================
+   FOOTER
+========================================= */
+
+.login-footer {
+  width: 100%;
+}
+
+.footer-tagline {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 12px;
+
+  min-height: 32px;
+
+  background:
+    linear-gradient(90deg,
+      #087b3d,
+      #0b9850,
+      #087b3d);
+
+  color: #ffffff;
+
+  font-size: 10px;
+
+  font-weight: 500;
+
+  letter-spacing: 0.2px;
+}
+
+.separator {
+  opacity: 0.55;
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 480px) {
+
+  .login-page {
+    padding: 0;
+
+    align-items: stretch;
+  }
+
+  .login-card {
+    max-width: none;
+
+    min-height: 100dvh;
+
+    border-radius: 0;
+
+    box-shadow: none;
+  }
+
+  .top-banner {
+    height: 125px;
+  }
+
+  .bottom-banner {
+    height: 125px;
+  }
+
+  .login-content {
+    padding: 22px 24px;
+  }
+
+  /* =========================================
+   OTP VERIFICATION - GREEN BASKET
+========================================= */
+
+  .otp-header {
+    text-align: center;
+    margin-bottom: 17px;
+  }
+
+  .otp-icon {
+    width: 42px;
+    height: 42px;
+    margin: 0 auto 10px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+    background: #eaf7ed;
+    color: #087b3d;
+
+    font-size: 20px;
+  }
+
+  .otp-header h3 {
+    margin: 0 0 7px;
+
+    color: #273a2e;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .otp-header p {
+    margin: 0;
+
+    color: #73877b;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .otp-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+    margin-top: 8px;
+
+    color: #087b3d;
+    font-size: 13px;
+    font-weight: 650;
+  }
+
+  .change-number-btn {
+    border: none;
+    background: transparent;
+
+    color: #087b3d;
+    font-size: 11px;
+    font-weight: 500;
+
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .otp-input {
+    width: 100%;
+    height: 41px;
+
+    padding: 0 12px;
+
+    border: 1px solid #d5e4d9;
+    border-radius: 5px;
+
+    background: #ffffff;
+    color: #263b2d;
+
+    text-align: center;
+    font-size: 18px;
+    letter-spacing: 7px;
+
+    outline: none;
+  }
+
+  .otp-input:focus {
+    border-color: #14934f;
+
+    box-shadow:
+      0 0 0 3px rgba(20, 147, 79, 0.08);
+  }
+
+  .otp-expiry {
+    margin: 9px 0 0;
+
+    color: #829487;
+    font-size: 10px;
+    text-align: center;
+  }
+
+  .otp-resend {
+    margin-top: 15px;
+
+    color: #77897d;
+    font-size: 11px;
+    text-align: center;
+  }
+
+  .resend-button {
+    padding: 0 3px;
+
+    border: none;
+    background: transparent;
+
+    color: #087b3d;
+    font-size: 11px;
+    font-weight: 650;
+
+    cursor: pointer;
+  }
+
+  .resend-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+}
+
+/* OTP Error Message */
+
+.login-content .error-message {
+  display: block !important;
+
+  width: 100%;
+
+  padding: 12px 14px !important;
+
+  margin: 12px 0 16px !important;
+
+  background-color: #fff0f0 !important;
+
+  border: 1px solid #f5b5b5;
+
+  border-left: 4px solid #dc2626;
+
+  border-radius: 6px;
+
+  color: #b42318 !important;
+
+  font-size: 15px !important;
+
+  font-weight: 600 !important;
+
+  line-height: 1.5;
+
+  text-align: center;
+}
+
+/* =========================================
+   GREEN BASKET INTRO VIDEO
+========================================= */
+
+.intro-video-container {
+
+  position: fixed;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100dvh;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background: #ffffff;
+
+  z-index: 9999;
+
+  overflow: hidden;
+
+}
+
+.intro-video {
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  background: #ffffff;
+
+}

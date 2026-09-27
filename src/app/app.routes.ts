@@ -20,14 +20,31 @@ import { TblOrderDetailListComponent } from './features/transactiontable/tblOrde
 import { TblOrderDetailAddComponent } from './features/transactiontable/tblOrderDetail/tbl-order-detail-add/tbl-order-detail-add';
 import { TblOrderDetailUpdateComponent } from './features/transactiontable/tblOrderDetail/tbl-order-detail-update/tbl-order-detail-update';
 import { TblOrderShoppingComponent } from './features/transactiontable/tblOrder/tbl-order-list/tbl-order-shopping';
+import { LoginComponent } from './core/components/login/login-component/login-component';
 
 // import { TblCityorTownMasterListComponent }
 //   from './features/mastertables/tblCityorTownMaster/tbl-cityor-town-master-list/tbl-cityor-town-master-list';
 
 export const routes: Routes = [
+  
+   // Default page: Login
+  {
+    path: '',
+    redirectTo: 'login',
+    pathMatch: 'full'
+  },
+
+  // Login page
+  {
+    path: 'login',
+    component: LoginComponent
+  },
+
+  // Existing application layout
   {
     path: '',
     component: Navbar,
+
     children: [
       {
         path: 'mastertables/tblCityorTownMaster',

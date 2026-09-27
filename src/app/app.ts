@@ -7,7 +7,7 @@ import { Branding } from './core/components/branding/branding';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Navbar, Branding, Footer],
+  imports: [RouterOutlet, Branding, Footer],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

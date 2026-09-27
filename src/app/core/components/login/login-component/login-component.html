@@ -1,0 +1,277 @@
+<!-- =====================================
+     GREEN BASKET INTRO VIDEO
+===================================== -->
+
+<div
+  class="intro-video-container"
+  *ngIf="showIntroVideo">
+
+  <video
+    class="intro-video"
+    autoplay
+    muted
+    playsinline
+    preload="auto"
+    (ended)="onIntroVideoEnded()"
+    (error)="onIntroVideoError()">
+
+    <source
+      src="/Videos/relaffsol_Intro.mp4"
+      type="video/mp4">
+
+  </video>
+
+</div>
+
+
+<div
+  class="login-page"
+  *ngIf="!showIntroVideo">
+
+  <div class="login-card">
+
+    <!-- Logo / Branding -->
+
+    <header class="brand-header">
+
+      <div class="brand-container">
+
+        <!-- Green Basket Logo -->
+        <div class="brand-icon">
+
+          <img src="/Images/Green%20Basket%20Light.jpg" alt="Green Basket Logo" />
+
+        </div>
+
+        <!-- Brand Name and Tagline -->
+        <div class="brand-text">
+
+          <h1>Green Basket</h1>
+
+          <p>
+            Fresh from Your Local Vendor to Your Doorstep.
+          </p>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+    <!-- Top Vegetable Artwork -->
+
+    <div class="vegetable-banner top-banner" aria-hidden="true">
+    </div>
+
+
+    <!-- Login Section -->
+
+    <main class="login-content">
+
+      <h2>
+        Welcome to
+        <span>Green Basket</span>
+      </h2>
+
+
+
+      <!-- Error Message -->
+
+      <div *ngIf="errorMessage" class="message error-message">
+
+        {{ errorMessage }}
+
+      </div>
+
+
+      <!-- Success Message -->
+
+      <div *ngIf="successMessage" class="message success-message">
+
+        {{ successMessage }}
+
+      </div>
+
+
+
+      <!-- Mobile Number Entry -->
+
+      <form *ngIf="!otpSent" (ngSubmit)="sendOTP()">
+
+        <label class="input-label" for="mobileNumber">
+
+          Mobile Number
+
+        </label>
+
+        <div class="mobile-input-wrapper">
+
+          <span class="country-code">
+            +91
+          </span>
+
+          <input id="mobileNumber" name="mobileNumber" type="tel" inputmode="numeric" autocomplete="tel-national"
+            maxlength="10" pattern="[6-9][0-9]{9}" placeholder="Enter your phone number" [(ngModel)]="mobileNumber"
+            required />
+
+        </div>
+
+
+        <button class="primary-button" type="submit" [disabled]="isLoading">
+
+          {{
+          isLoading
+          ? 'Sending OTP...'
+          : 'Send OTP'
+          }}
+
+        </button>
+
+      </form>
+      <!-- 
+      <div style="padding: 10px; background: yellow; color: black;">
+
+        <div>
+          OTP Sent: {{ otpSent }}
+        </div>
+
+        <div>
+          Loading: {{ isLoading }}
+        </div>
+
+        <button type="button" (click)="testOTPScreen()">
+
+          TEST OTP SCREEN
+
+        </button>
+
+      </div> -->
+
+      <!-- =====================================
+     OTP VERIFICATION SCREEN
+===================================== -->
+
+      <form *ngIf="otpSent" (ngSubmit)="verifyOTP()">
+
+        <div class="otp-header">
+
+          <div class="otp-icon">
+            <span>✉</span>
+          </div>
+
+          <h3>
+            Verify Your Mobile Number
+          </h3>
+
+          <p>
+            Enter the 6-digit verification code sent to
+          </p>
+
+          <div class="otp-mobile">
+
+            +91 {{ mobileNumber }}
+
+            <button type="button" class="change-number-btn" (click)="changeMobileNumber()">
+
+              Change
+
+            </button>
+
+          </div>
+
+        </div>
+
+        <!-- OTP Input -->
+
+        <label class="input-label" for="otp">
+
+          Enter OTP
+
+        </label>
+
+        <input id="otp" name="otp" class="otp-input" type="text" inputmode="numeric" autocomplete="one-time-code"
+          maxlength="6" pattern="[0-9]{6}" placeholder="• • • • • •" [(ngModel)]="otp"
+          (ngModelChange)="onOTPChange($event)" [disabled]="isLoading" required />
+
+        <p class="otp-expiry">
+
+          OTP is valid for 5 minutes
+
+        </p>
+
+        <!-- Verify Button -->
+
+        <button class="primary-button" type="submit" [disabled]="isLoading || otp.length !== 6">
+
+          {{
+          isLoading
+          ? 'Verifying OTP...'
+          : 'Verify & Login'
+          }}
+
+        </button>
+
+        <!-- Resend OTP -->
+
+        <div class="otp-resend">
+
+          Didn't receive the OTP?
+
+          <button type="button" class="resend-button" [disabled]="isLoading" (click)="sendOTP()">
+
+            Resend OTP
+
+          </button>
+
+        </div>
+
+      </form>
+
+
+
+      <!-- Registration -->
+
+      <div class="register-section">
+
+        <span>
+          New User?
+        </span>
+
+        <a routerLink="/mastertables/tblProfile/add">
+
+          Register
+
+        </a>
+
+      </div>
+
+    </main>
+
+
+    <!-- Bottom Vegetable Artwork -->
+
+    <footer class="login-footer">
+
+      <div class="vegetable-banner bottom-banner" aria-hidden="true">
+      </div>
+
+      <div class="footer-tagline">
+
+        <span>Fresh</span>
+
+        <span class="separator">•</span>
+
+        <span>Local</span>
+
+        <span class="separator">•</span>
+
+        <span>Reliable</span>
+
+      </div>
+
+    </footer>
+
+  </div>
+
+</div>

@@ -1,7 +1,10 @@
-import { CommonModule,  DOCUMENT,   isPlatformBrowser } from '@angular/common';
+import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { Component, inject, PLATFORM_ID } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { environment } from '../../../../environments/environment.development';
+import { finalize } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 type GreenBasketLanguage = "en" | "ta" | "ur";
 
@@ -18,6 +21,12 @@ export class Navbar {
   isSidebarCollapsed: boolean = true;
   selectedLanguage: GreenBasketLanguage = "en";
 
+  userType = '';
+
+  profileId = 0;
+
+  profileName = '';
+
   private readonly translate =
     inject(TranslateService);
 
@@ -26,8 +35,8 @@ export class Navbar {
 
   private readonly platformId =
     inject(PLATFORM_ID);
-  
-  constructor() {
+
+  constructor(private router: Router, private http: HttpClient) {
 
     this.translate.addLangs([
       "en",
@@ -55,6 +64,12 @@ export class Navbar {
     }
 
     this.changeLanguage(initialLanguage);
+
+  }
+
+  ngOnInit(): void {
+
+    this.loadLoggedInProfile();
 
   }
 
@@ -101,7 +116,7 @@ export class Navbar {
 
   }
 
-  
+
   toggleSidebar(): void {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
@@ -116,6 +131,158 @@ export class Navbar {
     this.activeMenu = this.activeMenu === menuName ? null : menuName;
   }
 
+  isLoggingOut = false;
 
+  logout(): void {
+
+    if (this.isLoggingOut) {
+      return;
+    }
+
+    const token =
+      sessionStorage.getItem('gbAccessToken');
+
+    if (!token) {
+
+      this.clearLoginAndRedirect();
+
+      return;
+    }
+
+    this.isLoggingOut = true;
+
+    this.http.post(
+      `${environment.apiBaseUrl}/api/Authenticate/Logout`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    )
+      .pipe(
+        finalize(() => {
+          this.isLoggingOut = false;
+        })
+      )
+      .subscribe({
+
+        next: () => {
+          this.clearLoginAndRedirect();
+        },
+
+        error: (error) => {
+
+          console.error(
+            'Logout API error:',
+            error
+          );
+
+          // Clear local credentials even if
+          // the server request fails.
+          this.clearLoginAndRedirect();
+
+        }
+
+      });
+
+  }
+
+  private clearLoginAndRedirect(): void {
+
+    sessionStorage.removeItem(
+      'gbAccessToken'
+    );
+
+    sessionStorage.removeItem(
+      'gbProfile'
+    );
+
+    this.router.navigateByUrl('/login');
+
+  }
+
+  loadLoggedInProfile(): void {
+
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const storedProfile =
+      sessionStorage.getItem('gbProfile');
+
+    if (!storedProfile) {
+
+      this.userType = '';
+
+      this.profileId = 0;
+
+      this.profileName = '';
+
+      return;
+    }
+
+    try {
+
+      const profile =
+        JSON.parse(storedProfile);
+
+      this.userType =
+        profile.fldUserType || '';
+
+      this.profileId =
+        profile.fldId || 0;
+
+      this.profileName =
+        profile.fldFullName || '';
+
+    }
+    catch {
+
+      this.userType = '';
+
+      this.profileId = 0;
+
+      this.profileName = '';
+
+    }
+
+  }
+
+  get isAdmin(): boolean {
+
+    return this.userType === 'Admin';
+
+  }
+
+  get isVendor(): boolean {
+
+    return this.userType === 'Vendor';
+
+  }
+
+  get isCustomer(): boolean {
+
+    return this.userType === 'Customer';
+
+  }
+
+  get canManageInventory(): boolean {
+
+    return this.isAdmin || this.isVendor;
+
+  }
+
+  get canManageOrders(): boolean {
+
+    return this.isAdmin || this.isVendor;
+
+  }
+
+  get canShop(): boolean {
+
+    return this.isCustomer;
+
+  }
 
 }

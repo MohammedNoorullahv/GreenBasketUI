@@ -1,5 +1,8 @@
-import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import {
+  ChangeDetectorRef, Component, Input, OnChanges, OnDestroy,
+  OnInit, SimpleChanges, PLATFORM_ID, Inject
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import * as QRCode from 'qrcode';
@@ -23,7 +26,7 @@ import { TblPendingOrderDto } from '../models/tbl-pending-order.model';
 
 export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
   // Pass these from your authenticated customer/session and vendor selection API.
-  @Input() customerId = 2;
+  @Input() customerId = 0;
   @Input() vendorOptions: OrderVendorOption[] = [];
   @Input() deliveryCharges = 0; // MUST be calculated/validated from vendor policy on server.
   @Input() deliveryEstimate = 'Confirm with vendor';
@@ -57,38 +60,80 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
   vendorProfile: TblProfile | null = null;
   fldOrderType: 'Self Pickup' | 'Normal Delivery' | 'Priority Delivery' | 'Advance Delivery' = 'Normal Delivery';
 
+  userType = '';
+
+  profileId = 0;
+
+  profileName = '';
+
+  get isAdmin(): boolean {
+    return this.userType === 'Admin';
+  }
+
+  get isVendor(): boolean {
+    return this.userType === 'Vendor';
+  }
+
+  get isCustomer(): boolean {
+    return this.userType === 'Customer';
+  }
+
+  updatingOrderId = 0;
+
   constructor(private inventoryService: TblDailyInventoryService,
     private profileService: TblProfileService,
     private orderService: TblOrderService,
-    private toastr: ToastrService, private cdr: ChangeDetectorRef) { }
+    private toastr: ToastrService, private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID)
+    private platformId: object) { }
 
   ngOnInit(): void {
-    // Temporary until customer login is completed.
-    this.customerId = 2;
 
-    // Do not load vendors, stock or profiles here.
-    // Wait for the pending-order API response.
-    this.checkCustomerPendingOrders();
+    const profileLoaded =
+      this.loadLoggedInProfile();
 
-    // Temporary configuration until Login is completed.
-    // this.customerId = 2;
-    // // this.vendorId = 1;
+    if (!profileLoaded) {
 
+      this.toastr.error(
+        'Unable to identify logged-in user.'
+      );
 
-    // // First check whether this customer
-    // // already has pending orders.
-    // this.checkCustomerPendingOrders();
+      return;
+    }
 
-    // // if (this.vendorOptions.length === 1) this.vendorId = this.vendorOptions[0].fldId;
-    // // if (this.vendorId > 0) this.loadStock();
+    console.log(
+      'Logged-in Profile:',
+      {
+        profileId: this.profileId,
+        profileName: this.profileName,
+        userType: this.userType
+      }
+    );
 
+    if (this.isCustomer) {
 
-    // this.loadVendors();
+      this.customerId = this.profileId;
 
-    // this.loadVendorProfile();
-    // this.loadCustomerProfile();
+      this.checkPendingOrders();
 
-    // this.loadStock();
+      return;
+    }
+
+    if (this.isVendor) {
+
+      this.vendorId = this.profileId;
+
+      this.checkPendingOrders();
+
+      return;
+    }
+
+    if (this.isAdmin) {
+
+      this.checkPendingOrders();
+
+      return;
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -1141,14 +1186,9 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
 
   private pendingOrderRequest?: Subscription;
 
-  checkCustomerPendingOrders(): void {
+  checkPendingOrders(): void {
 
-    if (this.customerId <= 0) {
-
-      this.toastr.warning(
-        'Customer information is not available.'
-      );
-
+    if (this.profileId <= 0 || !this.userType) {
       return;
     }
 
@@ -1158,74 +1198,80 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
 
     this.pendingOrderLoadError = false;
 
-    this.showPendingOrders = false;
-
-    this.shoppingStarted = false;
-
     this.pendingOrders = [];
 
-    this.pendingOrderRequest = this.orderService
-      .getTblPendingOrderBys(
-        'Customer',
-        this.customerId
-      )
-      .subscribe({
+    this.selectedPendingOrder = null;
 
-        next: (orders: TblPendingOrderDto[]) => {
+    this.pendingOrderRequest =
+      this.orderService
+        .getTblPendingOrderBys(
+          this.userType,
+          this.profileId
+        )
+        .subscribe({
 
-          this.checkingPendingOrders = false;
+          next: (orders: TblPendingOrderDto[]) => {
 
-          this.pendingOrders =
-            Array.isArray(orders) ? orders : [];
+            this.pendingOrders =
+              orders ?? [];
 
-          console.log(
-            'Customer Pending Orders:',
-            this.pendingOrders
-          );
+            this.checkingPendingOrders = false;
 
-          if (this.pendingOrders.length > 0) {
+            this.pendingOrderLoadError = false;
 
-            // Customer has pending orders.
-            // Display Order Tracking first.
+            this.selectedPendingOrderIndex = 0;
 
-            this.showPendingOrders = true;
+            if (this.pendingOrders.length > 0) {
+
+              this.showPendingOrders = true;
+
+              this.shoppingStarted = false;
+
+            }
+            else {
+
+              this.showPendingOrders = false;
+
+              // Only Customer should automatically
+              // enter the shopping screen.
+              if (this.isCustomer) {
+
+                this.shoppingStarted = true;
+
+                this.loadVendors();
+
+              }
+              else {
+
+                this.shoppingStarted = false;
+
+              }
+            }
+
+            this.cdr.detectChanges();
+          },
+
+          error: (error) => {
+
+            console.error(
+              'Unable to load pending orders:',
+              error
+            );
+
+            this.checkingPendingOrders = false;
+
+            this.pendingOrderLoadError = true;
+
+            this.pendingOrders = [];
+
+            this.showPendingOrders = false;
 
             this.shoppingStarted = false;
 
-          } else {
-
-            // No pending orders.
-            // Continue with existing shopping process.
-
-            this.startNewOrder();
-
+            this.cdr.detectChanges();
           }
 
-          this.cdr.detectChanges();
-
-        },
-
-        error: err => {
-
-          this.checkingPendingOrders = false;
-
-          this.pendingOrderLoadError = true;
-
-          console.error(
-            'Unable to fetch pending orders:',
-            err
-          );
-
-          this.toastr.error(
-            'Unable to check your existing orders.'
-          );
-
-          this.cdr.detectChanges();
-
-        }
-
-      });
-
+        });
   }
 
   startNewOrder(): void {
@@ -1335,4 +1381,218 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
     return this.selectedPendingOrderIndex + 1;
 
   }
+
+  private loadLoggedInProfile(): boolean {
+
+    if (!isPlatformBrowser(this.platformId)) {
+      return false;
+    }
+
+    const storedProfile =
+      sessionStorage.getItem('gbProfile');
+
+    if (!storedProfile) {
+
+      this.userType = '';
+      this.profileId = 0;
+      this.profileName = '';
+
+      return false;
+    }
+
+    try {
+
+      const profile =
+        JSON.parse(storedProfile);
+
+      this.profileId =
+        Number(profile.fldId ?? 0);
+
+      this.profileName =
+        profile.fldFullName ?? '';
+
+      this.userType =
+        profile.fldUserType ?? '';
+
+      return this.profileId > 0;
+
+    }
+    catch (error) {
+
+      console.error(
+        'Unable to read logged-in profile.',
+        error
+      );
+
+      this.userType = '';
+      this.profileId = 0;
+      this.profileName = '';
+
+      return false;
+    }
+  }
+
+  loadVendorOrders(): void {
+
+    console.log(
+      'Loading Vendor Orders for Vendor ID:',
+      this.profileId
+    );
+
+    // Vendor API integration will be added next.
+
+  }
+
+  loadAdminOrders(): void {
+
+    console.log(
+      'Loading all orders for Admin.'
+    );
+
+    // Admin API integration will be added next.
+
+  }
+
+  canDenyOrder(order: TblPendingOrderDto): boolean {
+
+    return order.fldOrderStatus === 'Pending';
+
+  }
+
+
+  canUpdateOrderStatus(
+    order: TblPendingOrderDto
+  ): boolean {
+
+    return [
+      'Pending',
+      'Accepted',
+      'Out for Delivery'
+    ].includes(order.fldOrderStatus ?? '');
+
+  }
+
+
+  getNextStatusButtonText(
+    order: TblPendingOrderDto
+  ): string {
+
+    switch (order.fldOrderStatus) {
+
+      case 'Pending':
+        return 'Accept Order';
+
+      case 'Accepted':
+        return 'Out for Delivery';
+
+      case 'Out for Delivery':
+        return 'Mark Delivered';
+
+      default:
+        return '';
+    }
+  }
+
+
+  getNextOrderStatus(
+    order: TblPendingOrderDto
+  ): string | null {
+
+    switch (order.fldOrderStatus) {
+
+      case 'Pending':
+        return 'Accepted';
+
+      case 'Accepted':
+        return 'Out for Delivery';
+
+      case 'Out for Delivery':
+        return 'Delivered';
+
+      default:
+        return null;
+    }
+  }
+
+  updateToNextStatus(
+    order: TblPendingOrderDto
+  ): void {
+
+    if (!this.isVendor) {
+      return;
+    }
+
+    console.log("Updating Status");
+
+    if (!order.fldOrderId) {
+
+      console.error(
+        'Order Id is missing:',
+        order
+      );
+
+      this.toastr.error(
+        'Order Id is not available.'
+      );
+
+      return;
+    }
+
+    const nextStatus =
+      this.getNextOrderStatus(order);
+
+    if (!nextStatus) {
+      return;
+    }
+
+    if (
+      !confirm(
+        `Update this order to "${nextStatus}"?`
+      )
+    ) {
+      return;
+    }
+
+    console.log("Order Id", order.fldOrderId, "Next Status :", nextStatus)
+    this.updatingOrderId =
+      order.fldOrderId;
+
+    this.orderService
+      .updateOrderStatus(
+        order.fldOrderId,
+        nextStatus
+      )
+      .subscribe({
+
+        next: () => {
+
+          this.updatingOrderId = 0;
+
+          this.toastr.success(
+            `Order status updated to ${nextStatus}.`
+          );
+
+          this.checkPendingOrders();
+        },
+
+        error: (error) => {
+
+          console.error(
+            'Order status update failed:',
+            error
+          );
+
+          this.updatingOrderId = 0;
+
+          this.toastr.error(
+            error.error?.message ??
+            'Unable to update order status.'
+          );
+
+          this.cdr.detectChanges();
+        }
+
+      });
+  }
+
 }

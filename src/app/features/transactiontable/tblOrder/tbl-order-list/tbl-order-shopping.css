@@ -364,10 +364,11 @@
 
 .gb-tracking-card {
   background: #ffffff;
-  border: 1px solid #dce9df;
+  border: 2px solid #dce9df;
   border-radius: 12px;
   padding: 18px;
   margin-bottom: 18px;
+  box-sizing: border-box;
 }
 
 .gb-tracking-card-header {

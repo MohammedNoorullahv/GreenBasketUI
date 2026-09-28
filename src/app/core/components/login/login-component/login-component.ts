@@ -284,7 +284,9 @@ export class LoginComponent {
     switch (userType) {
 
       case 'Admin':
-        this.router.navigateByUrl('');
+        this.router.navigateByUrl(
+          '/mastertables/tblProfile'
+        );
         break;
 
       case 'Vendor':

@@ -79,4 +79,21 @@ export class TblOrderService {
 				observe: 'response'
 			});
 	};
+
+	//https://localhost:7082/api/TblOrder/UpdateOrderStatus
+	//https://localhost:7082/api/TblOrder/UpdateOrderStatus/UpdateOrderStatus
+	updateOrderStatus(
+		fldOrderId: number,
+		fldOrderStatus: string
+	): Observable<any> {
+
+		return this.http.patch(
+			`${environment.apiBaseUrl}/api/TblOrder/UpdateOrderStatus`,
+			{
+				fldOrderId: fldOrderId,
+				fldOrderStatus: fldOrderStatus
+			}
+		);
+
+	}
 }

@@ -1,6 +1,8 @@
 import { TblPendingOrderDetailDto } from "./tbl-pending-order-detail.model";
 
 export interface TblPendingOrderDto {
+  fldId: number;
+  fldOrderId: number;
   fldFKCustomerId: number;
   fldFKVendorId: number;
   fldOrderNumber?: string;

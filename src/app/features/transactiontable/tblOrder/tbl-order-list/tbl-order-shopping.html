@@ -21,7 +21,7 @@
       Unable to load your existing orders.
     </p>
 
-    <button type="button" (click)="checkCustomerPendingOrders()">
+    <button type="button" (click)="checkPendingOrders()">
       Retry
     </button>
 
@@ -80,10 +80,14 @@
 
       </div>
 
-      <h2>My Orders</h2>
+      <h2>
+        {{ isVendor ? 'Customer Orders' : 'My Orders' }}
+      </h2>
 
-      <button type="button" class="gb-place-order-btn" (click)="startNewOrder()">
+      <button *ngIf="isCustomer" type="button" class="gb-place-order-btn" (click)="startNewOrder()">
+
         + New Order
+
       </button>
 
     </div>
@@ -224,6 +228,22 @@
 
       </div>
 
+      <small *ngIf="isVendor">
+        DEBUG: {{ order.fldOrderStatus }}
+      </small>
+
+      <small>
+        Role: {{ userType }} |
+        Vendor: {{ isVendor }} |
+        Status: {{ order.fldOrderStatus }}
+      </small>
+
+      <button *ngIf="isVendor && canUpdateOrderStatus(order)" type="button" class="gb-status-update-btn"
+        (click)="updateToNextStatus(order)">
+
+        {{ getNextStatusButtonText(order) }}
+
+      </button>
 
       <div class="gb-tracking-footer">
 
@@ -234,6 +254,26 @@
         <button type="button" class="gb-view-details-btn" (click)="viewPendingOrderDetails(order, i)">
 
           View Details
+
+        </button>
+
+        <!-- VENDOR: DENY PENDING ORDER -->
+        <button *ngIf="isVendor && canDenyOrder(order)" type="button" class="gb-deny-order-btn"
+          [disabled]="updatingOrderId === order.fldId" (click)="canDenyOrder(order)">
+
+          Deny Order
+
+        </button>
+
+        <!-- VENDOR: NEXT STATUS -->
+        <button *ngIf="isVendor && canUpdateOrderStatus(order)" type="button" class="gb-status-update-btn"
+          [disabled]="updatingOrderId === order.fldId" (click)="updateToNextStatus(order)">
+
+          {{
+          updatingOrderId === order.fldId
+          ? 'Updating...'
+          : getNextStatusButtonText(order)
+          }}
 
         </button>
 

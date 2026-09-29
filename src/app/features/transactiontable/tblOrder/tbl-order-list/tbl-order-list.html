@@ -21,6 +21,11 @@
 				<i class="bi bi-check-circle"></i>
 				Active Records
 			</button>
+
+			<a [routerLink]="['/transactiontables/tblOrder']" class="btn-app btn-outline">
+				<i class="bi bi-cart3"></i>
+				Order Shopping
+			</a>
 		</div>
 
 		<div class="page-header-right">
@@ -70,32 +75,29 @@
 			<table class="data-table">
 				<thead>
 					<tr>
-						<th>Id</th>
-						<th>F K Customer Id</th>
-						<th>F K Vendor Id</th>
+						
+						<th>Customer Name</th>
+						<th>Delivery Street Name</th>
+						<th>Vendor Name</th>
 						<th>Order Number</th>
 						<th>Order Date</th>
-						<th>Item Sub Total</th>
-						<th>Delivery Charges</th>
 						<th>Grand Total</th>
 						<th>Order Status</th>
-						<th>Delivery G P S Location</th>
 						<th>Actions</th>
 					</tr>
 				</thead>
 
 				<tbody>
 					<tr *ngFor="let tblorder of tblorders">
-						<td class="cell-code">{{tblorder.fldId}}</td>
-						<td>{{tblorder.fldFKCustomerId}}</td>
-						<td>{{tblorder.fldFKVendorId}}</td>
+						<!-- <td class="cell-code">{{tblorder.fldId}}</td> -->
+						<td>{{tblorder.tblProfileCustomerId.fldFullName}}</td>
+						<td>{{tblorder.tblProfileCustomerId.fldStreetName}}</td>
+						<td>{{tblorder.tblProfileVendorId.fldFullName}}</td>
 						<td class="cell-primary">{{tblorder.fldOrderNumber}}</td>
-						<td>{{tblorder.fldOrderDate}}</td>
-						<td>{{tblorder.fldItemSubTotal}}</td>
-						<td>{{tblorder.fldDeliveryCharges}}</td>
+						<td>{{tblorder.fldOrderDate | date:'dd-MMM-yy' }}</td>
 						<td>{{tblorder.fldGrandTotal}}</td>
 						<td>{{tblorder.fldOrderStatus}}</td>
-						<td>{{tblorder.fldDeliveryGPSLocation}}</td>
+						
 						<td>
 							<div class="row-actions">
 								<a class="icon-btn edit" title="Edit"

@@ -29,9 +29,16 @@ export class TblStreetMasterService {
   };
 
   //POST
-  addTblStreetMaster(model: TblStreetMasterAdd): Observable<void> {
-    return this.http.post<void>(`${environment.apiBaseUrl}/api/TblStreetMaster/CreateTblStreetMaster`, model);
-  };
+  // addTblStreetMaster(model: TblStreetMasterAdd): Observable<void> {
+  //   return this.http.post<void>(`${environment.apiBaseUrl}/api/TblStreetMaster/CreateTblStreetMaster`, model);
+  // };
+  // POST
+  addTblStreetMaster(model: TblStreetMasterAdd): Observable<TblStreetMaster> {
+    return this.http.post<TblStreetMaster>(
+      `${environment.apiBaseUrl}/api/TblStreetMaster/CreateTblStreetMaster`,
+      model
+    );
+  }
 
   //GET
   getTblStreetMasterById(id: number): Observable<TblStreetMaster> {

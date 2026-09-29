@@ -26,8 +26,8 @@ import { LoginComponent } from './core/components/login/login-component/login-co
 //   from './features/mastertables/tblCityorTownMaster/tbl-cityor-town-master-list/tbl-cityor-town-master-list';
 
 export const routes: Routes = [
-  
-   // Default page: Login
+
+  // Default page: Login
   {
     path: '',
     redirectTo: 'login',
@@ -102,6 +102,10 @@ export const routes: Routes = [
         path: 'transactiontables/tblOrder',
         component: TblOrderShoppingComponent,
         // component: TblOrderListComponent,
+      },
+      {
+        path: 'transactiontables/tblOrderList',
+        component: TblOrderListComponent,
       },
       {
         path: 'transactiontables/tblOrder/add',

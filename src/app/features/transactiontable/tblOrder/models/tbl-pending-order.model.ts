@@ -22,6 +22,8 @@ export interface TblPendingOrderDto {
   fldOutForDeliveryAt?: Date | string;
   fldDeliveredAt?: Date | string;
   fldCancelledAt?: Date | string;
+  fldCancelledBy?: string;	
+  fldPackedAt?: Date | string;
 
   fldVendorUserType?: string; // Default: "Vendor"
   fldVendorContactNumber?: string;

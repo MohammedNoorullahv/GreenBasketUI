@@ -84,6 +84,12 @@
         {{ isVendor ? 'Customer Orders' : 'My Orders' }}
       </h2>
 
+      <a [routerLink]="['/transactiontables/tblOrderList']" class="btn-app btn-outline">
+        <i class="bi bi-list-ul"></i>
+        Order List
+      </a>
+
+
       <button *ngIf="isCustomer" type="button" class="gb-place-order-btn" (click)="startNewOrder()">
 
         + New Order
@@ -175,6 +181,31 @@
 
       </div>
 
+      <!-- PACKED -->
+
+      <div class="gb-tracking-stage" [class.completed]="!!order.fldPackedAt" [class.pending]="!order.fldPackedAt">
+
+        <span class="gb-stage-icon">
+          {{ order.fldPackedAt ? '✓' : '○' }}
+        </span>
+
+        <div>
+
+          <strong>Packed</strong>
+
+          <small>
+            {{
+            order.fldPackedAt
+            ? (order.fldPackedAt
+            | date:'dd MMM yyyy, hh:mm a')
+            : 'Not yet packed'
+            }}
+          </small>
+
+        </div>
+
+      </div>
+
 
       <!-- OUT FOR DELIVERY -->
 
@@ -228,22 +259,22 @@
 
       </div>
 
-      <small *ngIf="isVendor">
-        DEBUG: {{ order.fldOrderStatus }}
+      <!-- <small *ngIf="isVendor">
+        DEBUG: {{ order.fldOrderStatus }} || {{ order.fldPackedAt }}
       </small>
 
       <small>
         Role: {{ userType }} |
         Vendor: {{ isVendor }} |
         Status: {{ order.fldOrderStatus }}
-      </small>
+      </small> 
 
       <button *ngIf="isVendor && canUpdateOrderStatus(order)" type="button" class="gb-status-update-btn"
         (click)="updateToNextStatus(order)">
 
         {{ getNextStatusButtonText(order) }}
 
-      </button>
+      </button>-->
 
       <div class="gb-tracking-footer">
 

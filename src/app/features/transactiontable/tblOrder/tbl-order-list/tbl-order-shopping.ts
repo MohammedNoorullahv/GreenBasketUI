@@ -15,11 +15,12 @@ import { OrderCartLine, OrderShoppingRequest, OrderStockItem, OrderVendorOption 
 import { TblProfileService } from '../../../mastertables/tblProfile/services/tbl-profile';
 import { TblOrderService } from '../services/tbl-order';
 import { TblPendingOrderDto } from '../models/tbl-pending-order.model';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-tbl-order-shopping',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './tbl-order-shopping.html',
   styleUrl: './tbl-order-shopping.css'
 })
@@ -610,11 +611,11 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   get vendorUpiId(): string {
-    return this.vendorProfile?.fldUPIId?.trim() || '';
+    return this.vendorProfile?.fldvUPIId?.trim() || '';
   }
 
   get vendorUpiPayeeName(): string {
-    return this.vendorProfile?.fldUPIPayeeName?.trim()
+    return this.vendorProfile?.fldvUPIPayeeName?.trim()
       || this.vendorProfile?.fldFullName?.trim() || '';
   }
 
@@ -780,7 +781,7 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
     if (this.orderOption === 'Advance Order') {
 
       this.deliveryCharges =
-        Number(profile.fldADCharges ?? 0);
+        Number(profile.fldvADCharges ?? 0);
 
       return;
 
@@ -790,7 +791,7 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
     if (this.fldOrderType === 'Priority Delivery') {
 
       this.deliveryCharges =
-        Number(profile.fldPDCharges ?? 0);
+        Number(profile.fldvPDCharges ?? 0);
 
       return;
 
@@ -798,7 +799,7 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
 
     // Regular Delivery.
     this.deliveryCharges =
-      Number(profile.fldRDCharges ?? 0);
+      Number(profile.fldvRDCharges ?? 0);
 
   }
 
@@ -835,14 +836,14 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
     if (this.fldOrderType === 'Priority Delivery') {
 
       this.deliveryEstimate =
-        `Estimated delivery: ${profile.fldPDDuration ?? 'Confirm with vendor'}`;
+        `Estimated delivery: ${profile.fldvPDDuration ?? 'Confirm with vendor'}`;
 
       return;
 
     }
 
     this.deliveryEstimate =
-      `Regular delivery starts at ${profile.fldRegularDeliveryStartTime ??
+      `Regular delivery starts at ${profile.fldvRegularDeliveryStartTime ??
       'Time to be confirmed'
       }`;
 
@@ -1467,6 +1468,7 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
     return [
       'Pending',
       'Accepted',
+      'Packed',
       'Out for Delivery'
     ].includes(order.fldOrderStatus ?? '');
 
@@ -1483,6 +1485,9 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
         return 'Accept Order';
 
       case 'Accepted':
+        return 'Pack';
+
+      case 'Packed':
         return 'Out for Delivery';
 
       case 'Out for Delivery':
@@ -1504,6 +1509,9 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
         return 'Accepted';
 
       case 'Accepted':
+        return 'Packed';
+
+      case 'Packed':
         return 'Out for Delivery';
 
       case 'Out for Delivery':

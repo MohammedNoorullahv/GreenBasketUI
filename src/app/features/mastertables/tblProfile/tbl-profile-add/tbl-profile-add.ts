@@ -23,6 +23,9 @@ import { TblStreetMasterService } from '../../tblStreetMaster/services/tbl-stree
 import { TblProfile } from '../models/tblProfile.model';
 import { TblProfileAdd } from '../models/tblProfile-Add.model';
 import { TblProfileService } from '../services/tbl-profile';
+import { TblCityorTownMaster } from '../../tblCityorTownMaster/models/tblCityorTownMaster.model';
+import { TblCityorTownMasterService } from '../../tblCityorTownMaster/services/tbl-cityor-town-master';
+import { TblStreetMasterAdd } from '../../tblStreetMaster/models/tblStreetMaster-Add.model';
 
 @Component({
   selector: 'app-tbl-profile-add',
@@ -33,13 +36,18 @@ import { TblProfileService } from '../services/tbl-profile';
 
 export class TblProfileAddComponent implements OnDestroy {
   model: TblProfileAdd;
+  modelsm: TblStreetMasterAdd;
   submitAction: 'SaveAndAddNew' | 'SaveAndClose' | 'exit' = 'exit'; // default to exit
   private addTblProfileSubscription?: Subscription;
+  private addTblStreetMasterSubscription?: Subscription;
   @ViewChild('form') form!: NgForm;
   isSaving: boolean = false;
 
   tblStreetMaster$?: Observable<TblStreetMaster[]>
+  tblCityorTownMaster$?: Observable<TblCityorTownMaster[]>;
 
+  selectedCityorTownId: number = 0;
+  newStreetName: string = '';
 
   private readonly platformId = inject(PLATFORM_ID);
 
@@ -66,6 +74,7 @@ export class TblProfileAddComponent implements OnDestroy {
 
   constructor(private tblProfileService: TblProfileService,
     private tblStreetMasterService: TblStreetMasterService,
+    private tblCityorTownMasterService: TblCityorTownMasterService,
     private router: Router, private toastr: ToastrService, private cdr: ChangeDetectorRef) {
     this.model = {
       fldId: 0,
@@ -84,6 +93,14 @@ export class TblProfileAddComponent implements OnDestroy {
       fldCreatedBy: 0,
       fldCreatedDt: new Date(),
     };
+    this.modelsm = {
+      fldId: 0,
+      fldFKCity: 0,
+      fldStreetName: '',
+      fldIsActive: false,
+      fldCreatedBy: 0,
+      fldCreatedDt: new Date(),
+    };
   }
 
   ngOnInit(): void {
@@ -91,7 +108,7 @@ export class TblProfileAddComponent implements OnDestroy {
 
     this.tblStreetMaster$ = this.tblStreetMasterService.getActiveLeanTblStreetMasters();
 
-
+    this.tblCityorTownMaster$ = this.tblCityorTownMasterService.getActiveLeanTblCityorTownMasters();
 
     setTimeout(() => {
       if (this.form && this.form.controls['fldDescription']) {
@@ -129,8 +146,36 @@ export class TblProfileAddComponent implements OnDestroy {
       return;
     }
 
-    if (!this.model.fldFKStreetId || this.model.fldFKStreetId <= 0) {
-      return;
+    if (this.manualStreetEntry) {
+
+      if (
+        !this.selectedCityorTownId ||
+        this.selectedCityorTownId <= 0
+      ) {
+        this.toastr.warning(
+          'Please select City / Town.'
+        );
+        return;
+      }
+
+      if (!this.newStreetName?.trim()) {
+        this.toastr.warning(
+          'Please enter New Street Name.'
+        );
+        return;
+      }
+
+    } else {
+
+      if (
+        !this.model.fldFKStreetId ||
+        this.model.fldFKStreetId <= 0
+      ) {
+        this.toastr.warning(
+          'Please select Street Name.'
+        );
+        return;
+      }
     }
 
     if (!this.model.fldGPSLocation?.trim()) {
@@ -138,6 +183,31 @@ export class TblProfileAddComponent implements OnDestroy {
     }
 
     this.isSaving = true;
+
+    if (this.manualStreetEntry) {
+      // const newStreet = {
+      //   fldId: 0,
+      //   fldFKCityorTownId: this.selectedCityorTownId,
+      //   fldStreetName: this.model.fldStreetName.trim(),
+      //   fldIsActive: true
+      // };
+
+      this.modelsm.fldId = 0,
+      this.modelsm.fldFKCity = this.selectedCityorTownId,
+      this.modelsm.fldStreetName = this.model.fldStreetName.trim(),
+      this.modelsm.fldIsActive = true,
+      
+      this.addTblStreetMasterSubscription =
+        this.tblStreetMasterService.addTblStreetMaster(this.modelsm)
+          .subscribe({
+            next: (response) => {
+
+              // Newly created Street ID
+              this.model.fldFKStreetId = response.fldId;
+            }
+
+          })
+    }
 
     this.addTblProfileSubscription = this.tblProfileService.addTblProfile(this.model)
       .subscribe({
@@ -225,8 +295,40 @@ export class TblProfileAddComponent implements OnDestroy {
       return false;
     }
 
-    if (!this.model.fldFKStreetId || this.model.fldFKStreetId <= 0) {
-      return false;
+    if (this.manualStreetEntry) {
+
+      if (
+        !this.selectedCityorTownId ||
+        this.selectedCityorTownId <= 0
+      ) {
+        this.toastr.warning(
+          'Please select City / Town.'
+        );
+
+        return false;
+      }
+
+      if (!this.model.fldStreetName?.trim()) {
+
+        this.toastr.warning(
+          'Please enter the new Street Name.'
+        );
+
+        return false;
+      }
+
+    } else {
+
+      if (
+        !this.model.fldFKStreetId ||
+        this.model.fldFKStreetId <= 0
+      ) {
+        this.toastr.warning(
+          'Please select Street Name.'
+        );
+
+        return false;
+      }
     }
 
     if (!this.model.fldGPSLocation?.trim()) {
@@ -243,14 +345,20 @@ export class TblProfileAddComponent implements OnDestroy {
 
     if (this.manualStreetEntry) {
 
+      // User wants to create a new Street
       this.model.fldFKStreetId = 0;
+
+      this.selectedCityorTownId = 0;
+      this.newStreetName = '';
 
     } else {
 
-      this.model.fldStreetName = "";
+      // User wants to select an existing Street
+      this.selectedCityorTownId = 0;
+      this.newStreetName = '';
 
+      this.model.fldFKStreetId = 0;
     }
-
   }
 
 
@@ -354,85 +462,85 @@ export class TblProfileAddComponent implements OnDestroy {
   }
 
 
-  
-private setSelectedLocation(
-  latitude: number,
-  longitude: number
-): void {
 
-  if (!this.leaflet || !this.map) {
-    return;
-  }
+  private setSelectedLocation(
+    latitude: number,
+    longitude: number
+  ): void {
 
-  const L = this.leaflet;
+    if (!this.leaflet || !this.map) {
+      return;
+    }
 
-  this.selectedLatitude = latitude;
-  this.selectedLongitude = longitude;
+    const L = this.leaflet;
 
-  // 1. Move the existing marker, if available
-  if (this.locationMarker) {
+    this.selectedLatitude = latitude;
+    this.selectedLongitude = longitude;
 
-    this.locationMarker.setLatLng([
-      latitude,
-      longitude
-    ]);
+    // 1. Move the existing marker, if available
+    if (this.locationMarker) {
 
-  } else {
+      this.locationMarker.setLatLng([
+        latitude,
+        longitude
+      ]);
 
-    // 2. Create the marker for the first time
-    const pinIcon = L.divIcon({
+    } else {
 
-      className: "profile-pin-wrapper",
+      // 2. Create the marker for the first time
+      const pinIcon = L.divIcon({
 
-      html: `
+        className: "profile-pin-wrapper",
+
+        html: `
         <div class="profile-location-pin">
           <i class="bi bi-geo-alt-fill"></i>
         </div>
       `,
 
-      iconSize: [32, 32],
-      iconAnchor: [16, 32]
+        iconSize: [32, 32],
+        iconAnchor: [16, 32]
 
-    });
+      });
 
-    this.locationMarker = L.marker(
-      [latitude, longitude],
-      {
-        draggable: true,
-        icon: pinIcon
-      }
-    ).addTo(this.map);
+      this.locationMarker = L.marker(
+        [latitude, longitude],
+        {
+          draggable: true,
+          icon: pinIcon
+        }
+      ).addTo(this.map);
 
-    // 3. Fetch address whenever customer drags the pin
-    this.locationMarker.on("dragend", () => {
+      // 3. Fetch address whenever customer drags the pin
+      this.locationMarker.on("dragend", () => {
 
-      const position =
-        this.locationMarker!.getLatLng();
+        const position =
+          this.locationMarker!.getLatLng();
 
-      this.selectedLatitude = position.lat;
-      this.selectedLongitude = position.lng;
+        this.selectedLatitude = position.lat;
+        this.selectedLongitude = position.lng;
 
-      void this.fetchSelectedAddress(
-        position.lat,
-        position.lng
-      );
+        void this.fetchSelectedAddress(
+          position.lat,
+          position.lng
+        );
 
-      this.cdr.detectChanges();
+        this.cdr.detectChanges();
 
-    });
+      });
+
+    }
+
+    // 4. Fetch address whenever customer clicks on the map
+    //    or selects their current location
+    void this.fetchSelectedAddress(
+      latitude,
+      longitude
+    );
+
+    this.cdr.detectChanges();
 
   }
-
-  // 4. Fetch address whenever customer clicks on the map
-  //    or selects their current location
-  void this.fetchSelectedAddress(
-    latitude,
-    longitude
-  );
-
-  this.cdr.detectChanges();
-
-}
 
 
   useCurrentLocation(): void {
@@ -686,6 +794,34 @@ private setSelectedLocation(
     this.cdr.detectChanges();
 
   }
+
+  onUserTypeChange(): void {
+
+    if (this.model.fldUserType !== 'Customer') {
+      return;
+    }
+
+    this.model.fldvVendorName = '';
+    this.model.fldvAllowAdvanceOrder = false;
+    this.model.fldvADEndTime = '';
+    this.model.fldvADCharges = 0;
+
+    this.model.fldvRegularDeliveryStartTime = '';
+    this.model.fldvRDCharges = 0;
+
+    this.model.fldvAcceptingPriortyOrder = false;
+    this.model.fldvPDDuration = '';
+    this.model.fldvPDCharges = 0;
+
+    this.model.fldvCoveredRadius = 0;
+    this.model.fldvAdditionalChargesPerKm = 0;
+    this.model.fldvMaxCoveredRadius = 0;
+
+    this.model.fldvUPIId = null;
+    this.model.fldvUPIPayeeName = null;
+  }
+
+
 
 }
 

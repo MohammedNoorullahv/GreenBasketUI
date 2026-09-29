@@ -1,6 +1,8 @@
 <div class="container grid-page-shell">
 
-    <!-- Page Heading -->
+    <!-- =====================================================
+         PAGE HEADING
+         ===================================================== -->
     <div class="page-header-bar-simple">
 
         <h1 class="page-caption page-caption-with-icon">
@@ -13,6 +15,10 @@
 
     </div>
 
+
+    <!-- =====================================================
+         PROFILE FORM
+         ===================================================== -->
     <form #form="ngForm" novalidate>
 
         <div class="page-card profile-page-card">
@@ -20,33 +26,40 @@
             <div class="profile-form">
 
                 <h2 class="profile-form-title">
-                    Create Your Account
+                    Profile Information
                 </h2>
 
-                <!-- User Type -->
 
+                <!-- =================================================
+                     USER TYPE
+                     ================================================= -->
                 <div class="profile-field">
 
-                    <label class="form-label">I am a</label>
+                    <label class="form-label">
+                        User Type
+                        <span class="required">*</span>
+                    </label>
 
                     <div class="profile-user-types">
 
+                        <!-- CUSTOMER -->
                         <label class="profile-radio">
 
                             <input type="radio" name="fldUserType" value="Customer" [(ngModel)]="model.fldUserType"
-                                required />
+                                (ngModelChange)="onUserTypeChange()" required />
 
                             Customer
 
                         </label>
 
-                        <label class="profile-radio profile-radio-disabled">
 
-                            <input type="radio" name="fldUserType" value="Vendor" disabled />
+                        <!-- VENDOR -->
+                        <label class="profile-radio">
+
+                            <input type="radio" name="fldUserType" value="Vendor" [(ngModel)]="model.fldUserType"
+                                (ngModelChange)="onUserTypeChange()" required />
 
                             Vendor
-
-                            <small>(Currently disabled)</small>
 
                         </label>
 
@@ -54,17 +67,24 @@
 
                 </div>
 
-                <!-- Contact Number -->
 
+                <!-- =================================================
+                     CONTACT NUMBER
+                     ================================================= -->
                 <div class="profile-field">
 
                     <label class="form-label" for="fldContactNumber">
-                        Phone Number <span class="required">*</span>
+
+                        Phone Number
+                        <span class="required">*</span>
+
                     </label>
 
                     <div class="profile-phone-group">
 
-                        <span class="profile-country-code">+91</span>
+                        <span class="profile-country-code">
+                            +91
+                        </span>
 
                         <input type="tel" id="fldContactNumber" class="form-control" name="fldContactNumber"
                             [(ngModel)]="model.fldContactNumber" maxlength="15" placeholder="Enter phone number"
@@ -72,28 +92,38 @@
 
                     </div>
 
-                    <div class="text-danger profile-validation" *ngIf="form.controls['fldContactNumber']?.touched &&
-                   form.controls['fldContactNumber']?.invalid">
+                    <div class="text-danger profile-validation" *ngIf="
+                            form.controls['fldContactNumber']?.touched &&
+                            form.controls['fldContactNumber']?.invalid
+                        ">
+
                         Phone Number is required.
+
                     </div>
 
                 </div>
 
-                <!-- Alternate Number -->
 
+                <!-- =================================================
+                     ALTERNATE CONTACT NUMBER
+                     ================================================= -->
                 <div class="profile-field">
 
                     <label class="form-label" for="fldAlternateContactNumber">
 
                         Alternate Phone Number
 
-                        <span class="optional">(Optional)</span>
+                        <span class="optional">
+                            (Optional)
+                        </span>
 
                     </label>
 
                     <div class="profile-phone-group">
 
-                        <span class="profile-country-code">+91</span>
+                        <span class="profile-country-code">
+                            +91
+                        </span>
 
                         <input type="tel" id="fldAlternateContactNumber" class="form-control"
                             name="fldAlternateContactNumber" [(ngModel)]="model.fldAlternateContactNumber"
@@ -103,35 +133,89 @@
 
                 </div>
 
-                <!-- Full Name -->
 
+                <!-- =================================================
+                     EMAIL ID
+                     ================================================= -->
+                <div class="profile-field">
+
+                    <label class="form-label" for="fldEmailId">
+
+                        Email ID
+
+                        <span class="optional">
+                            (Optional)
+                        </span>
+
+                    </label>
+
+                    <input type="email" id="fldEmailId" class="form-control" name="fldEmailId"
+                        [(ngModel)]="model.fldEmailId" maxlength="150" placeholder="Enter email address" />
+
+                </div>
+
+
+                <!-- =================================================
+                     PASSWORD
+                     ================================================= -->
+                <div class="profile-field">
+
+                    <label class="form-label" for="fldPasswordHash">
+
+                        Password
+
+                        <span class="optional">
+                            (Optional)
+                        </span>
+
+                    </label>
+
+                    <input type="password" id="fldPasswordHash" class="form-control" name="fldPasswordHash"
+                        [(ngModel)]="model.fldPasswordHash" maxlength="100" autocomplete="new-password"
+                        placeholder="Enter password" />
+
+                </div>
+
+
+                <!-- =================================================
+                     FULL NAME
+                     ================================================= -->
                 <div class="profile-field">
 
                     <label class="form-label" for="fldFullName">
 
-                        Full Name <span class="required">*</span>
+                        Full Name
+                        <span class="required">*</span>
 
                     </label>
 
                     <input type="text" id="fldFullName" class="form-control" name="fldFullName"
-                        [(ngModel)]="model.fldFullName" maxlength="150" placeholder="Enter your name" required />
+                        [(ngModel)]="model.fldFullName" maxlength="150" placeholder="Enter full name" required />
 
-                    <div class="text-danger profile-validation" *ngIf="form.controls['fldFullName']?.touched &&
-                   form.controls['fldFullName']?.invalid">
+                    <div class="text-danger profile-validation" *ngIf="
+                            form.controls['fldFullName']?.touched &&
+                            form.controls['fldFullName']?.invalid
+                        ">
+
                         Full Name is required.
+
                     </div>
 
                 </div>
 
-                <!-- Building Name -->
 
+                <!-- =================================================
+                     COMPLEX / BUILDING
+                     ================================================= -->
                 <div class="profile-field">
 
                     <label class="form-label" for="fldComplexOrBuildingName">
 
                         Complex / Building Name
 
-                        <span class="optional">(Optional)</span>
+                        <span class="optional">
+                            (Optional)
+                        </span>
 
                     </label>
 
@@ -141,46 +225,58 @@
 
                 </div>
 
-                <!-- Door Number -->
 
+                <!-- =================================================
+                     DOOR NUMBER
+                     ================================================= -->
                 <div class="profile-field">
 
                     <label class="form-label" for="fldDoorNo">
 
-                        Door No <span class="required">*</span>
+                        Door No
+                        <span class="required">*</span>
 
                     </label>
 
                     <input type="text" id="fldDoorNo" class="form-control" name="fldDoorNo"
                         [(ngModel)]="model.fldDoorNo" maxlength="20" placeholder="Enter door number" required />
 
-                    <div class="text-danger profile-validation" *ngIf="form.controls['fldDoorNo']?.touched &&
-                   form.controls['fldDoorNo']?.invalid">
+                    <div class="text-danger profile-validation" *ngIf="
+                            form.controls['fldDoorNo']?.touched &&
+                            form.controls['fldDoorNo']?.invalid
+                        ">
+
                         Door No is required.
+
                     </div>
 
                 </div>
 
-                <!-- Street Name -->
 
+                <!-- =================================================
+     STREET NAME
+     ================================================= -->
                 <div class="profile-field">
 
                     <label class="form-label" for="fldFKStreetId">
 
-                        Street Name <span class="required">*</span>
+                        Street Name
+                        <span class="required">*</span>
 
                     </label>
 
-                    <select id="fldFKStreetId" class="form-select" name="fldFKStreetId"
-                        [(ngModel)]="model.fldFKStreetId" [required]="!manualStreetEntry"
-                        [disabled]="manualStreetEntry">
+                    <!-- EXISTING STREET -->
+                    <select *ngIf="!manualStreetEntry" id="fldFKStreetId" class="form-select" name="fldFKStreetId"
+                        [(ngModel)]="model.fldFKStreetId" required>
 
-                        <option value="">Select Street</option>
+                        <option [ngValue]="0">
+                            Select Street
+                        </option>
 
                         <option *ngFor="
                 let tblStreetMaster of
                 tblStreetMaster$ | async
-              " [value]="tblStreetMaster.fldId">
+            " [ngValue]="tblStreetMaster.fldId">
 
                             {{ tblStreetMaster.fldStreetName }}
 
@@ -188,54 +284,113 @@
 
                     </select>
 
+
+        <!-- =============================================
+         NEW STREET ENTRY
+         ============================================= -->
+                    <ng-container *ngIf="manualStreetEntry">
+
+                        <!-- City / Town -->
+                        <div class="profile-field">
+
+                            <label class="form-label" for="selectedCityorTownId">
+
+                                City / Town
+                                <span class="required">*</span>
+
+                            </label>
+
+                            <select id="selectedCityorTownId" name="selectedCityorTownId" class="form-select"
+                                [(ngModel)]="selectedCityorTownId" required>
+
+                                <option [ngValue]="0">
+                                    Select City / Town
+                                </option>
+
+                                <option *ngFor="let city of tblCityorTownMaster$ | async" [ngValue]="city.fldId">
+
+                                    {{ city.fldCityorTownName }}
+
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- New Street Name -->
+                        <div class="profile-field">
+
+                            <label class="form-label" for="newStreetName">
+
+                                New Street Name
+                                <span class="required">*</span>
+
+                            </label>
+
+                            <input type="text" id="newStreetName" name="newStreetName" class="form-control"
+                                [(ngModel)]="newStreetName" maxlength="100" placeholder="Enter new street name"
+                                required />
+
+                        </div>
+
+                    </ng-container>
+
+                    <!-- SWITCH MODE -->
                     <button type="button" class="profile-text-button" (click)="toggleManualStreet()">
 
                         {{
                         manualStreetEntry
-                        ? 'Select street from list'
-                        : "Can't find your street? Enter manually"
+                        ? 'Select existing street'
+                        : "Can't find your street? Add new street"
                         }}
 
                     </button>
 
-                    <input *ngIf="manualStreetEntry" type="text" id="fldStreetName" class="form-control"
-                        name="fldStreetName" [(ngModel)]="model.fldStreetName" maxlength="100"
-                        placeholder="Enter your street name" required />
-
                 </div>
 
-                <!-- MAP LOCATION SELECTOR -->
 
+                <!-- =================================================
+                     LOCATION
+                     ================================================= -->
                 <div class="profile-field">
 
                     <label class="form-label">
 
-                        Location <span class="required">*</span>
+                        Location
+                        <span class="required">*</span>
 
                     </label>
+
 
                     <div class="profile-location-selector">
 
                         <i class="bi bi-geo-alt-fill"></i>
 
+
                         <div class="profile-location-text">
 
                             <strong>
+
                                 {{
                                 model.fldGPSLocation
                                 ? 'Delivery Location Selected'
                                 : 'Select Delivery Location'
                                 }}
+
                             </strong>
 
                             <small>
+
                                 {{
                                 model.fldGPSLocation
                                 || 'Choose your location using the map'
                                 }}
+
                             </small>
 
                         </div>
+
 
                         <button type="button" class="profile-map-button" (click)="openLocationMap()">
 
@@ -244,6 +399,7 @@
                         </button>
 
                     </div>
+
 
                     <button type="button" class="profile-text-button" (click)="openLocationMap()">
 
@@ -259,42 +415,59 @@
 
                 </div>
 
-                <!-- House Image -->
 
+                <!-- =================================================
+                     HOUSE IMAGE
+                     ================================================= -->
                 <div class="profile-field">
 
                     <label class="form-label" for="houseImage">
 
                         House Image
-                        <span class="optional">(Optional)</span>
+
+                        <span class="optional">
+                            (Optional)
+                        </span>
 
                     </label>
+
 
                     <div class="profile-image-upload">
 
                         <input #houseImageInput type="file" id="houseImage" accept="image/jpeg,image/png,image/webp"
                             (change)="onHouseImageSelected($event)" hidden />
 
+
                         <button type="button" class="profile-upload-button" (click)="houseImageInput.click()">
+
                             <i class="bi bi-camera"></i>
 
-                            {{ houseImagePreview
+                            {{
+                            houseImagePreview
                             ? 'Change House Image'
-                            : 'Upload House Image' }}
+                            : 'Upload House Image'
+                            }}
+
                         </button>
+
 
                         <small>
                             JPG, PNG or WebP. Maximum 5 MB.
                         </small>
 
+
                         <div *ngIf="houseImagePreview" class="profile-image-preview">
 
                             <img [src]="houseImagePreview" alt="Selected house image" />
 
+
                             <button type="button" class="profile-remove-image"
                                 (click)="removeHouseImage(houseImageInput)">
+
                                 <i class="bi bi-trash"></i>
+
                                 Remove Image
+
                             </button>
 
                         </div>
@@ -303,12 +476,293 @@
 
                 </div>
 
-                <!-- Terms -->
 
+
+                <!-- =====================================================
+                     VENDOR DETAILS
+                     ONLY DISPLAY WHEN USER TYPE = VENDOR
+                     ===================================================== -->
+
+                <ng-container *ngIf="model.fldUserType === 'Vendor'">
+
+
+                    <h2 class="profile-form-title">
+                        Vendor Details
+                    </h2>
+
+
+                    <!-- =============================================
+                         VENDOR NAME
+                         ============================================= -->
+                    <div class="profile-field">
+
+                        <label class="form-label" for="fldvVendorName">
+
+                            Vendor / Shop Name
+                            <span class="required">*</span>
+
+                        </label>
+
+                        <input type="text" id="fldvVendorName" class="form-control" name="fldvVendorName"
+                            [(ngModel)]="model.fldvVendorName" maxlength="150" placeholder="Enter vendor / shop name"
+                            required />
+
+
+                        <div class="text-danger profile-validation" *ngIf="
+                                form.controls['fldvVendorName']?.touched &&
+                                form.controls['fldvVendorName']?.invalid
+                            ">
+
+                            Vendor Name is required.
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =============================================
+                         ALLOW ADVANCE ORDER
+                         ============================================= -->
+                    <div class="profile-field">
+
+                        <label class="form-label">
+                            Advance Order
+                        </label>
+
+                        <label class="profile-radio">
+
+                            <input type="checkbox" name="fldvAllowAdvanceOrder"
+                                [(ngModel)]="model.fldvAllowAdvanceOrder" />
+
+                            Allow Advance Orders
+
+                        </label>
+
+                    </div>
+
+
+                    <!-- =============================================
+                         ADVANCE DELIVERY END TIME
+                         ============================================= -->
+                    <div class="profile-field">
+
+                        <label class="form-label" for="fldvADEndTime">
+
+                            Advance Delivery End Time
+
+                        </label>
+
+                        <input type="time" id="fldvADEndTime" class="form-control" name="fldvADEndTime"
+                            [(ngModel)]="model.fldvADEndTime" />
+
+                    </div>
+
+
+                    <!-- =============================================
+                         ADVANCE DELIVERY CHARGES
+                         ============================================= -->
+                    <div class="profile-field">
+
+                        <label class="form-label" for="fldvADCharges">
+
+                            Advance Delivery Charges (₹)
+
+                        </label>
+
+                        <input type="number" id="fldvADCharges" class="form-control" name="fldvADCharges"
+                            [(ngModel)]="model.fldvADCharges" min="0" step="0.01" placeholder="0.00" />
+
+                    </div>
+
+
+                    <!-- =============================================
+                         REGULAR DELIVERY START TIME
+                         ============================================= -->
+                    <div class="profile-field">
+
+                        <label class="form-label" for="fldvRegularDeliveryStartTime">
+
+                            Regular Delivery Start Time
+
+                        </label>
+
+                        <input type="time" id="fldvRegularDeliveryStartTime" class="form-control"
+                            name="fldvRegularDeliveryStartTime" [(ngModel)]="model.fldvRegularDeliveryStartTime" />
+
+                    </div>
+
+
+                    <!-- =============================================
+                         REGULAR DELIVERY CHARGES
+                         ============================================= -->
+                    <div class="profile-field">
+
+                        <label class="form-label" for="fldvRDCharges">
+
+                            Regular Delivery Charges (₹)
+
+                        </label>
+
+                        <input type="number" id="fldvRDCharges" class="form-control" name="fldvRDCharges"
+                            [(ngModel)]="model.fldvRDCharges" min="0" step="0.01" placeholder="0.00" />
+
+                    </div>
+
+
+                    <!-- =============================================
+                         ACCEPT PRIORITY ORDER
+                         ============================================= -->
+                    <div class="profile-field">
+
+                        <label class="form-label">
+                            Priority Order
+                        </label>
+
+                        <label class="profile-radio">
+
+                            <input type="checkbox" name="fldvAcceptingPriortyOrder"
+                                [(ngModel)]="model.fldvAcceptingPriortyOrder" />
+
+                            Accept Priority Orders
+
+                        </label>
+
+                    </div>
+
+
+                    <!-- =============================================
+                         PRIORITY DELIVERY DURATION
+                         ============================================= -->
+                    <div class="profile-field">
+
+                        <label class="form-label" for="fldvPDDuration">
+
+                            Priority Delivery Duration
+
+                        </label>
+
+                        <input type="text" id="fldvPDDuration" class="form-control" name="fldvPDDuration"
+                            [(ngModel)]="model.fldvPDDuration" maxlength="50" placeholder="E.g. 30 Minutes" />
+
+                    </div>
+
+
+                    <!-- =============================================
+                         PRIORITY DELIVERY CHARGES
+                         ============================================= -->
+                    <div class="profile-field">
+
+                        <label class="form-label" for="fldvPDCharges">
+
+                            Priority Delivery Charges (₹)
+
+                        </label>
+
+                        <input type="number" id="fldvPDCharges" class="form-control" name="fldvPDCharges"
+                            [(ngModel)]="model.fldvPDCharges" min="0" step="0.01" placeholder="0.00" />
+
+                    </div>
+
+
+                    <!-- =============================================
+                         COVERED RADIUS
+                         ============================================= -->
+                    <div class="profile-field">
+
+                        <label class="form-label" for="fldvCoveredRadius">
+
+                            Free / Covered Radius (KM)
+
+                        </label>
+
+                        <input type="number" id="fldvCoveredRadius" class="form-control" name="fldvCoveredRadius"
+                            [(ngModel)]="model.fldvCoveredRadius" min="0" step="0.1"
+                            placeholder="Enter covered radius" />
+
+                    </div>
+
+
+                    <!-- =============================================
+                         ADDITIONAL CHARGE PER KM
+                         ============================================= -->
+                    <div class="profile-field">
+
+                        <label class="form-label" for="fldvAdditionalChargesPerKm">
+
+                            Additional Charges Per KM (₹)
+
+                        </label>
+
+                        <input type="number" id="fldvAdditionalChargesPerKm" class="form-control"
+                            name="fldvAdditionalChargesPerKm" [(ngModel)]="model.fldvAdditionalChargesPerKm" min="0"
+                            step="0.01" placeholder="0.00" />
+
+                    </div>
+
+
+                    <!-- =============================================
+                         MAXIMUM COVERED RADIUS
+                         ============================================= -->
+                    <div class="profile-field">
+
+                        <label class="form-label" for="fldvMaxCoveredRadius">
+
+                            Maximum Covered Radius (KM)
+
+                        </label>
+
+                        <input type="number" id="fldvMaxCoveredRadius" class="form-control" name="fldvMaxCoveredRadius"
+                            [(ngModel)]="model.fldvMaxCoveredRadius" min="0" step="0.1"
+                            placeholder="Enter maximum radius" />
+
+                    </div>
+
+
+                    <!-- =============================================
+                         UPI ID
+                         ============================================= -->
+                    <div class="profile-field">
+
+                        <label class="form-label" for="fldvUPIId">
+
+                            UPI ID
+
+                        </label>
+
+                        <input type="text" id="fldvUPIId" class="form-control" name="fldvUPIId"
+                            [(ngModel)]="model.fldvUPIId" maxlength="100" placeholder="E.g. vendor@upi" />
+
+                    </div>
+
+
+                    <!-- =============================================
+                         UPI PAYEE NAME
+                         ============================================= -->
+                    <div class="profile-field">
+
+                        <label class="form-label" for="fldvUPIPayeeName">
+
+                            UPI Payee Name
+
+                        </label>
+
+                        <input type="text" id="fldvUPIPayeeName" class="form-control" name="fldvUPIPayeeName"
+                            [(ngModel)]="model.fldvUPIPayeeName" maxlength="150" placeholder="Enter UPI payee name" />
+
+                    </div>
+
+
+                </ng-container>
+
+
+                <!-- =================================================
+                     TERMS AND CONDITIONS
+                     ================================================= -->
                 <div class="profile-terms">
 
                     <input type="checkbox" id="fldIsTermsAgreed" name="fldIsTermsAgreed"
                         [(ngModel)]="model.fldIsTermsAgreed" required />
+
 
                     <label for="fldIsTermsAgreed">
 
@@ -322,23 +776,27 @@
 
                 </div>
 
+
             </div>
 
         </div>
 
-        <!-- Registration Buttons -->
 
+        <!-- =====================================================
+             ACTION BUTTONS
+             ===================================================== -->
         <div class="page-actions-bar profile-actions">
 
             <button type="button" class="btn-app btn-register" [disabled]="isSaving" (click)="registerProfile(form)">
 
                 <i class="bi bi-check-circle"></i>
 
-                Register
+                {{ isSaving ? 'Saving...' : 'Register' }}
 
             </button>
 
-            <button type="button" class="btn-app btn-back" (click)="backToHome()">
+
+            <button type="button" class="btn-app btn-back" [disabled]="isSaving" (click)="backToHome()">
 
                 <i class="bi bi-arrow-left"></i>
 
@@ -353,14 +811,19 @@
 </div>
 
 
-<!-- =====================================
+
+<!-- =============================================================
      LOCATION MAP MODAL
-     ===================================== -->
+     ============================================================= -->
 
 <div *ngIf="showLocationMap" class="profile-map-overlay">
 
     <div class="profile-map-modal">
 
+
+        <!-- =====================================================
+             MAP HEADER
+             ===================================================== -->
         <div class="profile-map-header">
 
             <h3>
@@ -371,6 +834,7 @@
 
             </h3>
 
+
             <button type="button" class="profile-map-close" (click)="closeLocationMap()">
 
                 <i class="bi bi-x-lg"></i>
@@ -379,6 +843,10 @@
 
         </div>
 
+
+        <!-- =====================================================
+             MAP INSTRUCTION
+             ===================================================== -->
         <p class="profile-map-instruction">
 
             Tap on the map or drag the location pin
@@ -386,8 +854,29 @@
 
         </p>
 
-        <div id="profileLocationMap" class="profile-map-container"></div>
 
+        <!-- =====================================================
+             MAP
+             ===================================================== -->
+        <div id="profileLocationMap" class="profile-map-container">
+        </div>
+
+
+        <!-- =====================================================
+             SELECTED ADDRESS
+             ===================================================== -->
+        <div class="profile-map-coordinates" *ngIf="selectedMapAddress">
+
+            <i class="bi bi-house-door-fill"></i>
+
+            {{ selectedMapAddress }}
+
+        </div>
+
+
+        <!-- =====================================================
+             COORDINATES
+             ===================================================== -->
         <div class="profile-map-coordinates">
 
             <i class="bi bi-pin-map-fill"></i>
@@ -395,15 +884,22 @@
             {{
             selectedLatitude !== null &&
             selectedLongitude !== null
+
             ? selectedLatitude.toFixed(6) +
             ', ' +
             selectedLongitude.toFixed(6)
+
             : 'No location selected'
             }}
 
         </div>
 
+
+        <!-- =====================================================
+             MAP ACTIONS
+             ===================================================== -->
         <div class="profile-map-actions">
+
 
             <button type="button" class="btn-app btn-outline" (click)="useCurrentLocation()">
 
@@ -413,16 +909,18 @@
 
             </button>
 
+
             <button type="button" class="btn-app btn-save-close" [disabled]="
-          selectedLatitude === null ||
-          selectedLongitude === null
-        " (click)="confirmLocation()">
+                    selectedLatitude === null ||
+                    selectedLongitude === null
+                " (click)="confirmLocation()">
 
                 <i class="bi bi-check-circle"></i>
 
                 Confirm Location
 
             </button>
+
 
         </div>
 

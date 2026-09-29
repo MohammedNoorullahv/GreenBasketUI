@@ -15,15 +15,24 @@ export interface TblProfileAdd {
 	fldCreatedBy: number;
 	fldCreatedDt: Date;
 
-	fldAllowAdvanceOrder?: boolean;
-	fldADEndTime?: string;
-	fldADCharges?: number;
-	fldRegularDeliveryStartTime?: string;
-	fldRDCharges?: number;
-	fldAcceptingPriortyOrder?: boolean;
-	fldPDDuration?: string;
-	fldPDCharges?: number;
-	fldCoveredRadius?: number;
-	fldAdditionalChargesPerKm?: number;
-	fldMaxCoveredRadius?: number;
+	fldvVendorName?: string;
+    fldvAllowAdvanceOrder?: boolean;
+    fldvADEndTime?: string;
+    fldvADCharges?: number;
+    fldvRegularDeliveryStartTime?: string;
+    fldvRDCharges?: number;
+    fldvAcceptingPriortyOrder?: boolean;
+    fldvPDDuration?: string;
+    fldvPDCharges?: number;
+    fldvCoveredRadius?: number;
+    fldvAdditionalChargesPerKm?: number;
+    fldvMaxCoveredRadius?: number;
+	fldvUPIId?: string | null;
+    fldvUPIPayeeName?: string | null;
+
+	fldEmailId?: string | null;
+    fldPasswordHash?: string | null;
+
+	
+
 }

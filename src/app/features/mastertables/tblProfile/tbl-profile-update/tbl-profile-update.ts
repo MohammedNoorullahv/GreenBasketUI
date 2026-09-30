@@ -1,100 +1,83 @@
-import { Component, OnDestroy, ViewChild, ChangeDetectorRef } from '@angular/core';
-import { Observable, Subscription } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
-import { CommonModule } from '@angular/common';
-import { FormsModule, NgForm } from '@angular/forms';
-import { ToastrService } from 'ngx-toastr';
-import { Router } from '@angular/router';
 import {
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  PLATFORM_ID,
+  ViewChild,
+  inject
+} from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { FormsModule, NgForm } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Observable, Subscription, combineLatest } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { ToastrService } from 'ngx-toastr';
+import type * as Leaflet from 'leaflet';
 
-  inject,
-  PLATFORM_ID
-} from "@angular/core";
-
-import { isPlatformBrowser } from "@angular/common";
-
-import type * as Leaflet from "leaflet";
-
-
-
-
-import { TblStreetMaster } from '../../tblStreetMaster/models/tblStreetMaster.model';
-import { TblStreetMasterService } from '../../tblStreetMaster/services/tbl-street-master';
-import { TblProfile } from '../models/tblProfile.model';
-import { TblProfileAdd } from '../models/tblProfile-Add.model';
+import { TblProfileUpdate } from '../models/tblProfile-Update.model';
 import { TblProfileService } from '../services/tbl-profile';
+import { TblStreetMaster } from '../../tblStreetMaster/models/tblStreetMaster.model';
+import { TblStreetMasterAdd } from '../../tblStreetMaster/models/tblStreetMaster-Add.model';
+import { TblStreetMasterService } from '../../tblStreetMaster/services/tbl-street-master';
 import { TblCityorTownMaster } from '../../tblCityorTownMaster/models/tblCityorTownMaster.model';
 import { TblCityorTownMasterService } from '../../tblCityorTownMaster/services/tbl-cityor-town-master';
-import { TblStreetMasterAdd } from '../../tblStreetMaster/models/tblStreetMaster-Add.model';
 
 @Component({
-  selector: 'app-tbl-profile-add',
+  selector: 'app-tbl-profile-update',
+  standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './tbl-profile-add.html',
-  styleUrl: './tbl-profile-add.css',
+  templateUrl: './tbl-profile-update.html',
+
+  // Edit uses the same HTML classes/layout as Add.
+  // If your Add component folder has a different name, adjust only this path.
+  styleUrl: '../tbl-profile-add/tbl-profile-add.css',
 })
+export class TblProfileUpdateComponent implements OnInit, OnDestroy {
 
-export class TblProfileAddComponent implements OnDestroy {
-  model: TblProfileAdd;
+  id: number | null = null;
+  model: TblProfileUpdate = {} as TblProfileUpdate;
   modelsm: TblStreetMasterAdd;
-  submitAction: 'SaveAndAddNew' | 'SaveAndClose' | 'exit' = 'exit'; // default to exit
-  private addTblProfileSubscription?: Subscription;
+
+  private paramSubscription?: Subscription;
+  private editTblProfileSubscription?: Subscription;
   private addTblStreetMasterSubscription?: Subscription;
+
   @ViewChild('form') form!: NgForm;
-  isSaving: boolean = false;
 
-  tblStreetMaster$?: Observable<TblStreetMaster[]>
+  isSaving = false;
+  showPassword = false;
+
+  tblStreetMaster$?: Observable<TblStreetMaster[]>;
   tblCityorTownMaster$?: Observable<TblCityorTownMaster[]>;
+  tblStreetMasterList: TblStreetMaster[] = [];
 
-  selectedCityorTownId: number = 0;
-  newStreetName: string = '';
+  selectedCityorTownId = 0;
+  newStreetName = '';
+  manualStreetEntry = false;
 
   private readonly platformId = inject(PLATFORM_ID);
 
-
-  manualStreetEntry = false;
-
   showLocationMap = false;
-
   selectedLatitude: number | null = null;
-
   selectedLongitude: number | null = null;
-
   private map: Leaflet.Map | null = null;
-
   private locationMarker: Leaflet.Marker | null = null;
-
   private leaflet: typeof Leaflet | null = null;
 
   selectedHouseImage: File | null = null;
-
   houseImagePreview: string | null = null;
+  selectedMapAddress = '';
 
-  selectedMapAddress = "";
-  showPassword: boolean = false;
-  tblStreetMasterList: TblStreetMaster[] = [];
-
-  constructor(private tblProfileService: TblProfileService,
+  constructor(
+    private tblProfileService: TblProfileService,
     private tblStreetMasterService: TblStreetMasterService,
     private tblCityorTownMasterService: TblCityorTownMasterService,
-    private router: Router, private toastr: ToastrService, private cdr: ChangeDetectorRef) {
-    this.model = {
-      fldId: 0,
-      fldUserType: 'Customer',
-      fldContactNumber: '',
-      fldAlternateContactNumber: '',
-      fldFullName: '',
-      fldComplexOrBuildingName: '',
-      fldDoorNo: '',
-      fldFKStreetId: 0,
-      fldStreetName: '',
-      fldGPSLocation: '',
-      fldHouseImagePath: '',
-      fldIsTermsAgreed: true,
-      fldIsActive: true,
-      fldCreatedBy: 0,
-      fldCreatedDt: new Date(),
-    };
+    private router: Router,
+    private route: ActivatedRoute,
+    private toastr: ToastrService,
+    private cdr: ChangeDetectorRef
+  ) {
     this.modelsm = {
       fldId: 0,
       fldFKCity: 0,
@@ -107,7 +90,6 @@ export class TblProfileAddComponent implements OnDestroy {
 
   ngOnInit(): void {
 
-
     this.tblStreetMaster$ =
       this.tblStreetMasterService
         .getActiveLeanTblStreetMasters()
@@ -117,23 +99,59 @@ export class TblProfileAddComponent implements OnDestroy {
           })
         );
 
-    this.tblCityorTownMaster$ = this.tblCityorTownMasterService.getActiveLeanTblCityorTownMasters();
+    this.tblCityorTownMaster$ =
+      this.tblCityorTownMasterService
+        .getActiveLeanTblCityorTownMasters();
 
-    setTimeout(() => {
-      if (this.form && this.form.controls['fldDescription']) {
-        this.form.controls['fldDescription'].markAsTouched();
-      }
-    });
+    this.paramSubscription =
+      combineLatest([
+        this.route.paramMap,
+        this.route.queryParams
+      ])
+      .subscribe(([params]) => {
+
+        const idParam = params.get('id');
+        this.id = idParam ? parseInt(idParam, 10) : null;
+
+        if (!this.id) {
+          return;
+        }
+
+        this.tblProfileService
+          .getTblProfileById(this.id)
+          .subscribe({
+            next: (response) => {
+              this.model = response;
+              this.manualStreetEntry = false;
+              this.selectedCityorTownId = 0;
+              this.newStreetName = '';
+
+              if (this.model.fldHouseImagePath) {
+                this.houseImagePreview = this.model.fldHouseImagePath;
+              }
+
+              this.cdr.detectChanges();
+            },
+            error: (err) => {
+              const errorMsg =
+                err?.error?.message ||
+                err?.error ||
+                'Unable to load Profile.';
+
+              this.toastr.error(errorMsg, 'Error', {
+                toastClass: 'ngx-toastr custom-toast error-toast'
+              });
+              console.error('Profile Load Error:', err);
+            }
+          });
+      });
   }
 
-  OnFormSubmit(form: NgForm, action: 'SaveAndAddNew' | 'SaveAndClose'): void {
+  OnFormSubmit(form: NgForm): void {
 
     if (this.isSaving) {
       return;
     }
-
-    console.log("01. On FormSubmit", this.model);
-    this.submitAction = action;
 
     if (form.invalid) {
       form.control.markAllAsTouched();
@@ -156,170 +174,156 @@ export class TblProfileAddComponent implements OnDestroy {
       return;
     }
 
-    console.log("2. New street Name", this.newStreetName);
-    console.log("3. Existing Old Street Id", this.model.fldFKStreetId);
-    console.log("4. City / Town Id", this.selectedCityorTownId);
-
-
     if (this.manualStreetEntry) {
 
-      if (
-        !this.selectedCityorTownId ||
-        this.selectedCityorTownId <= 0
-      ) {
-        this.toastr.warning(
-          'Please select City / Town.'
-        );
+      if (!this.selectedCityorTownId || this.selectedCityorTownId <= 0) {
+        this.toastr.warning('Please select City / Town.');
         return;
       }
 
       if (!this.newStreetName?.trim()) {
-        this.toastr.warning(
-          'Please enter New Street Name.'
-        );
+        this.toastr.warning('Please enter New Street Name.');
         return;
       }
 
     } else {
 
-      if (
-        !this.model.fldFKStreetId ||
-        this.model.fldFKStreetId <= 0
-      ) {
-        this.toastr.warning(
-          'Please select Street Name.'
-        );
+      if (!this.model.fldFKStreetId || this.model.fldFKStreetId <= 0) {
+        this.toastr.warning('Please select Street Name.');
         return;
       }
     }
 
     if (!this.model.fldGPSLocation?.trim()) {
+      this.toastr.warning('Please select your delivery location.');
+      return;
+    }
+
+    if (!this.model.fldIsTermsAgreed) {
+      this.toastr.warning('Please agree to the Terms & Conditions.');
       return;
     }
 
     this.isSaving = true;
 
     if (this.manualStreetEntry) {
-      // const newStreet = {
-      //   fldId: 0,
-      //   fldFKCityorTownId: this.selectedCityorTownId,
-      //   fldStreetName: this.model.fldStreetName.trim(),
-      //   fldIsActive: true
-      // };
 
-      this.modelsm.fldId = 0,
-        this.modelsm.fldFKCity = this.selectedCityorTownId,
-        this.modelsm.fldStreetName = this.newStreetName.trim(),
-        this.modelsm.fldIsActive = true,
+      this.modelsm.fldId = 0;
+      this.modelsm.fldFKCity = this.selectedCityorTownId;
+      this.modelsm.fldStreetName = this.newStreetName.trim();
+      this.modelsm.fldIsActive = true;
 
-        this.addTblStreetMasterSubscription =
-        this.tblStreetMasterService.addTblStreetMaster(this.modelsm)
+      this.addTblStreetMasterSubscription =
+        this.tblStreetMasterService
+          .addTblStreetMaster(this.modelsm)
           .subscribe({
             next: (response) => {
 
-              console.log("5. Street Master Response After Saving", response);
-
-              // Newly created Street ID
+              // Store both the generated Street ID and Street Name.
               this.model.fldFKStreetId = response.fldId;
-              // New Street Name
               this.model.fldStreetName = response.fldStreetName;
 
-              console.log(
-                "6. New Street ID assigned to Profile",
-                this.model.fldFKStreetId
-              );
-
-              // NOW save Profile
+              // Update Profile only after Street creation succeeds.
               this.saveProfile();
-            }
+            },
+            error: (err) => {
+              this.isSaving = false;
 
-          })
+              const errorMsg =
+                err?.error?.message ||
+                err?.error ||
+                'Unable to create Street.';
+
+              this.toastr.error(errorMsg, 'Error', {
+                toastClass: 'ngx-toastr custom-toast error-toast'
+              });
+
+              console.error('Street Save Error:', err);
+            }
+          });
+
+      // Prevent Profile update from running before Street API response.
+      return;
     }
 
-
-    // console.log(
-    //   "7. BEFORE Profile API - Street ID:",
-    //   this.model.fldFKStreetId
-    // );
-
-    // console.log(
-    //   "8. BEFORE Profile API - Complete Model:",
-    //   JSON.stringify(this.model)
-    // );
-
-    // this.addTblProfileSubscription = this.tblProfileService.addTblProfile(this.model)
-    //   .subscribe({
-    //     next: (response) => {
-    //       this.isSaving = false;
-
-    //       this.toastr.success('Record saved successfully!', 'Success', {
-    //         toastClass: 'ngx-toastr custom-toast'
-    //       });
-
-    //       if (this.submitAction === 'SaveAndAddNew') {
-    //         this.resetForm();
-    //         this.cdr.detectChanges();
-    //       } else {
-    //         this.router.navigateByUrl('mastertables/tblProfile');
-    //       }
-    //     },
-    //     error: (err) => {
-    //       this.isSaving = false;
-
-    //       const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
-
-    //       this.toastr.error(errorMsg, 'Error', {
-    //         toastClass: 'ngx-toastr custom-toast error-toast'
-    //       });
-
-    //       console.error('API Error:', err);
-    //     }
-    //   });
-
+    this.saveProfile();
   }
 
   private saveProfile(): void {
 
-    console.log(
-      "7. BEFORE Profile API - Street ID:",
-      this.model.fldFKStreetId
-    );
+    if (!this.id) {
+      this.isSaving = false;
+      return;
+    }
 
-    console.log(
-      "8. BEFORE Profile API - Complete Model:",
-      JSON.stringify(this.model)
-    );
+    const updateRequest: TblProfileUpdate = {
+      fldId: this.model.fldId ?? this.id,
+      fldUserType: this.model.fldUserType ?? '',
+      fldContactNumber: this.model.fldContactNumber ?? '',
+      fldAlternateContactNumber: this.model.fldAlternateContactNumber ?? '',
+      fldFullName: this.model.fldFullName ?? '',
+      fldComplexOrBuildingName: this.model.fldComplexOrBuildingName ?? '',
+      fldDoorNo: this.model.fldDoorNo ?? '',
+      fldFKStreetId: this.model.fldFKStreetId ?? 0,
+      fldStreetName: this.model.fldStreetName ?? '',
+      fldGPSLocation: this.model.fldGPSLocation ?? '',
+      fldHouseImagePath: this.model.fldHouseImagePath ?? '',
+      fldIsTermsAgreed: this.model.fldIsTermsAgreed ?? true,
+      fldIsActive: this.model.fldIsActive ?? true,
+      fldCreatedBy: this.model.fldCreatedBy ?? 0,
+      fldCreatedDt: this.model.fldCreatedDt ?? new Date(),
+      fldModifiedBy: this.model.fldModifiedBy ?? 0,
+      fldModifiedDt: this.model.fldModifiedDt ?? new Date(),
 
-    this.addTblProfileSubscription =
+      fldvADCharges: this.model.fldvADCharges ?? 0,
+      fldvADEndTime: this.model.fldvADEndTime ?? '',
+      fldvAcceptingPriortyOrder: this.model.fldvAcceptingPriortyOrder ?? false,
+      fldvAllowAdvanceOrder: this.model.fldvAllowAdvanceOrder ?? false,
+      fldvPDCharges: this.model.fldvPDCharges ?? 0,
+      fldvPDDuration: this.model.fldvPDDuration ?? '',
+      fldvRDCharges: this.model.fldvRDCharges ?? 0,
+      fldvRegularDeliveryStartTime: this.model.fldvRegularDeliveryStartTime ?? '',
+      fldvAdditionalChargesPerKm: this.model.fldvAdditionalChargesPerKm ?? 0,
+      fldvCoveredRadius: this.model.fldvCoveredRadius ?? 0,
+      fldvMaxCoveredRadius: this.model.fldvMaxCoveredRadius ?? 0,
+      fldvUPIId: this.model.fldvUPIId ?? '',
+      fldvUPIPayeeName: this.model.fldvUPIPayeeName ?? '',
+      fldEmailId: this.model.fldEmailId ?? '',
+      fldPasswordHash: this.model.fldPasswordHash ?? '',
+      fldvVendorName: this.model.fldvVendorName ?? '',
+    };
+
+    this.editTblProfileSubscription =
       this.tblProfileService
-        .addTblProfile(this.model)
+        .updateTblProfile(updateRequest)
         .subscribe({
-
-          next: (response) => {
+          next: () => {
 
             this.isSaving = false;
 
-            this.toastr.success(
-              'Record saved successfully!',
-              'Success',
-              {
-                toastClass: 'ngx-toastr custom-toast'
-              }
-            );
+            // Stay on this page after successful update.
+            this.toastr.success('Changes updated', 'Success', {
+              toastClass: 'ngx-toastr custom-toast'
+            });
 
-            if (this.submitAction === 'SaveAndAddNew') {
+            if (this.manualStreetEntry) {
+              this.manualStreetEntry = false;
+              this.selectedCityorTownId = 0;
+              this.newStreetName = '';
 
-              this.resetForm();
-              this.cdr.detectChanges();
-
-            } else {
-
-              this.router.navigateByUrl(
-                'mastertables/tblProfile'
-              );
+              // Reload Street list so the newly-created Street is selectable.
+              this.tblStreetMaster$ =
+                this.tblStreetMasterService
+                  .getActiveLeanTblStreetMasters()
+                  .pipe(
+                    tap((streets) => {
+                      this.tblStreetMasterList = streets;
+                    })
+                  );
             }
-          },
 
+            this.cdr.detectChanges();
+          },
           error: (err) => {
 
             this.isSaving = false;
@@ -329,69 +333,22 @@ export class TblProfileAddComponent implements OnDestroy {
               err?.error ||
               'An unexpected error occurred';
 
-            this.toastr.error(
-              errorMsg,
-              'Error',
-              {
-                toastClass:
-                  'ngx-toastr custom-toast error-toast'
-              }
-            );
+            this.toastr.error(errorMsg, 'Error', {
+              toastClass: 'ngx-toastr custom-toast error-toast'
+            });
 
-            console.error(
-              'Profile Save Error:',
-              err
-            );
+            console.error('Profile Update Error:', err);
           }
-
         });
-  }
-
-  resetForm() {
-    this.model = {
-      fldId: 0,
-      fldUserType: '',
-      fldContactNumber: '',
-      fldAlternateContactNumber: '',
-      fldFullName: '',
-      fldComplexOrBuildingName: '',
-      fldDoorNo: '',
-      fldFKStreetId: 0,
-      fldStreetName: '',
-      fldGPSLocation: '',
-      fldHouseImagePath: '',
-      fldIsTermsAgreed: true,
-      fldIsActive: true,
-      fldCreatedBy: 0,
-      fldCreatedDt: new Date(),
-    },
-      setTimeout(() => {
-        const firstInput = document.getElementById('fldDescription');
-        if (firstInput) {
-          firstInput.focus();
-        }
-      });
   }
 
   backToHome(): void {
     this.router.navigateByUrl('mastertables/tblProfile');
   }
 
-  ngOnDestroy(): void {
-    this.addTblProfileSubscription?.unsubscribe();
-  }
-
-  isFormValid(form: any): boolean {
+  isFormValid(form: NgForm): boolean {
 
     if (form.invalid) {
-      return false;
-    }
-
-    if (!this.model.fldUserType?.trim()) {
-      return false;
-    }
-
-    if (!this.model.fldContactNumber?.trim()) {
       return false;
     }
 
@@ -405,36 +362,17 @@ export class TblProfileAddComponent implements OnDestroy {
 
     if (this.manualStreetEntry) {
 
-      if (
-        !this.selectedCityorTownId ||
-        this.selectedCityorTownId <= 0
-      ) {
-        this.toastr.warning(
-          'Please select City / Town.'
-        );
-
+      if (!this.selectedCityorTownId || this.selectedCityorTownId <= 0) {
         return false;
       }
 
-      if (!this.model.fldStreetName?.trim()) {
-
-        this.toastr.warning(
-          'Please enter the new Street Name.'
-        );
-
+      if (!this.newStreetName?.trim()) {
         return false;
       }
 
     } else {
 
-      if (
-        !this.model.fldFKStreetId ||
-        this.model.fldFKStreetId <= 0
-      ) {
-        this.toastr.warning(
-          'Please select Street Name.'
-        );
-
+      if (!this.model.fldFKStreetId || this.model.fldFKStreetId <= 0) {
         return false;
       }
     }
@@ -445,7 +383,6 @@ export class TblProfileAddComponent implements OnDestroy {
 
     return true;
   }
-
 
   toggleManualStreet(): void {
 
@@ -745,55 +682,6 @@ export class TblProfileAddComponent implements OnDestroy {
   }
 
 
-  registerProfile(form: NgForm): void {
-
-    if (
-      !this.model.fldGPSLocation ||
-      !this.model.fldGPSLocation.trim()
-    ) {
-
-      alert("Please select your delivery location.");
-
-      return;
-
-    }
-
-    if (!this.model.fldIsTermsAgreed) {
-
-      alert(
-        "Please agree to the Terms & Conditions."
-      );
-
-      return;
-
-    }
-
-    if (
-      this.manualStreetEntry &&
-      !this.newStreetName?.trim()
-    ) {
-
-      alert("Please enter your street name.");
-
-      return;
-
-    }
-
-    if (form.invalid) {
-
-      form.control.markAllAsTouched();
-
-      return;
-
-    }
-
-    this.OnFormSubmit(
-      form,
-      "SaveAndClose"
-    );
-
-  }
-
   onHouseImageSelected(event: Event): void {
 
     const input = event.target as HTMLInputElement;
@@ -905,32 +793,6 @@ export class TblProfileAddComponent implements OnDestroy {
 
   }
 
-  onUserTypeChange(): void {
-
-    if (this.model.fldUserType !== 'Customer') {
-      return;
-    }
-
-    this.model.fldvVendorName = '';
-    this.model.fldvAllowAdvanceOrder = false;
-    this.model.fldvADEndTime = '';
-    this.model.fldvADCharges = 0;
-
-    this.model.fldvRegularDeliveryStartTime = '';
-    this.model.fldvRDCharges = 0;
-
-    this.model.fldvAcceptingPriortyOrder = false;
-    this.model.fldvPDDuration = '';
-    this.model.fldvPDCharges = 0;
-
-    this.model.fldvCoveredRadius = 0;
-    this.model.fldvAdditionalChargesPerKm = 0;
-    this.model.fldvMaxCoveredRadius = 0;
-
-    this.model.fldvUPIId = null;
-    this.model.fldvUPIPayeeName = null;
-  }
-
   onStreetChange(streetId: number): void {
 
     const selectedStreet =
@@ -965,5 +827,16 @@ export class TblProfileAddComponent implements OnDestroy {
     }
   }
 
-}
+  ngOnDestroy(): void {
 
+    this.paramSubscription?.unsubscribe();
+    this.editTblProfileSubscription?.unsubscribe();
+    this.addTblStreetMasterSubscription?.unsubscribe();
+
+    if (this.map) {
+      this.map.remove();
+      this.map = null;
+    }
+  }
+
+}

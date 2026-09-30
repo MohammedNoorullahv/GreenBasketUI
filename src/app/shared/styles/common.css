@@ -2306,3 +2306,24 @@ textarea.form-control {
   border-color: #0aa2c0;
   color: #ffffff;
 }
+
+.profile-password-wrapper {
+  position: relative;
+}
+
+.profile-password-wrapper .form-control {
+  padding-right: 45px;
+}
+
+.profile-password-eye {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font-size: 18px;
+  z-index: 2;
+}

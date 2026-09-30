@@ -7,9 +7,9 @@
 
         <h1 class="page-caption page-caption-with-icon">
 
-            <i class="bi bi-person-plus page-caption-icon"></i>
+            <i class="bi bi-person-gear page-caption-icon"></i>
 
-            <span>Add Profile</span>
+            <span>Edit Profile</span>
 
         </h1>
 
@@ -46,7 +46,7 @@
                         <label class="profile-radio">
 
                             <input type="radio" name="fldUserType" value="Customer" [(ngModel)]="model.fldUserType"
-                                (ngModelChange)="onUserTypeChange()" required />
+                                disabled />
 
                             Customer
 
@@ -57,7 +57,7 @@
                         <label class="profile-radio">
 
                             <input type="radio" name="fldUserType" value="Vendor" [(ngModel)]="model.fldUserType"
-                                (ngModelChange)="onUserTypeChange()" required />
+                                disabled />
 
                             Vendor
 
@@ -88,7 +88,7 @@
 
                         <input type="tel" id="fldContactNumber" class="form-control" name="fldContactNumber"
                             [(ngModel)]="model.fldContactNumber" maxlength="15" placeholder="Enter phone number"
-                            required />
+                            readonly required />
 
                     </div>
 
@@ -790,21 +790,16 @@
              ===================================================== -->
         <div class="page-actions-bar profile-actions">
 
-            <button type="button" class="btn-app btn-register" [disabled]="isSaving" (click)="registerProfile(form)">
-
-                <i class="bi bi-check-circle"></i>
-
-                {{ isSaving ? 'Saving...' : 'Register' }}
-
+            <button type="button" class="btn-app btn-save" [disabled]="isSaving"
+                (click)="OnFormSubmit(form)">
+                <i class="bi bi-floppy"></i>
+                {{ isSaving ? 'Saving...' : 'Save' }}
             </button>
 
-
-            <button type="button" class="btn-app btn-back" [disabled]="isSaving" (click)="backToHome()">
-
+            <button type="button" class="btn-app btn-back" [disabled]="isSaving"
+                (click)="backToHome()">
                 <i class="bi bi-arrow-left"></i>
-
                 Back
-
             </button>
 
         </div>

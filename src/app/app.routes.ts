@@ -21,6 +21,7 @@ import { TblOrderDetailAddComponent } from './features/transactiontable/tblOrder
 import { TblOrderDetailUpdateComponent } from './features/transactiontable/tblOrderDetail/tbl-order-detail-update/tbl-order-detail-update';
 import { TblOrderShoppingComponent } from './features/transactiontable/tblOrder/tbl-order-list/tbl-order-shopping';
 import { LoginComponent } from './core/components/login/login-component/login-component';
+import { TblProfileUpdateComponent } from './features/mastertables/tblProfile/tbl-profile-update/tbl-profile-update';
 
 // import { TblCityorTownMasterListComponent }
 //   from './features/mastertables/tblCityorTownMaster/tbl-cityor-town-master-list/tbl-cityor-town-master-list';
@@ -78,6 +79,11 @@ export const routes: Routes = [
         path: 'mastertables/tblProfile/add',
         component: TblProfileAddComponent,
       },
+      {
+        path: 'mastertables/tblProfile/Edit/:id',
+        component: TblProfileUpdateComponent,
+      }
+      ,
       {
         path: 'mastertables/tblItemMaster',
         component: TblItemMasterListComponent,

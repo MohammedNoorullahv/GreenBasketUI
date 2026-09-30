@@ -558,7 +558,7 @@
         <label>
 
           <input type="radio" name="orderOption" value="Advance Order" [(ngModel)]="orderOption"
-            [disabled]="vendorProfile?.fldAllowAdvanceOrder !== true" (ngModelChange)="onOrderOptionChange()" />
+            [disabled]="vendorProfile?.fldvAllowAdvanceOrder !== true" (ngModelChange)="onOrderOptionChange()" />
 
           Advance Order
 
@@ -595,7 +595,7 @@
           Regular Delivery
 
           <small *ngIf="vendorProfile">
-            — ₹{{ (vendorProfile.fldRDCharges ?? 0) | number:'1.2-2' }}
+            — ₹{{ (vendorProfile.fldvRDCharges ?? 0) | number:'1.2-2' }}
           </small>
 
         </label>
@@ -605,8 +605,7 @@
 
         <label *ngIf="
           orderOption === 'Current Day Order' &&
-          vendorProfile?.fldAcceptingPriortyOrder === true
-        ">
+          vendorProfile?.fldvAcceptingPriortyOrder === true">
 
           <input type="radio" name="orderType" value="Priority Delivery" [(ngModel)]="fldOrderType"
             (ngModelChange)="onDeliveryTypeChange()" />
@@ -614,7 +613,7 @@
           Priority Delivery
 
           <small *ngIf="vendorProfile">
-            — ₹{{ (vendorProfile.fldPDCharges ?? 0) | number:'1.2-2' }}
+            — ₹{{ (vendorProfile.fldvPDCharges ?? 0) | number:'1.2-2' }}
           </small>
 
         </label>
@@ -630,7 +629,7 @@
           Advance Delivery
 
           <small *ngIf="vendorProfile">
-            — ₹{{ (vendorProfile.fldADCharges ?? 0) | number:'1.2-2' }}
+            — ₹{{ (vendorProfile.fldvADCharges ?? 0) | number:'1.2-2' }}
           </small>
 
         </label>

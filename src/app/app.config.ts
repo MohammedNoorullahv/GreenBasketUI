@@ -13,6 +13,7 @@ import {
 import {
   provideTranslateHttpLoader
 } from "@ngx-translate/http-loader";
+import { provideAnimations } from '@angular/platform-browser/animations';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -39,6 +40,7 @@ export const appConfig: ApplicationConfig = {
         suffix: ".json"
       })
     }),
+    provideAnimations(),
     
   ]
 };

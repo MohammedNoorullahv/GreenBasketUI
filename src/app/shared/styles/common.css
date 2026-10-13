@@ -1,3 +1,6 @@
+/* Load this file globally. Leaflet's CSS is required for tiles and controls. */
+@import 'leaflet/dist/leaflet.css';
+
 /* =========================================================
    Green Basket - Common Page Styles
    Toolbar, Data Grid, Badges, Action Buttons
@@ -1888,7 +1891,7 @@ body {
 
 .profile-map-modal {
   width: 100%;
-  max-width: 650px;
+  max-width: 900px;
   max-height: 95vh;
   overflow-y: auto;
   background: #FFFFFF;
@@ -1932,7 +1935,7 @@ body {
 
 .profile-map-container {
   width: 100%;
-  height: 350px;
+  height: clamp(320px, 52vh, 520px);
   border: 1px solid #CBDCF1;
   border-radius: 8px;
   overflow: hidden;
@@ -2326,4 +2329,27 @@ textarea.form-control {
   cursor: pointer;
   font-size: 18px;
   z-index: 2;
+}
+/* Leaflet-generated elements need global styles. Keep tiles at their native size. */
+#profileLocationMap img.leaflet-tile,
+#profileLocationMap img.leaflet-marker-icon,
+#profileLocationMap img.leaflet-marker-shadow {
+  max-width: none !important;
+  max-height: none !important;
+  border-radius: 0;
+  padding: 0;
+  border: 0;
+}
+#profileLocationMap img.leaflet-tile { width: 256px; height: 256px; }
+#profileLocationMap .profile-pin-wrapper { background: transparent; border: none; }
+#profileLocationMap .profile-pin-wrapper svg { width: 40px; height: 48px; max-width: none; }
+.profile-map-status { padding: 10px 12px; margin: 10px 0; background: #eff6ff; color: #17384a; border-radius: 8px; font-size: 14px; }
+.profile-map-status span { display: block; margin-top: 4px; font-weight: 600; }
+.profile-map-warning { padding: 10px 12px; background: #fff7ed; color: #9a3412; border-radius: 8px; }
+.profile-map-actions button:disabled { opacity: .6; cursor: wait; }
+.profile-map-coordinates { overflow-wrap: anywhere; }
+@media (max-width: 576px) {
+  .profile-map-overlay { padding: 8px; }
+  .profile-map-modal { padding: 14px; max-height: 96dvh; }
+  .profile-map-container { height: clamp(260px, 45dvh, 400px); }
 }

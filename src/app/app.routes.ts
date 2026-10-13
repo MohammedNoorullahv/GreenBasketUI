@@ -82,8 +82,7 @@ export const routes: Routes = [
       {
         path: 'mastertables/tblProfile/Edit/:id',
         component: TblProfileUpdateComponent,
-      }
-      ,
+      },
       {
         path: 'mastertables/tblItemMaster',
         component: TblItemMasterListComponent,

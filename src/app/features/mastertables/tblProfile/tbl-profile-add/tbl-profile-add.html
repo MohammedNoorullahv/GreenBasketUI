@@ -401,6 +401,11 @@
 
                         </button>
 
+                        <a *ngIf="selectedLatitude !== null && selectedLongitude !== null" [href]="'https://www.google.com/maps/search/?api=1&query='
+    + selectedLatitude + ',' + selectedLongitude" target="_blank" rel="noopener noreferrer">
+                            Open in Google Maps
+                        </a>
+
                     </div>
 
 
@@ -821,7 +826,7 @@
 
 <div *ngIf="showLocationMap" class="profile-map-overlay">
 
-    <div class="profile-map-modal">
+    <div class="profile-map-modal" role="dialog" aria-modal="true" aria-label="Select delivery location">
 
 
         <!-- =====================================================
@@ -838,7 +843,7 @@
             </h3>
 
 
-            <button type="button" class="profile-map-close" (click)="closeLocationMap()">
+            <button type="button" class="profile-map-close" aria-label="Close map" (click)="closeLocationMap()">
 
                 <i class="bi bi-x-lg"></i>
 
@@ -861,6 +866,13 @@
         <!-- =====================================================
              MAP
              ===================================================== -->
+        <div class="profile-map-status" role="status" aria-live="polite">
+            {{ locationMessage }}
+            <span *ngIf="locationAccuracy !== null">
+                Reported accuracy: approximately {{ locationAccuracy | number:'1.0-0' }} metres.
+            </span>
+        </div>
+        <p *ngIf="mapLoadMessage" class="profile-map-warning" role="alert">{{ mapLoadMessage }}</p>
         <div id="profileLocationMap" class="profile-map-container">
         </div>
 
@@ -904,17 +916,17 @@
         <div class="profile-map-actions">
 
 
-            <button type="button" class="btn-app btn-outline" (click)="useCurrentLocation()">
+            <button type="button" class="btn-app btn-outline" [disabled]="isLocating" (click)="useCurrentLocation()">
 
                 <i class="bi bi-crosshair"></i>
 
-                Current Location
+                {{ isLocating ? 'Finding Location…' : 'Current Location' }}
 
             </button>
 
 
             <button type="button" class="btn-app btn-save-close" [disabled]="
-                    selectedLatitude === null ||
+                    isLocating || selectedLatitude === null ||
                     selectedLongitude === null
                 " (click)="confirmLocation()">
 

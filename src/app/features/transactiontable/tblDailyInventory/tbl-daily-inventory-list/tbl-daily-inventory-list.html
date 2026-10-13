@@ -7,7 +7,7 @@
 
 		<h1 class="page-caption">TblDailyInventoriesList</h1>
 
-		<div class="page-header-center">
+		<div class="page-header-center" *ngIf="isAdmin">
 			<button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
 				(click)="OnFormSubmit('Load All')"
 				[attr.title]="actionType !== 'Load All' ? 'Loading All Records' : 'All Records'">
@@ -21,7 +21,34 @@
 				<i class="bi bi-check-circle"></i>
 				Active Records
 			</button>
+
+			<!-- Need to include vendor Id as a drop down Item -->
+
+
 		</div>
+
+
+		<label class="multi-remove-option">
+
+			<input type="checkbox" [(ngModel)]="removeMultipleItems" (ngModelChange)="onRemoveMultipleChange()" />
+
+			Remove Multiple Items
+
+			<span *ngIf="removeMultipleItems">
+				({{ selectedInventoryIds.length }} Selected)
+			</span>
+
+		</label>
+
+
+		<button *ngIf="removeMultipleItems" type="button" class="btn-app btn-delete"
+			[disabled]="selectedInventoryIds.length === 0" (click)="removeSelectedItems()">
+
+			<i class="bi bi-trash3"></i>
+
+			Remove
+
+		</button>
 
 		<div class="page-header-right">
 			<a [routerLink]="['add']" class="btn-app btn-new">
@@ -70,6 +97,9 @@
 			<table class="data-table">
 				<thead>
 					<tr>
+						<th *ngIf="removeMultipleItems">
+							Select
+						</th>
 						<th>Id</th>
 						<th>F K Vendor Id</th>
 						<th>F K Item Id</th>
@@ -86,6 +116,17 @@
 
 				<tbody>
 					<tr *ngFor="let tbldailyinventory of tbldailyinventorys">
+						
+						<!-- MULTIPLE SELECTION -->
+						<td *ngIf="removeMultipleItems">
+
+							<input type="checkbox" [checked]="isInventorySelected(tbldailyinventory.fldId)" (change)="onInventorySelectionChange(
+                    tbldailyinventory.fldId,
+                    $any($event.target).checked
+                )" />
+
+						</td>
+
 						<td class="cell-code">{{tbldailyinventory.fldId}}</td>
 						<td>{{tbldailyinventory.fldFKVendorId}}</td>
 						<td>{{tbldailyinventory.fldFKItemId}}</td>
@@ -96,7 +137,8 @@
 						<td>{{tbldailyinventory.fldAvailableStock}}</td>
 						<td>{{tbldailyinventory.fldInitialStock}}</td>
 						<td>
-							<span class="badge-pill" [ngClass]="tbldailyinventory.fldIsAvailable ? 'badge-success' : 'badge-muted'">
+							<span class="badge-pill"
+								[ngClass]="tbldailyinventory.fldIsAvailable ? 'badge-success' : 'badge-muted'">
 								{{tbldailyinventory.fldIsAvailable ? 'Yes' : 'No'}}
 							</span>
 						</td>

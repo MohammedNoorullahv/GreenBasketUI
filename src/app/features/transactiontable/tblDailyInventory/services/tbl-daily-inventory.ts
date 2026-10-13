@@ -97,4 +97,20 @@ export class TblDailyInventoryService {
         observe: 'response'
       });
   };
+
+  //https://localhost:7082/api/TblDailyInventory/RemoveTblDailyInventory
+  //UPDATE
+  // removeTblDailyInventory(tblDailyInventoryupdate: TblDailyInventoryUpdate): Observable<TblDailyInventory> {
+  //   return this.http.patch<TblDailyInventory>(`${environment.apiBaseUrl}/api/TblDailyInventory/RemoveTblDailyInventory`, tblDailyInventoryupdate);
+  // };
+  removeTblDailyInventory(
+    fldIds: number[]
+  ): Observable<any> {
+    return this.http.patch<any>(
+      `${environment.apiBaseUrl}/api/TblDailyInventory/RemoveTblDailyInventory`,
+      fldIds
+    );
+  }
+
+
 }

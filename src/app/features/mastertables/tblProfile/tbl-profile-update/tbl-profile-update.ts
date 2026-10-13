@@ -108,43 +108,43 @@ export class TblProfileUpdateComponent implements OnInit, OnDestroy {
         this.route.paramMap,
         this.route.queryParams
       ])
-      .subscribe(([params]) => {
+        .subscribe(([params]) => {
 
-        const idParam = params.get('id');
-        this.id = idParam ? parseInt(idParam, 10) : null;
+          const idParam = params.get('id');
+          this.id = idParam ? parseInt(idParam, 10) : null;
 
-        if (!this.id) {
-          return;
-        }
+          if (!this.id) {
+            return;
+          }
 
-        this.tblProfileService
-          .getTblProfileById(this.id)
-          .subscribe({
-            next: (response) => {
-              this.model = response;
-              this.manualStreetEntry = false;
-              this.selectedCityorTownId = 0;
-              this.newStreetName = '';
+          this.tblProfileService
+            .getTblProfileById(this.id)
+            .subscribe({
+              next: (response) => {
+                this.model = response;
+                this.manualStreetEntry = false;
+                this.selectedCityorTownId = 0;
+                this.newStreetName = '';
 
-              if (this.model.fldHouseImagePath) {
-                this.houseImagePreview = this.model.fldHouseImagePath;
+                if (this.model.fldHouseImagePath) {
+                  this.houseImagePreview = this.model.fldHouseImagePath;
+                }
+
+                this.cdr.detectChanges();
+              },
+              error: (err) => {
+                const errorMsg =
+                  err?.error?.message ||
+                  err?.error ||
+                  'Unable to load Profile.';
+
+                this.toastr.error(errorMsg, 'Error', {
+                  toastClass: 'ngx-toastr custom-toast error-toast'
+                });
+                console.error('Profile Load Error:', err);
               }
-
-              this.cdr.detectChanges();
-            },
-            error: (err) => {
-              const errorMsg =
-                err?.error?.message ||
-                err?.error ||
-                'Unable to load Profile.';
-
-              this.toastr.error(errorMsg, 'Error', {
-                toastClass: 'ngx-toastr custom-toast error-toast'
-              });
-              console.error('Profile Load Error:', err);
-            }
-          });
-      });
+            });
+        });
   }
 
   OnFormSubmit(form: NgForm): void {
@@ -305,6 +305,41 @@ export class TblProfileUpdateComponent implements OnInit, OnDestroy {
             this.toastr.success('Changes updated', 'Success', {
               toastClass: 'ngx-toastr custom-toast'
             });
+
+            // Get logged-in user information
+            const storedProfile =
+              sessionStorage.getItem('gbProfile');
+
+            let loggedInUserType = '';
+
+            if (storedProfile) {
+
+              const loggedInProfile =
+                JSON.parse(storedProfile);
+
+              loggedInUserType =
+                loggedInProfile.fldUserType ?? '';
+            }
+
+
+            // =====================================================
+            // ADMIN
+            // After update, return to Profile List
+            // =====================================================
+            if (loggedInUserType === 'Admin') {
+
+              this.router.navigateByUrl(
+                'mastertables/tblProfile'
+              );
+
+              return;
+            }
+
+
+            // =====================================================
+            // CUSTOMER / VENDOR
+            // Remain on the same Edit page
+            // =====================================================
 
             if (this.manualStreetEntry) {
               this.manualStreetEntry = false;

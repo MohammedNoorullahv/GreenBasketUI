@@ -66,6 +66,17 @@ export class TblOrderService {
 		return this.http.get<TblPendingOrderDto[]>(`${environment.apiBaseUrl}/api/TblOrder/GetPendingOrders`, { params });
 	}
 
+	//https://localhost:7082/api/TblOrder/getPrintOrder?FldProfileType=Vendor&FldFKProfileId=1&fldFKOrderId=11
+	//https://localhost:7082/api/TblOrder/PrintOrder?FldProfileType=V&FldFKProfileId=1&FldFKOrderId=1
+	getPrintOrder(fldProfileType: string, fldFKProfileId: number, fldFKOrderId: number): Observable<TblPendingOrderDto[]> {
+		const params = new HttpParams()
+			.set('FldProfileType', fldProfileType)
+			.set('FldFKProfileId', fldFKProfileId.toString())
+			.set('fldFKOrderId', fldFKOrderId.toString());
+
+		return this.http.get<TblPendingOrderDto[]>(`${environment.apiBaseUrl}/api/TblOrder/PrintOrder`, { params });
+	}
+
 	//UPDATE
 	updateTblOrder(tblOrderupdate: TblOrderUpdate): Observable<TblOrder> {
 		return this.http.patch<TblOrder>(`${environment.apiBaseUrl}/api/TblOrder/updateTblOrder`, tblOrderupdate);

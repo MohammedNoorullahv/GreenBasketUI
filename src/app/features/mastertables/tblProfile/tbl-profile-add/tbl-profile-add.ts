@@ -70,6 +70,21 @@ export class TblProfileAddComponent implements OnDestroy {
 
   houseImagePreview: string | null = null;
 
+  isLocating = false;
+  locationAccuracy: number | null = null;
+  locationMessage = '';
+  mapLoadMessage = '';
+  private accuracyCircle: Leaflet.Circle | null = null;
+  private mapResizeObserver: ResizeObserver | null = null;
+  private geoWatchId: number | null = null;
+  private geoTimer: ReturnType<typeof setTimeout> | null = null;
+  private locationRequest = 0;
+  private mapSession = 0;
+  private addressRequest = 0;
+  private addressTimer: ReturnType<typeof setTimeout> | null = null;
+  private addressAbort: AbortController | null = null;
+  private lastAddressRequestAt = 0;
+
   selectedMapAddress = "";
   showPassword: boolean = false;
   tblStreetMasterList: TblStreetMaster[] = [];
@@ -378,7 +393,9 @@ export class TblProfileAddComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.closeLocationMap();
     this.addTblProfileSubscription?.unsubscribe();
+    this.addTblStreetMasterSubscription?.unsubscribe();
   }
 
   isFormValid(form: any): boolean {
@@ -473,242 +490,206 @@ export class TblProfileAddComponent implements OnDestroy {
   }
 
   async openLocationMap(): Promise<void> {
-
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-
+    if (!isPlatformBrowser(this.platformId) || this.showLocationMap) return;
     this.showLocationMap = true;
-
+    this.locationMessage = 'Choose a point, or use Current Location.';
+    this.mapLoadMessage = '';
+    this.selectedMapAddress = '';
+    const session = ++this.mapSession;
     this.cdr.detectChanges();
-
-    await new Promise<void>(resolve =>
-      setTimeout(resolve, 0)
-    );
-
-    await this.initializeLocationMap();
-
+    try {
+      await this.initializeLocationMap(session);
+    } catch (error) {
+      if (session !== this.mapSession || !this.showLocationMap) return;
+      this.mapLoadMessage = 'Map could not load. Check your connection and Leaflet installation.';
+      console.error('Map initialization failed', error);
+      this.cdr.detectChanges();
+    }
   }
 
-
-  private async initializeLocationMap(): Promise<void> {
-
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-
-    const L = await import("leaflet");
-
+  private async initializeLocationMap(session: number): Promise<void> {
+    const L = await import('leaflet');
+    if (session !== this.mapSession || !this.showLocationMap) return;
+    const container = document.getElementById('profileLocationMap');
+    if (!container) return;
     this.leaflet = L;
-
-    if (this.map) {
-
-      this.map.remove();
-
-      this.map = null;
-
-      this.locationMarker = null;
-
+    const parts = this.model.fldGPSLocation?.split(',').map(value => value.trim());
+    const values = parts?.map(Number);
+    const valid = !!parts && parts.length === 2 && parts.every(value => value !== '') &&
+      !!values && values.every(Number.isFinite) &&
+      Math.abs(values[0]) <= 90 && Math.abs(values[1]) <= 180;
+    // Default view only: this is never presented as the detected location.
+    const latitude = valid ? values![0] : 12.9380;
+    const longitude = valid ? values![1] : 79.2810;
+    this.selectedLatitude = null;
+    this.selectedLongitude = null;
+    this.map = L.map(container, {
+      minZoom: 3, maxZoom: 19, zoomControl: true,
+      scrollWheelZoom: true, zoomSnap: 1
+    }).setView([latitude, longitude], valid ? 16 : 13);
+    const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxNativeZoom: 19, maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(this.map);
+    tiles.on('tileerror', () => {
+      if (session !== this.mapSession) return;
+      this.mapLoadMessage = 'Some map tiles could not load. Check your connection or blocked map requests.';
+      this.cdr.detectChanges();
+    });
+    this.map.on('click', (event: Leaflet.LeafletMouseEvent) => {
+      this.selectManualLocation(event.latlng.lat, event.latlng.lng);
+    });
+    if (valid) {
+      this.setSelectedLocation(latitude, longitude);
+      this.locationMessage = 'Saved location loaded. Adjust the pin if required.';
     }
+    if (typeof ResizeObserver !== 'undefined') {
+      this.mapResizeObserver = new ResizeObserver(() => this.map?.invalidateSize({ pan: false }));
+      this.mapResizeObserver.observe(container);
+    }
+    requestAnimationFrame(() => {
+      if (session !== this.mapSession) return;
+      this.map?.invalidateSize({ pan: false });
+      const pane = this.map?.getPane('tilePane');
+      if (pane && getComputedStyle(pane).position !== 'absolute') {
+        this.mapLoadMessage = 'Leaflet CSS is missing. Load leaflet/dist/leaflet.css in your global styles.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
-    const existingLocation =
-      this.model.fldGPSLocation?.split(",")
-        .map((value: string) => Number(value.trim()));
+  private selectManualLocation(latitude: number, longitude: number): void {
+    this.stopLocationWatch();
+    this.accuracyCircle?.remove();
+    this.accuracyCircle = null;
+    this.locationAccuracy = null;
+    this.locationMessage = 'Manually selected location. Confirm the pin is at your delivery point.';
+    this.setSelectedLocation(latitude, longitude);
+  }
 
-    const hasExistingLocation =
-      existingLocation?.length === 2 &&
-      existingLocation.every(Number.isFinite);
+  private stopLocationWatch(): void {
+    ++this.locationRequest;
+    if (this.geoWatchId !== null && isPlatformBrowser(this.platformId)) {
+      navigator.geolocation?.clearWatch(this.geoWatchId);
+    }
+    this.geoWatchId = null;
+    if (this.geoTimer !== null) clearTimeout(this.geoTimer);
+    this.geoTimer = null;
+    this.isLocating = false;
+  }
 
-    const latitude = hasExistingLocation
-      ? existingLocation![0]
-      : 12.9380;
+private setSelectedLocation(
+  latitude: number,
+  longitude: number
+): void {
+  if (!this.leaflet || !this.map) {
+    return;
+  }
 
-    const longitude = hasExistingLocation
-      ? existingLocation![1]
-      : 79.2810;
+  const L = this.leaflet;
 
-    this.selectedLatitude = hasExistingLocation
-      ? latitude
-      : null;
+  this.selectedLatitude = latitude;
+  this.selectedLongitude = longitude;
 
-    this.selectedLongitude = hasExistingLocation
-      ? longitude
-      : null;
+  if (this.locationMarker) {
+    this.locationMarker.setLatLng([latitude, longitude]);
+  } else {
+    const pinIcon = L.divIcon({
+      className: 'profile-pin-wrapper',
+      html: `
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="40"
+          height="48"
+          viewBox="0 0 40 48"
+          aria-hidden="true"
+          style="display:block;filter:drop-shadow(0 3px 3px rgba(0,0,0,.35))"
+        >
+          <path
+            d="M20 46C16 40 2 27 2 20a18 18 0 1 1 36 0c0 7-14 20-18 26Z"
+            fill="#0866d9"
+            stroke="#ffffff"
+            stroke-width="2"
+          />
+          <circle cx="20" cy="20" r="7" fill="#ffffff"/>
+        </svg>
+      `,
+      iconSize: [40, 48],
+      iconAnchor: [20, 47]
+    });
 
-    this.map = L.map("profileLocationMap").setView(
+    this.locationMarker = L.marker(
       [latitude, longitude],
-      17
-    );
-
-    L.tileLayer(
-      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       {
-        maxZoom: 19,
-        attribution:
-          '&copy; OpenStreetMap contributors'
+        draggable: true,
+        icon: pinIcon,
+        zIndexOffset: 1000
       }
     ).addTo(this.map);
 
-    this.map.on("click", (event: Leaflet.LeafletMouseEvent) => {
+    this.locationMarker.on('dragend', () => {
+      const position = this.locationMarker!.getLatLng();
 
-      this.setSelectedLocation(
-        event.latlng.lat,
-        event.latlng.lng
-      );
-
+      // Reuse the same method to update coordinates and address.
+      this.selectManualLocation(position.lat, position.lng);
     });
-
-    if (hasExistingLocation) {
-
-      this.setSelectedLocation(
-        latitude,
-        longitude
-      );
-
-    }
-
-    this.map.invalidateSize();
-
   }
 
+  void this.fetchSelectedAddress(latitude, longitude);
 
-
-  private setSelectedLocation(
-    latitude: number,
-    longitude: number
-  ): void {
-
-    if (!this.leaflet || !this.map) {
-      return;
-    }
-
-    const L = this.leaflet;
-
-    this.selectedLatitude = latitude;
-    this.selectedLongitude = longitude;
-
-    // 1. Move the existing marker, if available
-    if (this.locationMarker) {
-
-      this.locationMarker.setLatLng([
-        latitude,
-        longitude
-      ]);
-
-    } else {
-
-      // 2. Create the marker for the first time
-      const pinIcon = L.divIcon({
-
-        className: "profile-pin-wrapper",
-
-        html: `
-        <div class="profile-location-pin">
-          <i class="bi bi-geo-alt-fill"></i>
-        </div>
-      `,
-
-        iconSize: [32, 32],
-        iconAnchor: [16, 32]
-
-      });
-
-      this.locationMarker = L.marker(
-        [latitude, longitude],
-        {
-          draggable: true,
-          icon: pinIcon
-        }
-      ).addTo(this.map);
-
-      // 3. Fetch address whenever customer drags the pin
-      this.locationMarker.on("dragend", () => {
-
-        const position =
-          this.locationMarker!.getLatLng();
-
-        this.selectedLatitude = position.lat;
-        this.selectedLongitude = position.lng;
-
-        void this.fetchSelectedAddress(
-          position.lat,
-          position.lng
-        );
-
-        this.cdr.detectChanges();
-
-      });
-
-    }
-
-    // 4. Fetch address whenever customer clicks on the map
-    //    or selects their current location
-    void this.fetchSelectedAddress(
-      latitude,
-      longitude
-    );
-
-    this.cdr.detectChanges();
-
-  }
-
+  this.cdr.detectChanges();
+}
 
   useCurrentLocation(): void {
-
-    if (
-      !isPlatformBrowser(this.platformId) ||
-      !navigator.geolocation
-    ) {
-
-      alert("Geolocation is not supported.");
-
+    if (!isPlatformBrowser(this.platformId) || !this.map) return;
+    if (!window.isSecureContext || !navigator.geolocation) {
+      this.locationMessage = 'Location requires HTTPS (or localhost) and a supported browser.';
+      this.cdr.detectChanges();
       return;
-
     }
-
-    navigator.geolocation.getCurrentPosition(
-
-      position => {
-
-        const latitude =
-          position.coords.latitude;
-
-        const longitude =
-          position.coords.longitude;
-
-        this.setSelectedLocation(
-          latitude,
-          longitude
-        );
-
-        this.map?.setView(
-          [latitude, longitude],
-          17
-        );
-
-      },
-
-      error => {
-
-        alert(
-          "Unable to fetch current location. " +
-          "Please select it manually on the map."
-        );
-
-        console.error(error);
-
-      },
-
-      {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0
+    this.stopLocationWatch();
+    const request = this.locationRequest;
+    this.isLocating = true;
+    this.locationMessage = 'Finding your location; waiting for a more accurate reading…';
+    let best: GeolocationPosition | null = null;
+    const finish = (error?: GeolocationPositionError) => {
+      if (request !== this.locationRequest || !this.map) return;
+      this.stopLocationWatch();
+      if (best) {
+        const { latitude, longitude, accuracy } = best.coords;
+        this.locationAccuracy = accuracy;
+        this.accuracyCircle?.remove();
+        this.accuracyCircle = this.leaflet!.circle([latitude, longitude], {
+          radius: accuracy, color: '#0866d9', weight: 1,
+          fillColor: '#3b82f6', fillOpacity: 0.12, interactive: false
+        }).addTo(this.map);
+        this.locationMessage = accuracy <= 50
+          ? 'Location detected. Check the pin before confirming.'
+          : 'Location is approximate. Move the pin to your exact delivery point.';
+        this.setSelectedLocation(latitude, longitude);
+        this.map.fitBounds(this.accuracyCircle.getBounds(), { padding: [32, 32], maxZoom: 17 });
+      } else {
+        this.locationMessage = error?.code === 1
+          ? 'Location permission denied. Allow location in browser/site settings, then retry.'
+          : error?.code === 2
+            ? 'Device location is unavailable. Enable location services or select a point manually.'
+            : 'Location request timed out. Retry or select a point manually.';
       }
-
-    );
-
+      this.cdr.detectChanges();
+    };
+    this.geoTimer = setTimeout(() => finish(), 20000);
+    this.geoWatchId = navigator.geolocation.watchPosition(position => {
+      if (request !== this.locationRequest || !this.map) return;
+      const { latitude, longitude, accuracy } = position.coords;
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
+          !Number.isFinite(accuracy) || accuracy < 0) return;
+      if (!best || accuracy < best.coords.accuracy) best = position;
+      if (best.coords.accuracy <= 30) finish();
+    }, error => finish(error), {
+      enableHighAccuracy: true, maximumAge: 0, timeout: 20000
+    });
+    this.cdr.detectChanges();
   }
-
 
   confirmLocation(): void {
 
@@ -729,21 +710,22 @@ export class TblProfileAddComponent implements OnDestroy {
 
 
   closeLocationMap(): void {
-
-    if (this.map) {
-
-      this.map.remove();
-
-      this.map = null;
-
-      this.locationMarker = null;
-
-    }
-
+    ++this.mapSession;
+    this.stopLocationWatch();
+    ++this.addressRequest;
+    if (this.addressTimer !== null) clearTimeout(this.addressTimer);
+    this.addressTimer = null;
+    this.addressAbort?.abort();
+    this.addressAbort = null;
+    this.mapResizeObserver?.disconnect();
+    this.mapResizeObserver = null;
+    this.map?.remove();
+    this.map = null;
+    this.locationMarker = null;
+    this.accuracyCircle = null;
+    this.locationAccuracy = null;
     this.showLocationMap = false;
-
   }
-
 
   registerProfile(form: NgForm): void {
 
@@ -863,46 +845,44 @@ export class TblProfileAddComponent implements OnDestroy {
 
   }
 
-  async fetchSelectedAddress(
-    latitude: number,
-    longitude: number
-  ): Promise<void> {
+  async fetchSelectedAddress(latitude: number, longitude: number): Promise<void> {
+    const request = ++this.addressRequest;
+    if (this.addressTimer !== null) clearTimeout(this.addressTimer);
+    this.addressAbort?.abort();
+    this.selectedMapAddress = 'Fetching selected address…';
+    // Debounce rapid map selections and space requests within this component.
+    const delay = Math.max(500, 1100 - (Date.now() - this.lastAddressRequestAt));
+    this.addressTimer = setTimeout(() => {
+      this.addressTimer = null;
+      void this.loadSelectedAddress(latitude, longitude, request);
+    }, delay);
+  }
 
-    this.selectedMapAddress =
-      "Fetching selected address...";
-
+  private async loadSelectedAddress(latitude: number, longitude: number, request: number): Promise<void> {
+    if (request !== this.addressRequest || !this.showLocationMap) return;
+    const controller = new AbortController();
+    this.addressAbort = controller;
+    this.lastAddressRequestAt = Date.now();
+    const timeout = setTimeout(() => controller.abort(), 10000);
     try {
-
-      const url =
-        "https://nominatim.openstreetmap.org/reverse" +
-        "?format=jsonv2" +
-        "&lat=" + encodeURIComponent(latitude) +
-        "&lon=" + encodeURIComponent(longitude) +
-        "&zoom=18" +
-        "&addressdetails=1";
-
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error("Address lookup failed");
-      }
-
+      const params = new URLSearchParams({
+        format: 'jsonv2', lat: String(latitude), lon: String(longitude),
+        zoom: '18', addressdetails: '1'
+      });
+      const response = await fetch('https://nominatim.openstreetmap.org/reverse?' + params, {
+        signal: controller.signal
+      });
+      if (!response.ok) throw new Error('Address lookup failed');
       const result = await response.json();
-
-      this.selectedMapAddress =
-        result.display_name ||
-        "Address unavailable for this location.";
-
+      if (request !== this.addressRequest || !this.showLocationMap) return;
+      this.selectedMapAddress = result.display_name || 'Address unavailable for this location.';
     } catch {
-
-      this.selectedMapAddress =
-        "Street address unavailable. " +
-        "Please verify the location on the map.";
-
+      if (request !== this.addressRequest || !this.showLocationMap) return;
+      this.selectedMapAddress = 'Address unavailable. Verify the pin; you can still confirm coordinates.';
+    } finally {
+      clearTimeout(timeout);
+      if (request === this.addressRequest && this.showLocationMap) this.cdr.detectChanges();
     }
-
-    this.cdr.detectChanges();
-
   }
 
   onUserTypeChange(): void {

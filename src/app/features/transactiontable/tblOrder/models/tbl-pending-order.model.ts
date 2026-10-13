@@ -34,6 +34,9 @@ export interface TblPendingOrderDto {
   fldVendorStreetName?: string;
   fldVendorGPSLocation?: string;
   fldVendorHouseImagePath?: string;
+  fldVendorCityorTownName?: string;
+  fldVendorAreaName?: string;
+  fldVendorPincode?: string;
 
   fldCustomerUserType?: string; // Default: "Customer"
   fldCustomerContactNumber?: string;
@@ -44,6 +47,9 @@ export interface TblPendingOrderDto {
   fldCustomerStreetName?: string;
   fldCustomerGPSLocation?: string;
   fldCustomerHouseImagePath?: string;
+  fldCustomerCityorTownName?: string;
+  fldCustomerAreaName?: string;
+  fldCustomerPincode?: string;
 
   pendingOrderdtls: TblPendingOrderDetailDto[];
 }

@@ -122,6 +122,11 @@ export class TblProfileUpdateComponent implements OnInit, OnDestroy {
             .subscribe({
               next: (response) => {
                 this.model = response;
+                // Do not display or filter a stored hash into an MPIN.
+                // A value that is not a six-digit MPIN must be re-entered.
+                if (!/^\d{6}$/.test(this.model.fldPasswordHash ?? '')) {
+                  this.model.fldPasswordHash = '';
+                }
                 this.manualStreetEntry = false;
                 this.selectedCityorTownId = 0;
                 this.newStreetName = '';
@@ -147,9 +152,21 @@ export class TblProfileUpdateComponent implements OnInit, OnDestroy {
         });
   }
 
+  onMPINChange(value: string): void {
+    this.model.fldPasswordHash = (value ?? '')
+      .replace(/\D/g, '')
+      .slice(0, 6);
+  }
+
   OnFormSubmit(form: NgForm): void {
 
     if (this.isSaving) {
+      return;
+    }
+
+    if (!/^\d{6}$/.test(this.model.fldPasswordHash ?? '')) {
+      form.control.markAllAsTouched();
+      this.toastr.warning('MPIN must contain exactly 6 digits.');
       return;
     }
 
@@ -382,6 +399,9 @@ export class TblProfileUpdateComponent implements OnInit, OnDestroy {
   }
 
   isFormValid(form: NgForm): boolean {
+    if (!/^\d{6}$/.test(this.model.fldPasswordHash ?? '')) {
+      return false;
+    }
 
     if (form.invalid) {
       return false;

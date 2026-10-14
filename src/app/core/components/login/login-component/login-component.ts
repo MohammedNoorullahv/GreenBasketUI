@@ -24,7 +24,6 @@ import {
   HttpErrorResponse
 } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
 import { environment } from '../../../../../environments/environment.development';
 // import { environment } from '../../../environments/environment.development';
 
@@ -55,6 +54,10 @@ export class LoginComponent {
 
   mobileNumber = '';
   otp = '';
+  mpin = '';
+  verificationMethod: 'OTP' | 'MPIN' = 'OTP';
+  readonly mpinLength = 6; // Match this to your backend MPIN policy.
+  showMPIN = false;
 
   otpSent = false;
   isLoading = false;
@@ -137,15 +140,15 @@ export class LoginComponent {
 
         next: (response) => {
 
-          console.log(
-            'Generate OTP Response:',
-            response
-          );
+          // Do not log authentication responses or verification codes.
 
           this.isLoading = false;
 
           this.otp = '';
 
+          this.mpin = '';
+          this.showMPIN = false;
+          this.verificationMethod = 'OTP';
           this.otpSent = true;
 
           this.successMessage =
@@ -171,7 +174,25 @@ export class LoginComponent {
 
   }
 
+  selectVerificationMethod(method: 'OTP' | 'MPIN'): void {
+    if (this.isLoading) return;
+    this.verificationMethod = method;
+    this.otp = '';
+    this.mpin = '';
+    this.showMPIN = false;
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  onMPINChange(value: string): void {
+    this.mpin = value.replace(/\D/g, '').slice(0, this.mpinLength);
+  }
+
   verifyOTP(): void {
+    this.verifyLogin();
+  }
+
+  verifyLogin(): void {
 
     if (this.isLoading) {
       return;
@@ -180,32 +201,70 @@ export class LoginComponent {
     this.errorMessage = '';
     this.successMessage = '';
 
-    const enteredOTP = this.otp.trim();
+    const method = this.verificationMethod;
+    const mobile = this.mobileNumber.trim();
+    if (!/^[6-9]\d{9}$/.test(mobile)) {
+      this.errorMessage = 'Please enter a valid 10-digit mobile number.';
+      return;
+    }
+    
+    const enteredOTP =
+      method === 'OTP' ? this.otp.trim() : '';
 
-    if (!/^\d{6}$/.test(enteredOTP)) {
+    const enteredMPIN =
+      method === 'MPIN' ? this.mpin.trim() : '';
 
-      this.errorMessage =
-        'Please enter a valid 6-digit OTP.';
-
+    // The selected credential must contain exactly six digits.
+    const credential = enteredOTP || enteredMPIN;
+    //const credential = method === 'OTP' ? this.otp.trim() : this.mpin.trim();
+    console.log("01. OTP/MPIN LENGTH");
+    const expectedLength = method === 'OTP' ? 6 : this.mpinLength;
+    if (!new RegExp(`^\\d{${expectedLength}}$`).test(credential)) {
+      this.errorMessage = `Please enter a valid ${expectedLength}-digit ${method}.`;
       this.cdr.detectChanges();
+      return;
+    }
+    this.isLoading = true;
+    console.log("02. OTP/MPIN LENGTH");
 
+    
+
+    // At least one credential is compulsory.
+    if (!enteredOTP && !enteredMPIN) {
+      this.errorMessage = 'Please enter OTP or MPIN.';
+      this.cdr.detectChanges();
       return;
     }
 
-    this.isLoading = true;
+    
+
+    console.log("03. OTP/MPIN LENGTH");
+    if (!/^\d{6}$/.test(credential)) {
+      this.errorMessage =
+        `Please enter a valid 6-digit ${method}.`;
+
+      this.cdr.detectChanges();
+      return;
+    }
+    console.log("04. OTP/MPIN LENGTH");
 
     const payload = {
-
-      fldContactNumber: this.mobileNumber.trim(),
-
-      fldOTP: enteredOTP
-
+      FldContactNumber: mobile,
+      FldOTP: enteredOTP,
+      FldMPIN: enteredMPIN
     };
 
-    this.http.post<LoginResponse>(
-      `${this.apiUrl}/ValidateOTPAndLogin`,
-      payload
-    )
+    this.isLoading = true;
+
+    // const payload = method === 'OTP'
+    //   ? { fldContactNumber: mobile, fldOTP: credential }
+    //   : { fldContactNumber: mobile, fldMPIN: credential };
+    // // Integration contract: confirm this endpoint/DTO with AuthenticateController.
+    // // MPIN must be validated on the server, returning the same LoginResponse as OTP.
+    //const endpoint = method === 'OTP' ? 'ValidateOTPAndLogin' : 'ValidateMPINAndLogin';
+    const endpoint = method === 'OTP' ? 'ValidateOTPAndLogin' : 'ValidateOTPAndLogin';
+    console.log("05. Payload", payload);
+    this.http.post<LoginResponse>(`${this.apiUrl}/${endpoint}`, payload)
       .subscribe({
 
         next: (response) => {
@@ -237,7 +296,10 @@ export class LoginComponent {
           }
 
           this.successMessage =
-            'Mobile number verified successfully.';
+            'Login successful.';
+          this.otp = '';
+          this.mpin = '';
+          this.showMPIN = false;
 
           this.cdr.detectChanges();
 
@@ -253,11 +315,15 @@ export class LoginComponent {
 
           this.errorMessage =
             error.status === 400 || error.status === 401
-              ? 'Invalid OTP. Please try again.'
+              ? `Invalid ${method}. Please try again.`
               : error.error?.message ||
-              'OTP verification failed. Please try again.';
+              (error.status === 404 && method === 'MPIN'
+                ? 'MPIN login endpoint is unavailable. Please use OTP.'
+                : `${method} verification failed. Please try again.`);
 
           this.otp = '';
+          this.mpin = '';
+          this.showMPIN = false;
 
           this.cdr.detectChanges();
 
@@ -268,6 +334,10 @@ export class LoginComponent {
   }
 
   changeMobileNumber(): void {
+    if (this.isLoading) return;
+    this.mpin = '';
+    this.showMPIN = false;
+    this.verificationMethod = 'OTP';
 
     this.otpSent = false;
     this.otp = '';

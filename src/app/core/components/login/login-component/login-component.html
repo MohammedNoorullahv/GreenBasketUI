@@ -152,80 +152,69 @@
      OTP VERIFICATION SCREEN
 ===================================== -->
 
-      <form *ngIf="otpSent" (ngSubmit)="verifyOTP()">
-
+      <form *ngIf="otpSent" (ngSubmit)="verifyLogin()">
         <div class="otp-header">
-
-          <div class="otp-icon">
-            <span>✉</span>
-          </div>
-
-          <h3>
-            Verify Your Mobile Number
-          </h3>
-
-          <p>
-            Enter the 6-digit verification code sent to
-          </p>
-
+          <div class="otp-icon"><span>{{ verificationMethod === 'OTP' ? '✉' : '🔒' }}</span></div>
+          <h3>Verify &amp; Login</h3>
+          <p>Use your OTP or your existing MPIN to continue.</p>
           <div class="otp-mobile">
-
             +91 {{ mobileNumber }}
-
-            <button type="button" class="change-number-btn" (click)="changeMobileNumber()">
-
-              Change
-
-            </button>
-
+            <button type="button" class="change-number-btn" [disabled]="isLoading"
+              (click)="changeMobileNumber()">Change</button>
           </div>
-
         </div>
 
-        <!-- OTP Input -->
+        <fieldset style="border: 0; padding: 0; margin: 16px 0;">
+          <legend class="input-label">Choose verification method</legend>
+          <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="radio" name="verificationMethod" value="OTP"
+                [ngModel]="verificationMethod" (ngModelChange)="selectVerificationMethod($event)"
+                [disabled]="isLoading" style="width: auto; margin: 0;" />
+              OTP
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="radio" name="verificationMethod" value="MPIN"
+                [ngModel]="verificationMethod" (ngModelChange)="selectVerificationMethod($event)"
+                [disabled]="isLoading" style="width: auto; margin: 0;" />
+              MPIN
+            </label>
+          </div>
+        </fieldset>
 
-        <label class="input-label" for="otp">
+        <ng-container *ngIf="verificationMethod === 'OTP'">
+          <label class="input-label" for="otp">Enter OTP</label>
+          <input id="otp" name="otp" class="otp-input" type="text" inputmode="numeric"
+            autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}"
+            placeholder="• • • • • •" [(ngModel)]="otp" (ngModelChange)="onOTPChange($event)"
+            [disabled]="isLoading" required />
+          <p class="otp-expiry">OTP is valid for 5 minutes</p>
+        </ng-container>
 
-          Enter OTP
+        <ng-container *ngIf="verificationMethod === 'MPIN'">
+          <label class="input-label" for="mpin">Enter {{ mpinLength }}-digit MPIN</label>
+          <input id="mpin" name="mpin" class="otp-input" [type]="showMPIN ? 'text' : 'password'"
+            inputmode="numeric" autocomplete="current-password" [maxlength]="mpinLength"
+            [pattern]="'[0-9]{' + mpinLength + '}'" placeholder="Enter your MPIN"
+            [(ngModel)]="mpin" (ngModelChange)="onMPINChange($event)" [disabled]="isLoading" required />
+          <button type="button" class="change-number-btn" [disabled]="isLoading"
+            [attr.aria-pressed]="showMPIN" (click)="showMPIN = !showMPIN">
+            {{ showMPIN ? 'Hide MPIN' : 'Show MPIN' }}
+          </button>
+          <p class="otp-expiry">Use your existing MPIN. If you have not set one, select OTP.</p>
+        </ng-container>
 
-        </label>
-
-        <input id="otp" name="otp" class="otp-input" type="text" inputmode="numeric" autocomplete="one-time-code"
-          maxlength="6" pattern="[0-9]{6}" placeholder="• • • • • •" [(ngModel)]="otp"
-          (ngModelChange)="onOTPChange($event)" [disabled]="isLoading" required />
-
-        <p class="otp-expiry">
-
-          OTP is valid for 5 minutes
-
-        </p>
-
-        <!-- Verify Button -->
-
-        <button class="primary-button" type="submit" [disabled]="isLoading || otp.length !== 6">
-
-          {{
-          isLoading
-          ? 'Verifying OTP...'
-          : 'Verify & Login'
-          }}
-
+        <button class="primary-button" type="submit"
+          [disabled]="isLoading || (verificationMethod === 'OTP' ? otp.length !== 6 : mpin.length !== mpinLength)">
+          {{ isLoading ? 'Verifying ' + verificationMethod + '...' : 'Verify & Login' }}
         </button>
 
-        <!-- Resend OTP -->
-
-        <div class="otp-resend">
-
+        <div class="otp-resend" *ngIf="verificationMethod === 'OTP'">
           Didn't receive the OTP?
-
           <button type="button" class="resend-button" [disabled]="isLoading" (click)="sendOTP()">
-
             Resend OTP
-
           </button>
-
         </div>
-
       </form>
 
 

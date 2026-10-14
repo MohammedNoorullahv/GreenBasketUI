@@ -65,6 +65,7 @@ export class TblProfileListComponent implements OnInit {
     this.tblProfile$ = this.tblProfileService.getAllTblProfiles();
   }
   OnFormSubmit(action: string): void {
+    console.log("onFormSubmit");
     if (action === 'Load All') {
       this.actionType = "Load All";
       this.tblProfile$ = this.tblProfileService.getAllTblProfiles();

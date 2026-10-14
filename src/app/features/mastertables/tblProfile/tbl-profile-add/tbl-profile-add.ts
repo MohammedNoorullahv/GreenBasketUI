@@ -578,25 +578,25 @@ export class TblProfileAddComponent implements OnDestroy {
     this.isLocating = false;
   }
 
-private setSelectedLocation(
-  latitude: number,
-  longitude: number
-): void {
-  if (!this.leaflet || !this.map) {
-    return;
-  }
+  private setSelectedLocation(
+    latitude: number,
+    longitude: number
+  ): void {
+    if (!this.leaflet || !this.map) {
+      return;
+    }
 
-  const L = this.leaflet;
+    const L = this.leaflet;
 
-  this.selectedLatitude = latitude;
-  this.selectedLongitude = longitude;
+    this.selectedLatitude = latitude;
+    this.selectedLongitude = longitude;
 
-  if (this.locationMarker) {
-    this.locationMarker.setLatLng([latitude, longitude]);
-  } else {
-    const pinIcon = L.divIcon({
-      className: 'profile-pin-wrapper',
-      html: `
+    if (this.locationMarker) {
+      this.locationMarker.setLatLng([latitude, longitude]);
+    } else {
+      const pinIcon = L.divIcon({
+        className: 'profile-pin-wrapper',
+        html: `
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="40"
@@ -614,31 +614,31 @@ private setSelectedLocation(
           <circle cx="20" cy="20" r="7" fill="#ffffff"/>
         </svg>
       `,
-      iconSize: [40, 48],
-      iconAnchor: [20, 47]
-    });
+        iconSize: [40, 48],
+        iconAnchor: [20, 47]
+      });
 
-    this.locationMarker = L.marker(
-      [latitude, longitude],
-      {
-        draggable: true,
-        icon: pinIcon,
-        zIndexOffset: 1000
-      }
-    ).addTo(this.map);
+      this.locationMarker = L.marker(
+        [latitude, longitude],
+        {
+          draggable: true,
+          icon: pinIcon,
+          zIndexOffset: 1000
+        }
+      ).addTo(this.map);
 
-    this.locationMarker.on('dragend', () => {
-      const position = this.locationMarker!.getLatLng();
+      this.locationMarker.on('dragend', () => {
+        const position = this.locationMarker!.getLatLng();
 
-      // Reuse the same method to update coordinates and address.
-      this.selectManualLocation(position.lat, position.lng);
-    });
+        // Reuse the same method to update coordinates and address.
+        this.selectManualLocation(position.lat, position.lng);
+      });
+    }
+
+    void this.fetchSelectedAddress(latitude, longitude);
+
+    this.cdr.detectChanges();
   }
-
-  void this.fetchSelectedAddress(latitude, longitude);
-
-  this.cdr.detectChanges();
-}
 
   useCurrentLocation(): void {
     if (!isPlatformBrowser(this.platformId) || !this.map) return;
@@ -682,7 +682,7 @@ private setSelectedLocation(
       if (request !== this.locationRequest || !this.map) return;
       const { latitude, longitude, accuracy } = position.coords;
       if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
-          !Number.isFinite(accuracy) || accuracy < 0) return;
+        !Number.isFinite(accuracy) || accuracy < 0) return;
       if (!best || accuracy < best.coords.accuracy) best = position;
       if (best.coords.accuracy <= 30) finish();
     }, error => finish(error), {
@@ -943,6 +943,12 @@ private setSelectedLocation(
       this.model.fldFKStreetId = 0;
       this.model.fldStreetName = '';
     }
+  }
+
+  onMPINChange(value: string): void {
+    this.model.fldPasswordHash = value
+      .replace(/\D/g, '')
+      .slice(0, 6);
   }
 
 }

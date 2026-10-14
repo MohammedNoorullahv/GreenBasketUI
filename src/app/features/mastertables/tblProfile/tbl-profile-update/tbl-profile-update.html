@@ -161,23 +161,32 @@
                 <div class="profile-field">
 
                     <label class="form-label" for="fldPasswordHash">
-                        Password <span class="required">*</span>
+                        MPIN <span class="required">*</span>
                     </label>
 
                     <div class="profile-password-wrapper">
 
                         <input [type]="showPassword ? 'text' : 'password'" id="fldPasswordHash" class="form-control"
-                            name="fldPasswordHash" [(ngModel)]="model.fldPasswordHash" placeholder="Enter password"
-                            required />
+                            name="fldPasswordHash" [(ngModel)]="model.fldPasswordHash"
+                            (ngModelChange)="onMPINChange($event)" inputmode="numeric"
+                            minlength="6" maxlength="6" pattern="[0-9]{6}"
+                            autocomplete="new-password" placeholder="Enter 6-digit MPIN"
+                            #mpinField="ngModel" [disabled]="isSaving" required />
 
-                        <button type="button" class="profile-password-eye" (click)="showPassword = !showPassword">
+                        <button type="button" class="profile-password-eye" [disabled]="isSaving"
+                            [attr.aria-label]="showPassword ? 'Hide MPIN' : 'Show MPIN'" (click)="showPassword = !showPassword">
 
                             <i *ngIf="!showPassword" class="bi bi-eye"></i>
                             <i *ngIf="showPassword" class="bi bi-eye-slash"></i>
 
                         </button>
 
+                        <div class="text-danger profile-validation"
+                        *ngIf="mpinField.invalid && (mpinField.touched || mpinField.dirty)">
+                        MPIN must contain exactly 6 digits.
                     </div>
+
+                </div>
 
                 </div>
 

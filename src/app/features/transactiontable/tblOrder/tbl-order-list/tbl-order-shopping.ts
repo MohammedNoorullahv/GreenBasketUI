@@ -17,6 +17,15 @@ import { TblOrderService } from '../services/tbl-order';
 import { TblPendingOrderDto } from '../models/tbl-pending-order.model';
 import { RouterLink } from '@angular/router';
 
+// Extend the API order-header DTO/entity/PrintOrder response with these fields.
+// The API must recompute these amounts from vendor policy before saving.
+type OrderDeliveryRequest = Omit<OrderShoppingRequest, 'orderHeader'> & {
+  orderHeader: OrderShoppingRequest['orderHeader'] & {
+    fldOriginalDeliveryCharges: number;
+    fldDeliverySavings: number;
+  };
+};
+
 @Component({
   selector: 'app-tbl-order-shopping',
   standalone: true,
@@ -478,8 +487,43 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
     return Math.round(this.cart.reduce((sum, line) => sum + this.lineTotal(line), 0) * 100) / 100;
   }
 
+  private moneyValue(value: unknown): number {
+    const amount = Number(value ?? 0);
+    return Number.isFinite(amount) && amount >= 0 ? Math.round(amount * 100) / 100 : 0;
+  }
+
+  get deliveryPolicy(): { minimum: number; waiver: number; originalCharge: number } {
+    const p = this.vendorProfile;
+    if (!p || this.fldOrderType === 'Self Pickup') {
+      return { minimum: 0, waiver: 0, originalCharge: 0 };
+    }
+    if (this.orderOption === 'Advance Order' || this.fldOrderType === 'Advance Delivery') {
+      return { minimum: this.moneyValue(p.fldvADMinBillValue), waiver: this.moneyValue(p.fldvADChargesWaiverValue), originalCharge: this.moneyValue(p.fldvADCharges) };
+    }
+    if (this.fldOrderType === 'Priority Delivery') {
+      return { minimum: this.moneyValue(p.fldvPDMinBillValue), waiver: this.moneyValue(p.fldvPDChargesWaiverValue), originalCharge: this.moneyValue(p.fldvPDCharges) };
+    }
+    return { minimum: this.moneyValue(p.fldvRDMinBillValue), waiver: this.moneyValue(p.fldvRDChargesWaiverValue), originalCharge: this.moneyValue(p.fldvRDCharges) };
+  }
+
+  get minimumOrderValue(): number { return this.deliveryPolicy.minimum; }
+  get waiverOrderValue(): number { return this.deliveryPolicy.waiver; }
+  get originalDeliveryCharge(): number { return this.deliveryPolicy.originalCharge; }
+  get minimumOrderMet(): boolean {
+    return !!this.vendorProfile && this.cart.length > 0 && this.subtotal >= this.minimumOrderValue;
+  }
+  get amountToMinimum(): number {
+    return this.moneyValue(Math.max(0, this.minimumOrderValue - this.subtotal));
+  }
+  get deliverySavings(): number {
+    return this.cart.length > 0 && this.minimumOrderMet && this.waiverOrderValue > 0 &&
+      this.subtotal >= this.waiverOrderValue ? this.originalDeliveryCharge : 0;
+  }
+  get amountToWaiver(): number {
+    return this.moneyValue(Math.max(0, this.waiverOrderValue - this.subtotal));
+  }
   get charge(): number {
-    return this.fldOrderType === 'Self Pickup' ? 0 : Number(this.deliveryCharges) || 0;
+    return this.moneyValue(this.originalDeliveryCharge - this.deliverySavings);
   }
 
   get grandTotal(): number {
@@ -498,7 +542,7 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  get requestPreview(): OrderShoppingRequest | null {
+  get requestPreview(): OrderDeliveryRequest | null {
 
     if (
       this.customerId <= 0 ||
@@ -534,6 +578,8 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
 
         fldItemSubTotal: this.subtotal,
 
+        fldOriginalDeliveryCharges: this.originalDeliveryCharge,
+        fldDeliverySavings: this.deliverySavings,
         fldDeliveryCharges: this.charge,
 
         fldGrandTotal: this.grandTotal,
@@ -757,50 +803,8 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   calculateDeliveryCharges(): void {
-
-    const profile = this.vendorProfile;
-
-    if (!profile) {
-
-      this.deliveryCharges = 0;
-
-      return;
-
-    }
-
-    // Self Pickup: Always free.
-    if (this.fldOrderType === 'Self Pickup') {
-
-      this.deliveryCharges = 0;
-
-      return;
-
-    }
-
-    // Advance Delivery.
-    if (this.orderOption === 'Advance Order') {
-
-      this.deliveryCharges =
-        Number(profile.fldvADCharges ?? 0);
-
-      return;
-
-    }
-
-    // Priority Delivery — Current Day only.
-    if (this.fldOrderType === 'Priority Delivery') {
-
-      this.deliveryCharges =
-        Number(profile.fldvPDCharges ?? 0);
-
-      return;
-
-    }
-
-    // Regular Delivery.
-    this.deliveryCharges =
-      Number(profile.fldvRDCharges ?? 0);
-
+    // Original tariff is retained; payable charge/savings are derived from current cart.
+    this.deliveryCharges = this.originalDeliveryCharge;
   }
 
   updateDeliveryEstimate(): void {
@@ -1072,6 +1076,20 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
   saveOrder(): void {
 
     if (this.savingOrder) {
+      return;
+    }
+
+    if (this.orderSaved) return;
+    if (!this.vendorProfile) {
+      this.toastr.warning('Vendor delivery settings are not available. Please reload the vendor.');
+      return;
+    }
+    if (!this.minimumOrderMet) {
+      this.toastr.warning(`Minimum item value for this delivery option is ₹${this.minimumOrderValue.toFixed(2)}. Add ₹${this.amountToMinimum.toFixed(2)} more.`);
+      return;
+    }
+    if (this.orderOption === 'Advance Order' && this.requestedDeliveryDate < this.getTomorrowDate()) {
+      this.toastr.warning('Select tomorrow or a later date for advance orders.');
       return;
     }
 

@@ -32,6 +32,26 @@ import { TblCityorTownMasterService } from '../../tblCityorTownMaster/services/t
   // Edit uses the same HTML classes/layout as Add.
   // If your Add component folder has a different name, adjust only this path.
   styleUrl: '../tbl-profile-add/tbl-profile-add.css',
+
+  styles: [`
+    .vendor-delivery-card { border: 1px solid #8ba6b6; border-radius: 10px; padding: 14px; margin: 8px 0 20px; min-width: 0; grid-column: 1 / -1; }
+    .vendor-delivery-heading { margin: 0 0 12px; padding: 10px; border: 1px solid #cbdcf1; border-radius: 6px; background: #f0f7fc; color: #17384a; text-align: center; font-size: 17px; font-weight: 700; }
+    .vendor-delivery-toggle { margin-bottom: 14px; }
+    .vendor-delivery-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border: 1px solid #cbdcf1; border-radius: 6px; overflow: hidden; }
+    .vendor-delivery-cell { padding: 12px; min-width: 0; }
+    .vendor-delivery-cell:nth-child(odd) { border-right: 1px solid #cbdcf1; }
+    .vendor-delivery-cell:nth-child(n+3) { border-top: 1px solid #cbdcf1; }
+    .vendor-delivery-cell .form-label { display: block; margin-bottom: 8px; font-size: 13px; }
+    .vendor-delivery-cell .form-control { width: 100%; min-width: 0; box-sizing: border-box; }
+    .vendor-delivery-note { margin: 0 0 12px; color: #64748b; font-size: 13px; }
+    @media (max-width: 360px) {
+      .vendor-delivery-grid { grid-template-columns: 1fr; }
+      .vendor-delivery-cell:nth-child(odd) { border-right: 0; }
+      .vendor-delivery-cell + .vendor-delivery-cell { border-top: 1px solid #cbdcf1; }
+      .vendor-delivery-card { padding: 10px; }
+    }
+  `],
+
 })
 export class TblProfileUpdateComponent implements OnInit, OnDestroy {
 
@@ -122,6 +142,12 @@ export class TblProfileUpdateComponent implements OnInit, OnDestroy {
             .subscribe({
               next: (response) => {
                 this.model = response;
+                this.model.fldvADMinBillValue ??= 0;
+                this.model.fldvADChargesWaiverValue ??= 0;
+                this.model.fldvRDMinBillValue ??= 0;
+                this.model.fldvRDChargesWaiverValue ??= 0;
+                this.model.fldvPDMinBillValue ??= 0;
+                this.model.fldvPDChargesWaiverValue ??= 0;
                 // Do not display or filter a stored hash into an MPIN.
                 // A value that is not a six-digit MPIN must be re-entered.
                 if (!/^\d{6}$/.test(this.model.fldPasswordHash ?? '')) {
@@ -292,6 +318,12 @@ export class TblProfileUpdateComponent implements OnInit, OnDestroy {
       fldModifiedBy: this.model.fldModifiedBy ?? 0,
       fldModifiedDt: this.model.fldModifiedDt ?? new Date(),
 
+      fldvADMinBillValue: this.model.fldvADMinBillValue ?? 0,
+      fldvADChargesWaiverValue: this.model.fldvADChargesWaiverValue ?? 0,
+      fldvRDMinBillValue: this.model.fldvRDMinBillValue ?? 0,
+      fldvRDChargesWaiverValue: this.model.fldvRDChargesWaiverValue ?? 0,
+      fldvPDMinBillValue: this.model.fldvPDMinBillValue ?? 0,
+      fldvPDChargesWaiverValue: this.model.fldvPDChargesWaiverValue ?? 0,
       fldvADCharges: this.model.fldvADCharges ?? 0,
       fldvADEndTime: this.model.fldvADEndTime ?? '',
       fldvAcceptingPriortyOrder: this.model.fldvAcceptingPriortyOrder ?? false,

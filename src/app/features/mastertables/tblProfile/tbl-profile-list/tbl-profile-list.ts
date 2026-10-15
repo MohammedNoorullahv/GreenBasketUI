@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { CommonModule, AsyncPipe } from '@angular/common';
+import { CommonModule, AsyncPipe, isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 
 import { TblProfile } from '../models/tblProfile.model';
@@ -13,6 +13,8 @@ import { TblProfileService } from '../services/tbl-profile';
 })
 
 export class TblProfileListComponent implements OnInit {
+  private readonly platformId = inject(PLATFORM_ID);
+
   tblProfile$?: Observable<TblProfile[]>;
   actionType: string = '';
   submitAction: 'Load All' | 'Active Only' = 'Load All'; // default to Load All
@@ -21,7 +23,7 @@ export class TblProfileListComponent implements OnInit {
   constructor(private tblProfileService: TblProfileService, private router: Router) {
   }
   ngOnInit(): void {
-
+    if (!isPlatformBrowser(this.platformId)) return;
     const storedProfile =
       sessionStorage.getItem('gbProfile');
 
@@ -29,14 +31,21 @@ export class TblProfileListComponent implements OnInit {
       return;
     }
 
-    const loggedInProfile =
-      JSON.parse(storedProfile);
+    let loggedInProfile: { fldUserType?: string; fldId?: number };
+    try {
+      loggedInProfile = JSON.parse(storedProfile);
+      if (!loggedInProfile || typeof loggedInProfile !== 'object') return;
+    } catch {
+      return;
+    }
 
     const loggedInUserType =
       loggedInProfile.fldUserType;
 
     const loggedInUserId =
       Number(loggedInProfile.fldId);
+
+
 
 
     // =====================================================
@@ -63,9 +72,11 @@ export class TblProfileListComponent implements OnInit {
 
     this.actionType = 'Load All';
     this.tblProfile$ = this.tblProfileService.getAllTblProfiles();
+
+
   }
   OnFormSubmit(action: string): void {
-    console.log("onFormSubmit");
+    if (!isPlatformBrowser(this.platformId) || !this.isAdmin) return;
     if (action === 'Load All') {
       this.actionType = "Load All";
       this.tblProfile$ = this.tblProfileService.getAllTblProfiles();

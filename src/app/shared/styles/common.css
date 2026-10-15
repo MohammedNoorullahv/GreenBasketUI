@@ -2330,6 +2330,7 @@ textarea.form-control {
   font-size: 18px;
   z-index: 2;
 }
+
 /* Leaflet-generated elements need global styles. Keep tiles at their native size. */
 #profileLocationMap img.leaflet-tile,
 #profileLocationMap img.leaflet-marker-icon,
@@ -2340,16 +2341,94 @@ textarea.form-control {
   padding: 0;
   border: 0;
 }
-#profileLocationMap img.leaflet-tile { width: 256px; height: 256px; }
-#profileLocationMap .profile-pin-wrapper { background: transparent; border: none; }
-#profileLocationMap .profile-pin-wrapper svg { width: 40px; height: 48px; max-width: none; }
-.profile-map-status { padding: 10px 12px; margin: 10px 0; background: #eff6ff; color: #17384a; border-radius: 8px; font-size: 14px; }
-.profile-map-status span { display: block; margin-top: 4px; font-weight: 600; }
-.profile-map-warning { padding: 10px 12px; background: #fff7ed; color: #9a3412; border-radius: 8px; }
-.profile-map-actions button:disabled { opacity: .6; cursor: wait; }
-.profile-map-coordinates { overflow-wrap: anywhere; }
+
+#profileLocationMap img.leaflet-tile {
+  width: 256px;
+  height: 256px;
+}
+
+#profileLocationMap .profile-pin-wrapper {
+  background: transparent;
+  border: none;
+}
+
+#profileLocationMap .profile-pin-wrapper svg {
+  width: 40px;
+  height: 48px;
+  max-width: none;
+}
+
+.profile-map-status {
+  padding: 10px 12px;
+  margin: 10px 0;
+  background: #eff6ff;
+  color: #17384a;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.profile-map-status span {
+  display: block;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.profile-map-warning {
+  padding: 10px 12px;
+  background: #fff7ed;
+  color: #9a3412;
+  border-radius: 8px;
+}
+
+.profile-map-actions button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+.profile-map-coordinates {
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 576px) {
-  .profile-map-overlay { padding: 8px; }
-  .profile-map-modal { padding: 14px; max-height: 96dvh; }
-  .profile-map-container { height: clamp(260px, 45dvh, 400px); }
+  .profile-map-overlay {
+    padding: 8px;
+  }
+
+  .profile-map-modal {
+    padding: 14px;
+    max-height: 96dvh;
+  }
+
+  .profile-map-container {
+    height: clamp(260px, 45dvh, 400px);
+  }
+}
+
+.vendor-details-panel {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: 20px 0;
+  padding: 20px;
+  border: 3px solid #567789;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.vendor-details-panel > legend {
+  float: none;
+  width: auto;
+  margin: 0 auto;
+  padding: 0 14px;
+  text-align: center;
+  color: #17384a;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+@media (max-width: 576px) {
+  .vendor-details-panel {
+    padding: 14px;
+  }
 }

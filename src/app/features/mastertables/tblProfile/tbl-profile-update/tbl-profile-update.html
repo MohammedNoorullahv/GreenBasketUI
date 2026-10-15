@@ -532,149 +532,132 @@
                     </div>
 
 
-                    <!-- =============================================
-                         ALLOW ADVANCE ORDER
-                         ============================================= -->
-                    <div class="profile-field">
-
-                        <label class="form-label">
-                            Advance Order
-                        </label>
-
-                        <label class="profile-radio">
-
-                            <input type="checkbox" name="fldvAllowAdvanceOrder"
-                                [(ngModel)]="model.fldvAllowAdvanceOrder" />
-
-                            Allow Advance Orders
-
-                        </label>
-
-                    </div>
-
-
-                    <!-- =============================================
-                         ADVANCE DELIVERY END TIME
-                         ============================================= -->
-                    <div class="profile-field">
-
-                        <label class="form-label" for="fldvADEndTime">
-
-                            Advance Delivery End Time
-
-                        </label>
-
-                        <input type="time" id="fldvADEndTime" class="form-control" name="fldvADEndTime"
-                            [(ngModel)]="model.fldvADEndTime" />
-
-                    </div>
-
-
-                    <!-- =============================================
-                         ADVANCE DELIVERY CHARGES
-                         ============================================= -->
-                    <div class="profile-field">
-
-                        <label class="form-label" for="fldvADCharges">
-
-                            Advance Delivery Charges (₹)
-
-                        </label>
-
-                        <input type="number" id="fldvADCharges" class="form-control" name="fldvADCharges"
-                            [(ngModel)]="model.fldvADCharges" min="0" step="0.01" placeholder="0.00" />
-
-                    </div>
-
-
-                    <!-- =============================================
-                         REGULAR DELIVERY START TIME
-                         ============================================= -->
-                    <div class="profile-field">
-
-                        <label class="form-label" for="fldvRegularDeliveryStartTime">
-
-                            Regular Delivery Start Time
-
-                        </label>
-
-                        <input type="time" id="fldvRegularDeliveryStartTime" class="form-control"
-                            name="fldvRegularDeliveryStartTime" [(ngModel)]="model.fldvRegularDeliveryStartTime" />
-
-                    </div>
-
-
-                    <!-- =============================================
-                         REGULAR DELIVERY CHARGES
-                         ============================================= -->
-                    <div class="profile-field">
-
-                        <label class="form-label" for="fldvRDCharges">
-
-                            Regular Delivery Charges (₹)
-
-                        </label>
-
-                        <input type="number" id="fldvRDCharges" class="form-control" name="fldvRDCharges"
-                            [(ngModel)]="model.fldvRDCharges" min="0" step="0.01" placeholder="0.00" />
-
-                    </div>
-
-
-                    <!-- =============================================
-                         ACCEPT PRIORITY ORDER
-                         ============================================= -->
-                    <div class="profile-field">
-
-                        <label class="form-label">
-                            Priority Order
-                        </label>
-
-                        <label class="profile-radio">
-
-                            <input type="checkbox" name="fldvAcceptingPriortyOrder"
-                                [(ngModel)]="model.fldvAcceptingPriortyOrder" />
-
-                            Accept Priority Orders
-
-                        </label>
-
-                    </div>
-
-
-                    <!-- =============================================
-                         PRIORITY DELIVERY DURATION
-                         ============================================= -->
-                    <div class="profile-field">
-
-                        <label class="form-label" for="fldvPDDuration">
-
-                            Priority Delivery Duration
-
-                        </label>
-
-                        <input type="text" id="fldvPDDuration" class="form-control" name="fldvPDDuration"
-                            [(ngModel)]="model.fldvPDDuration" maxlength="50" placeholder="E.g. 30 Minutes" />
-
-                    </div>
-
-
-                    <!-- =============================================
-                         PRIORITY DELIVERY CHARGES
-                         ============================================= -->
-                    <div class="profile-field">
-
-                        <label class="form-label" for="fldvPDCharges">
-
-                            Priority Delivery Charges (₹)
-
-                        </label>
-
-                        <input type="number" id="fldvPDCharges" class="form-control" name="fldvPDCharges"
-                            [(ngModel)]="model.fldvPDCharges" min="0" step="0.01" placeholder="0.00" />
-
-                    </div>
-
+<section class="vendor-delivery-card" aria-labelledby="deliveryADHeading">
+<h3 id="deliveryADHeading" class="vendor-delivery-heading">Advance Delivery Options</h3>
+<label class="profile-radio vendor-delivery-toggle"><input type="checkbox" name="fldvAllowAdvanceOrder" [(ngModel)]="model.fldvAllowAdvanceOrder" /> Allow Advance Orders</label>
+<div class="vendor-delivery-grid">
+<div class="vendor-delivery-cell">
+  <label class="form-label" for="fldvADMinBillValue">Min Bill Value (₹)</label>
+  <input type="number" id="fldvADMinBillValue" name="fldvADMinBillValue" class="form-control"
+    [(ngModel)]="model.fldvADMinBillValue" min="0" step="0.01" placeholder="0.00" #controlfldvADMinBillValue="ngModel" />
+  <div class="text-danger profile-validation"
+    *ngIf="controlfldvADMinBillValue.invalid && (controlfldvADMinBillValue.touched || controlfldvADMinBillValue.dirty)">
+    Please enter a valid non-negative amount.
+  </div>
+</div>
+<div class="vendor-delivery-cell">
+  <label class="form-label" for="fldvADChargesWaiverValue">Waiver Bill Value (₹)</label>
+  <input type="number" id="fldvADChargesWaiverValue" name="fldvADChargesWaiverValue" class="form-control"
+    [(ngModel)]="model.fldvADChargesWaiverValue" min="0" step="0.01" placeholder="0.00" #controlfldvADChargesWaiverValue="ngModel" />
+  <div class="text-danger profile-validation"
+    *ngIf="controlfldvADChargesWaiverValue.invalid && (controlfldvADChargesWaiverValue.touched || controlfldvADChargesWaiverValue.dirty)">
+    Please enter a valid non-negative amount.
+  </div>
+</div>
+<div class="vendor-delivery-cell">
+  <label class="form-label" for="fldvADCharges">Delivery Charges (₹)</label>
+  <input type="number" id="fldvADCharges" name="fldvADCharges" class="form-control"
+    [(ngModel)]="model.fldvADCharges" min="0" step="0.01" placeholder="0.00" #controlfldvADCharges="ngModel" />
+  <div class="text-danger profile-validation"
+    *ngIf="controlfldvADCharges.invalid && (controlfldvADCharges.touched || controlfldvADCharges.dirty)">
+    Please enter a valid non-negative amount.
+  </div>
+</div>
+<div class="vendor-delivery-cell">
+  <label class="form-label" for="fldvADEndTime">End Time</label>
+  <input type="time" id="fldvADEndTime" name="fldvADEndTime" class="form-control"
+    [(ngModel)]="model.fldvADEndTime"  #controlfldvADEndTime="ngModel" />
+  <div class="text-danger profile-validation"
+    *ngIf="controlfldvADEndTime.invalid && (controlfldvADEndTime.touched || controlfldvADEndTime.dirty)">
+    Please enter a valid value.
+  </div>
+</div>
+</div>
+</section>
+<section class="vendor-delivery-card" aria-labelledby="deliveryRDHeading">
+<h3 id="deliveryRDHeading" class="vendor-delivery-heading">Regular Delivery Options</h3>
+<p class="vendor-delivery-note">Regular delivery settings</p>
+<div class="vendor-delivery-grid">
+<div class="vendor-delivery-cell">
+  <label class="form-label" for="fldvRDMinBillValue">Min Bill Value (₹)</label>
+  <input type="number" id="fldvRDMinBillValue" name="fldvRDMinBillValue" class="form-control"
+    [(ngModel)]="model.fldvRDMinBillValue" min="0" step="0.01" placeholder="0.00" #controlfldvRDMinBillValue="ngModel" />
+  <div class="text-danger profile-validation"
+    *ngIf="controlfldvRDMinBillValue.invalid && (controlfldvRDMinBillValue.touched || controlfldvRDMinBillValue.dirty)">
+    Please enter a valid non-negative amount.
+  </div>
+</div>
+<div class="vendor-delivery-cell">
+  <label class="form-label" for="fldvRDChargesWaiverValue">Waiver Bill Value (₹)</label>
+  <input type="number" id="fldvRDChargesWaiverValue" name="fldvRDChargesWaiverValue" class="form-control"
+    [(ngModel)]="model.fldvRDChargesWaiverValue" min="0" step="0.01" placeholder="0.00" #controlfldvRDChargesWaiverValue="ngModel" />
+  <div class="text-danger profile-validation"
+    *ngIf="controlfldvRDChargesWaiverValue.invalid && (controlfldvRDChargesWaiverValue.touched || controlfldvRDChargesWaiverValue.dirty)">
+    Please enter a valid non-negative amount.
+  </div>
+</div>
+<div class="vendor-delivery-cell">
+  <label class="form-label" for="fldvRDCharges">Delivery Charges (₹)</label>
+  <input type="number" id="fldvRDCharges" name="fldvRDCharges" class="form-control"
+    [(ngModel)]="model.fldvRDCharges" min="0" step="0.01" placeholder="0.00" #controlfldvRDCharges="ngModel" />
+  <div class="text-danger profile-validation"
+    *ngIf="controlfldvRDCharges.invalid && (controlfldvRDCharges.touched || controlfldvRDCharges.dirty)">
+    Please enter a valid non-negative amount.
+  </div>
+</div>
+<div class="vendor-delivery-cell">
+  <label class="form-label" for="fldvRegularDeliveryStartTime">Start Time</label>
+  <input type="time" id="fldvRegularDeliveryStartTime" name="fldvRegularDeliveryStartTime" class="form-control"
+    [(ngModel)]="model.fldvRegularDeliveryStartTime"  #controlfldvRegularDeliveryStartTime="ngModel" />
+  <div class="text-danger profile-validation"
+    *ngIf="controlfldvRegularDeliveryStartTime.invalid && (controlfldvRegularDeliveryStartTime.touched || controlfldvRegularDeliveryStartTime.dirty)">
+    Please enter a valid value.
+  </div>
+</div>
+</div>
+</section>
+<section class="vendor-delivery-card" aria-labelledby="deliveryPDHeading">
+<h3 id="deliveryPDHeading" class="vendor-delivery-heading">Priority Delivery Options</h3>
+<label class="profile-radio vendor-delivery-toggle"><input type="checkbox" name="fldvAcceptingPriortyOrder" [(ngModel)]="model.fldvAcceptingPriortyOrder" /> Accept Priority Orders</label>
+<div class="vendor-delivery-grid">
+<div class="vendor-delivery-cell">
+  <label class="form-label" for="fldvPDMinBillValue">Min Bill Value (₹)</label>
+  <input type="number" id="fldvPDMinBillValue" name="fldvPDMinBillValue" class="form-control"
+    [(ngModel)]="model.fldvPDMinBillValue" min="0" step="0.01" placeholder="0.00" #controlfldvPDMinBillValue="ngModel" />
+  <div class="text-danger profile-validation"
+    *ngIf="controlfldvPDMinBillValue.invalid && (controlfldvPDMinBillValue.touched || controlfldvPDMinBillValue.dirty)">
+    Please enter a valid non-negative amount.
+  </div>
+</div>
+<div class="vendor-delivery-cell">
+  <label class="form-label" for="fldvPDChargesWaiverValue">Waiver Bill Value (₹)</label>
+  <input type="number" id="fldvPDChargesWaiverValue" name="fldvPDChargesWaiverValue" class="form-control"
+    [(ngModel)]="model.fldvPDChargesWaiverValue" min="0" step="0.01" placeholder="0.00" #controlfldvPDChargesWaiverValue="ngModel" />
+  <div class="text-danger profile-validation"
+    *ngIf="controlfldvPDChargesWaiverValue.invalid && (controlfldvPDChargesWaiverValue.touched || controlfldvPDChargesWaiverValue.dirty)">
+    Please enter a valid non-negative amount.
+  </div>
+</div>
+<div class="vendor-delivery-cell">
+  <label class="form-label" for="fldvPDCharges">Delivery Charges (₹)</label>
+  <input type="number" id="fldvPDCharges" name="fldvPDCharges" class="form-control"
+    [(ngModel)]="model.fldvPDCharges" min="0" step="0.01" placeholder="0.00" #controlfldvPDCharges="ngModel" />
+  <div class="text-danger profile-validation"
+    *ngIf="controlfldvPDCharges.invalid && (controlfldvPDCharges.touched || controlfldvPDCharges.dirty)">
+    Please enter a valid non-negative amount.
+  </div>
+</div>
+<div class="vendor-delivery-cell">
+  <label class="form-label" for="fldvPDDuration">Delivery Duration</label>
+  <input type="text" id="fldvPDDuration" name="fldvPDDuration" class="form-control"
+    [(ngModel)]="model.fldvPDDuration" maxlength="50" placeholder="E.g. 30 Minutes" #controlfldvPDDuration="ngModel" />
+  <div class="text-danger profile-validation"
+    *ngIf="controlfldvPDDuration.invalid && (controlfldvPDDuration.touched || controlfldvPDDuration.dirty)">
+    Please enter a valid value.
+  </div>
+</div>
+</div>
+</section>
 
                     <!-- =============================================
                          COVERED RADIUS

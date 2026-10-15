@@ -32,6 +32,26 @@ import { TblStreetMasterAdd } from '../../tblStreetMaster/models/tblStreetMaster
   imports: [CommonModule, FormsModule],
   templateUrl: './tbl-profile-add.html',
   styleUrl: './tbl-profile-add.css',
+
+  styles: [`
+    .vendor-delivery-card { border: 1px solid #8ba6b6; border-radius: 10px; padding: 14px; margin: 8px 0 20px; min-width: 0; grid-column: 1 / -1; }
+    .vendor-delivery-heading { margin: 0 0 12px; padding: 10px; border: 1px solid #cbdcf1; border-radius: 6px; background: #f0f7fc; color: #17384a; text-align: center; font-size: 17px; font-weight: 700; }
+    .vendor-delivery-toggle { margin-bottom: 14px; }
+    .vendor-delivery-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border: 1px solid #cbdcf1; border-radius: 6px; overflow: hidden; }
+    .vendor-delivery-cell { padding: 12px; min-width: 0; }
+    .vendor-delivery-cell:nth-child(odd) { border-right: 1px solid #cbdcf1; }
+    .vendor-delivery-cell:nth-child(n+3) { border-top: 1px solid #cbdcf1; }
+    .vendor-delivery-cell .form-label { display: block; margin-bottom: 8px; font-size: 13px; }
+    .vendor-delivery-cell .form-control { width: 100%; min-width: 0; box-sizing: border-box; }
+    .vendor-delivery-note { margin: 0 0 12px; color: #64748b; font-size: 13px; }
+    @media (max-width: 360px) {
+      .vendor-delivery-grid { grid-template-columns: 1fr; }
+      .vendor-delivery-cell:nth-child(odd) { border-right: 0; }
+      .vendor-delivery-cell + .vendor-delivery-cell { border-top: 1px solid #cbdcf1; }
+      .vendor-delivery-card { padding: 10px; }
+    }
+  `],
+
 })
 
 export class TblProfileAddComponent implements OnDestroy {
@@ -105,6 +125,12 @@ export class TblProfileAddComponent implements OnDestroy {
       fldStreetName: '',
       fldGPSLocation: '',
       fldHouseImagePath: '',
+      fldvADMinBillValue: 0,
+      fldvADChargesWaiverValue: 0,
+      fldvRDMinBillValue: 0,
+      fldvRDChargesWaiverValue: 0,
+      fldvPDMinBillValue: 0,
+      fldvPDChargesWaiverValue: 0,
       fldIsTermsAgreed: true,
       fldIsActive: true,
       fldCreatedBy: 0,
@@ -375,6 +401,12 @@ export class TblProfileAddComponent implements OnDestroy {
       fldStreetName: '',
       fldGPSLocation: '',
       fldHouseImagePath: '',
+      fldvADMinBillValue: 0,
+      fldvADChargesWaiverValue: 0,
+      fldvRDMinBillValue: 0,
+      fldvRDChargesWaiverValue: 0,
+      fldvPDMinBillValue: 0,
+      fldvPDChargesWaiverValue: 0,
       fldIsTermsAgreed: true,
       fldIsActive: true,
       fldCreatedBy: 0,
@@ -891,6 +923,12 @@ export class TblProfileAddComponent implements OnDestroy {
       return;
     }
 
+    this.model.fldvADMinBillValue = 0;
+    this.model.fldvADChargesWaiverValue = 0;
+    this.model.fldvRDMinBillValue = 0;
+    this.model.fldvRDChargesWaiverValue = 0;
+    this.model.fldvPDMinBillValue = 0;
+    this.model.fldvPDChargesWaiverValue = 0;
     this.model.fldvVendorName = '';
     this.model.fldvAllowAdvanceOrder = false;
     this.model.fldvADEndTime = '';

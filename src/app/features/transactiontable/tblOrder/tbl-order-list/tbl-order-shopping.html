@@ -684,6 +684,67 @@
         {{ deliveryEstimate }}
 
       </div>
+      <!-- 
+      <section class="gb-delivery-policy" aria-label="Delivery conditions" aria-live="polite"
+        style="margin-top:12px;padding:12px;border:1px solid #cbdcf1;border-radius:8px;background:#f8fbff">
+        <p *ngIf="!vendorProfile">Select a vendor and wait for delivery settings to load.</p>
+        <ng-container *ngIf="vendorProfile">
+          <p *ngIf="minimumOrderValue > 0">Minimum item value: <strong>₹{{ minimumOrderValue | number:'1.2-2' }}</strong></p>
+          <p *ngIf="amountToMinimum > 0" style="color:#9a3412">Add ₹{{ amountToMinimum | number:'1.2-2' }} more to place this order.</p>
+          <p *ngIf="waiverOrderValue > 0 && originalDeliveryCharge > 0">
+            Free delivery on item value of ₹{{ waiverOrderValue | number:'1.2-2' }} or more.
+          </p>
+          <p *ngIf="waiverOrderValue > 0 && originalDeliveryCharge > 0 && amountToWaiver > 0">
+            Add ₹{{ amountToWaiver | number:'1.2-2' }} more for free delivery.
+          </p>
+          <p *ngIf="deliverySavings > 0" style="color:#087f5b;font-weight:700">
+            Delivery charge waived — you save ₹{{ deliverySavings | number:'1.2-2' }}!
+          </p>
+        </ng-container>
+      </section> -->
+
+      <section class="gb-delivery-policy" aria-label="Delivery conditions" aria-live="polite" style="margin-top:12px;padding:12px;border:1px solid #cbdcf1;
+         border-radius:8px;background:#f8fbff">
+        <p *ngIf="!vendorProfile" style="color:#000000">
+          Select a vendor and wait for delivery settings to load.
+        </p>
+
+        <ng-container *ngIf="vendorProfile">
+
+          <!-- Hide once minimum order value is reached -->
+          <p *ngIf="minimumOrderValue > 0 && amountToMinimum > 0" style="color:#000000">
+            Minimum item value:
+            <strong>₹{{ minimumOrderValue | number:'1.2-2' }}</strong>
+          </p>
+
+          <p *ngIf="amountToMinimum > 0" style="color:#8b0000">
+            Add ₹{{ amountToMinimum | number:'1.2-2' }}
+            more to place this order.
+          </p>
+
+          <p *ngIf="deliverySavings <= 0 &&
+         waiverOrderValue > 0 &&
+         originalDeliveryCharge > 0" style="color:#000000">
+            Free delivery on item value of
+            ₹{{ waiverOrderValue | number:'1.2-2' }} or more.
+          </p>
+
+          <p *ngIf="waiverOrderValue > 0 &&
+             originalDeliveryCharge > 0 &&
+             amountToWaiver > 0" style="color:#8b0000">
+            Add ₹{{ amountToWaiver | number:'1.2-2' }}
+            more for free delivery.
+          </p>
+
+          <p *ngIf="deliverySavings > 0" style="color:#5b21b6;font-weight:700">
+            Delivery charge waived — you save
+            ₹{{ deliverySavings | number:'1.2-2' }}!
+          </p>
+
+        </ng-container>
+      </section>
+
+
 
     </section>
 
@@ -1273,11 +1334,19 @@
           </div>
 
 
+          <div *ngIf="deliverySavings > 0">
+            <span>Original Delivery Charges</span>
+            <strong>₹{{ originalDeliveryCharge | number:'1.2-2' }}</strong>
+          </div>
+          <div *ngIf="deliverySavings > 0" style="color:#087f5b">
+            <span>Delivery Savings (Waiver)</span>
+            <strong>− ₹{{ deliverySavings | number:'1.2-2' }}</strong>
+          </div>
           <div>
 
             <span>
 
-              Delivery Charges
+              Delivery Charges Payable
 
             </span>
 
@@ -1388,12 +1457,17 @@
 
       </div> -->
 
+        <p *ngIf="!minimumOrderMet" role="status" style="color:#9a3412">
+          {{ !vendorProfile ? 'Vendor delivery settings must load before placing the order.' :
+          'Minimum item value has not been reached. Add items to continue.' }}
+        </p>
         <div class="gb-checkout-actions">
 
           <button type="button" class="gb-place-order-btn" (click)="saveOrder()" [disabled]="
       savingOrder ||
       orderSaved ||
       cart.length === 0 ||
+      !minimumOrderMet ||
       (paymentMethod === 'UPI' && !vendorUpiId)
     ">
 

@@ -29,6 +29,12 @@ export interface TblProfileAdd {
     fldvMaxCoveredRadius?: number;
 	fldvUPIId?: string | null;
     fldvUPIPayeeName?: string | null;
+	fldvADMinBillValue?: number;
+    fldvADChargesWaiverValue?: number;
+    fldvRDMinBillValue?: number;
+    fldvRDChargesWaiverValue?: number;
+    fldvPDMinBillValue?: number;
+    fldvPDChargesWaiverValue?: number;
 
 	fldEmailId?: string | null;
     fldPasswordHash?: string | null;

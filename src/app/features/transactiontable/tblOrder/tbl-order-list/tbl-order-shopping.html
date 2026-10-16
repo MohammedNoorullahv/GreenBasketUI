@@ -402,7 +402,7 @@
           <!-- VEGETABLE IMAGE -->
 
           <img class="gb-order-detail-image" [src]="imageUrl(item.fldItemImagePath)"
-            [alt]="item.fldItemName || 'Vegetable'" />
+            [alt]="item.fldItemName || 'Vegetable'" (error)="onImageError($event)" />
 
 
           <!-- VEGETABLE NAME -->
@@ -816,7 +816,7 @@
           <!-- ITEM IMAGE -->
 
           <img class="gb-product-image" [src]="imageUrl(item.fldItemImagePath)" [alt]="item.fldItemName"
-            loading="lazy" />
+            loading="lazy" (error)="onImageError($event)" />
 
 
           <!-- ITEM INFORMATION -->
@@ -1092,7 +1092,7 @@
 
           <!-- IMAGE -->
 
-          <img class="gb-product-image" [src]="imageUrl(line.stock.fldItemImagePath)" [alt]="line.stock.fldItemName" />
+          <img class="gb-product-image" [src]="imageUrl(line.stock.fldItemImagePath)" [alt]="line.stock.fldItemName" (error)="onImageError($event)" />
 
 
           <!-- ITEM DETAILS -->
@@ -1273,9 +1273,9 @@
             </p>
             <p *ngIf="customerAddress">{{ customerAddress }}</p>
             <p *ngIf="customer.fldGPSLocation">Location: {{ customer.fldGPSLocation }}</p>
-            <img *ngIf="customer.fldHouseImagePath" [src]="imageUrl(customer.fldHouseImagePath)"
+            <img *ngIf="customer.fldHouseImagePath" [src]="houseImageUrl(customer.fldHouseImagePath)"
               alt="Registered house photograph"
-              style="display:block;max-width:240px;width:100%;height:auto;border-radius:10px;margin-top:12px" />
+              style="display:block;max-width:240px;width:100%;height:auto;border-radius:10px;margin-top:12px" (error)="onImageError($event)" />
             <p *ngIf="fldOrderType === 'Self Pickup'">
               Self Pickup selected: this customer address is for contact/reference, not the pickup point.
               Confirm the vendor's shop address before collection.

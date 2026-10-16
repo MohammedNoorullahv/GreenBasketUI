@@ -7,7 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import * as QRCode from 'qrcode';
 import { ToastrService } from 'ngx-toastr';
-import { environment } from '../../../../../environments/environment.development';
+import { environment } from '../../../../../environments/environment';
 import { TblDailyInventoryService } from '../../tblDailyInventory/services/tbl-daily-inventory';
 // import { OrderCartLine, OrderShoppingRequest, OrderStockItem, OrderVendorOption } from './tbl-order-shopping.model';
 import { TblProfile } from '../../../mastertables/tblProfile/models/tblProfile.model';
@@ -62,7 +62,7 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
   upiQrDataUrl = '';
   upiQrError = '';
   upiQrLoading = false;
-  readonly imageBaseUrl = environment.apiBaseUrl.replace(/\/$/, '');
+  readonly imageBaseUrl = environment.apiBaseUrl.trim().replace(/\/+$/, '').replace(/\/api$/i, '');
   savingOrder = false;
   orderSaved = false;
 
@@ -298,10 +298,54 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
     );
   }
 
+  readonly imageFallbackUrl = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><rect width="80" height="80" rx="8" fill="#f1f5f0"/><path d="M18 56l16-19 11 12 8-9 12 16z" fill="#92ad91"/><circle cx="52" cy="26" r="7" fill="#92ad91"/></svg>'
+  );
+
+  private resolveItemImageUrl(imagePath?: string | null, isHouseImage = false): string {
+    const raw = (imagePath || '').trim();
+    if (!raw) return this.imageFallbackUrl;
+    // Preserve complete Blob/SAS URLs, including their query strings.
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (/^[a-z][a-z0-9+.-]*:/i.test(raw) || raw.startsWith('//')) {
+      return this.imageFallbackUrl;
+    }
+
+    let path = raw.replace(/\\/g, '/').replace(/^\/+/, '');
+    // Accept the API-relative path as well as legacy filename-only values.
+    path = path.replace(/^api\/(?=uploads\/items\/)/i, '');
+    if (!isHouseImage && !/^uploads\/items\//i.test(path)) path = 'uploads/items/' + path;
+    const segments = path.split('/');
+    try {
+      path = segments.map(segment => {
+        // Avoid double-encoding paths already encoded by the API.
+        let decoded: string;
+        try { decoded = decodeURIComponent(segment); } catch { decoded = segment; }
+        if (decoded === '.' || decoded === '..' || /[\/\\]/.test(decoded)) {
+          throw new Error('Invalid image path');
+        }
+        return encodeURIComponent(decoded);
+      }).join('/');
+    } catch {
+      return this.imageFallbackUrl;
+    }
+    return `${this.imageBaseUrl}/${path}`;
+  }
+
+  onImageError(event: Event): void {
+    const image = event.target as HTMLImageElement | null;
+    if (image && image.getAttribute('src') !== this.imageFallbackUrl) {
+      image.src = this.imageFallbackUrl;
+    }
+  }
+
   imageUrl(path?: string | null): string {
-    if (!path) return '/images/no-image.png';
-    if (/^https?:\/\//i.test(path)) return path;
-    return `${this.imageBaseUrl}${encodeURI(path.startsWith('/') ? path : '/' + path)}`;
+    return this.resolveItemImageUrl(path);
+  }
+
+  // Keep the existing API-relative house-image route separate from item images.
+  houseImageUrl(path?: string | null): string {
+    return this.resolveItemImageUrl(path, true);
   }
 
   step(item: OrderStockItem): number {

@@ -50,7 +50,7 @@
               <td>
                 <div class="stock-item">
                   <img [src]="getItemImageUrl(row.fldItemImagePath)" [alt]="row.fldItemName" class="vegetable-image"
-                    loading="lazy" />
+                    loading="lazy" (error)="onImageError($event)" />
                   <div>
                     <div class="stock-item-name">{{ row.fldItemName }}</div>
                     <div class="stock-item-tamil" *ngIf="row.fldItemNameTamil">{{ row.fldItemNameTamil }}</div>

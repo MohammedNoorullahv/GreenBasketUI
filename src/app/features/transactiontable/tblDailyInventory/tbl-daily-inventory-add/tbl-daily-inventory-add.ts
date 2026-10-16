@@ -25,7 +25,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
   searchText = '';
   showOnlyChanged = false;
   private subscriptions = new Subscription();
-  readonly imageBaseUrl = environment.apiBaseUrl.replace(/\/$/, '');
+  readonly imageBaseUrl = environment.apiBaseUrl.trim().replace(/\/+$/, '').replace(/\/api$/i, '');
   fldInventoryDate = Date;
 
   constructor(
@@ -230,8 +230,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
   }
 
   imageUrl(row: StockEntryRow): string | null {
-    if (!row.fldItemImagePath) return null;
-    return `${this.imageBaseUrl}/${row.fldItemImagePath.replace(/^\/+/, '')}`;
+    return this.resolveItemImageUrl(row.fldItemImagePath);
   }
 
   trackByItemId(_index: number, row: StockEntryRow): number {
@@ -244,30 +243,49 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void { this.subscriptions.unsubscribe(); }
 
+  readonly imageFallbackUrl = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><rect width="80" height="80" rx="8" fill="#f1f5f0"/><path d="M18 56l16-19 11 12 8-9 12 16z" fill="#92ad91"/><circle cx="52" cy="26" r="7" fill="#92ad91"/></svg>'
+  );
+
+  private resolveItemImageUrl(imagePath?: string | null): string {
+    const raw = (imagePath || '').trim();
+    if (!raw) return this.imageFallbackUrl;
+    // Preserve complete Blob/SAS URLs, including their query strings.
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (/^[a-z][a-z0-9+.-]*:/i.test(raw) || raw.startsWith('//')) {
+      return this.imageFallbackUrl;
+    }
+
+    let path = raw.replace(/\\/g, '/').replace(/^\/+/, '');
+    // Accept the API-relative path as well as legacy filename-only values.
+    path = path.replace(/^api\/(?=uploads\/items\/)/i, '');
+    if (!/^uploads\/items\//i.test(path)) path = 'uploads/items/' + path;
+    const segments = path.split('/');
+    try {
+      path = segments.map(segment => {
+        // Avoid double-encoding paths already encoded by the API.
+        let decoded: string;
+        try { decoded = decodeURIComponent(segment); } catch { decoded = segment; }
+        if (decoded === '.' || decoded === '..' || /[\/\\]/.test(decoded)) {
+          throw new Error('Invalid image path');
+        }
+        return encodeURIComponent(decoded);
+      }).join('/');
+    } catch {
+      return this.imageFallbackUrl;
+    }
+    return `${this.imageBaseUrl}/${path}`;
+  }
+
+  onImageError(event: Event): void {
+    const image = event.target as HTMLImageElement | null;
+    if (image && image.getAttribute('src') !== this.imageFallbackUrl) {
+      image.src = this.imageFallbackUrl;
+    }
+  }
+
   getItemImageUrl(imagePath?: string | null): string {
-
-    if (!imagePath) {
-      return '/images/no-image.png';
-    }
-
-    // If API already returns a complete URL
-    if (/^https?:\/\//i.test(imagePath)) {
-      return imagePath;
-    }
-
-    const baseUrl = environment.apiBaseUrl.replace(/\/$/, '');
-
-    const path = imagePath.startsWith('/')
-      ? imagePath
-      : `/${imagePath}`;
-
-
-    console.log(
-      'Generated Image URL:',
-      `${environment.apiBaseUrl.replace(/\/$/, '')}/${imagePath?.replace(/^\//, '')}`
-    );
-
-    return `${baseUrl}${encodeURI(path)}`;
+    return this.resolveItemImageUrl(imagePath);
   }
 
   trackByStockRow(

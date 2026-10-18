@@ -6,7 +6,7 @@ import { provideClientHydration, withEventReplay, } from '@angular/platform-brow
 import { provideHttpClient, withFetch, withInterceptors, HttpInterceptorFn } from '@angular/common/http';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { environment } from '../environments/environment.development';
+import { environment } from '../environments/environment';
 import { provideToastr } from "ngx-toastr";
 
 import {

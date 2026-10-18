@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import {TblCityorTownMaster } from '../models/tblCityorTownMaster.model';
 import {TblCityorTownMasterAdd } from '../models/tblCityorTownMaster-Add.model';
 import {TblCityorTownMasterUpdate } from '../models/tblCityorTownMaster-Update.model';
-import { environment } from '../../../../../environments/environment.development';
+import { environment } from '../../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',

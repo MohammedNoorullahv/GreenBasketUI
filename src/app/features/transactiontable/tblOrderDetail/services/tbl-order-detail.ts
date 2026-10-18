@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { TblOrderDetail } from '../models/tblOrderDetail.model';
 import { TblOrderDetailAdd } from '../models/tblOrderDetail-Add.model';
 import { TblOrderDetailUpdate } from '../models/tblOrderDetail-Update.model';
-import { environment } from '../../../../../environments/environment.development';
+import { environment } from '../../../../../environments/environment';
 
 
 @Injectable({

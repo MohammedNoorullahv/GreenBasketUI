@@ -2,7 +2,7 @@ import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { Component, inject, PLATFORM_ID } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { environment } from '../../../../environments/environment.development';
+import { environment } from '../../../../environments/environment';
 import { finalize } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 

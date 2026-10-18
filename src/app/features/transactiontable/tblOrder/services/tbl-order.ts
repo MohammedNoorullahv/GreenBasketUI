@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { TblOrder } from '../models/tblOrder.model';
 import { TblOrderAdd } from '../models/tblOrder-Add.model';
 import { TblOrderUpdate } from '../models/tblOrder-Update.model';
-import { environment } from '../../../../../environments/environment.development';
+import { environment } from '../../../../../environments/environment';
 
 import { OrderShoppingRequest } from '../models/tbl-order-shopping.model';
 import { TblPendingOrderDto } from '../models/tbl-pending-order.model';

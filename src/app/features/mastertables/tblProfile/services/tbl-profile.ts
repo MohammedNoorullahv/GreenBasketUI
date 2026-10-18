@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { TblProfile } from '../models/tblProfile.model';
 import { TblProfileAdd } from '../models/tblProfile-Add.model';
 import { TblProfileUpdate } from '../models/tblProfile-Update.model';
-import { environment } from '../../../../../environments/environment.development';
+import { environment } from '../../../../../environments/environment';
 
 
 @Injectable({

@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { TblStreetMaster } from '../models/tblStreetMaster.model';
 import { TblStreetMasterAdd } from '../models/tblStreetMaster-Add.model';
 import { TblStreetMasterUpdate } from '../models/tblStreetMaster-Update.model';
-import { environment } from '../../../../../environments/environment.development';
+import { environment } from '../../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',

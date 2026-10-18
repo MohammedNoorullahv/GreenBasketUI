@@ -24,8 +24,8 @@ import {
   HttpErrorResponse
 } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
-import { environment } from '../../../../../environments/environment.development';
-// import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../../../environments/environment';
+// import { environment } from '../../../environments/environment';
 
 interface LoginResponse {
   message: string;

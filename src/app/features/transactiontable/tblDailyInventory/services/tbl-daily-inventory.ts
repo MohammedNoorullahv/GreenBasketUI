@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { TblDailyInventory } from '../models/tblDailyInventory.model';
 import { TblDailyInventoryAdd } from '../models/tblDailyInventory-Add.model';
 import { TblDailyInventoryUpdate } from '../models/tblDailyInventory-Update.model';
-import { environment } from '../../../../../environments/environment.development';
+import { environment } from '../../../../../environments/environment';
 import { DailyStockEntrySaveRequest, TblDailyInventoryforStockEntry } from '../models/tblDailyInventoryforStockEntry.model';
 import { OrderStockItem } from '../../tblOrder/models/tbl-order-shopping.model';
 

@@ -5,7 +5,10 @@
 		 ============================================ -->
 	<div class="page-header-bar">
 
-		<h1 class="page-caption">TblItemMastersList</h1>
+		<h1 class="page-caption page-caption-with-icon">
+			<i class="bi bi-basket page-caption-icon"></i>
+			<span>Vegetable Master</span>
+		</h1>
 
 		<div class="page-header-center">
 			<button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
@@ -26,7 +29,7 @@
 		<div class="page-header-right">
 			<a [routerLink]="['add']" class="btn-app btn-new">
 				<i class="bi bi-plus-lg"></i>
-				New Record
+				Add Vegetable
 			</a>
 		</div>
 
@@ -70,23 +73,24 @@
 			<table class="data-table">
 				<thead>
 					<tr>
-						<th>Id</th>
-						<th>Item Name</th>
+						<th class="col-technical">Id</th>
+						<th>Vegetable Name</th>
 						<th>Item Type</th>
 						<th>Category Name</th>
-						<th>Base Unit</th>
+						<th>Unit</th>
 						<th>Allow Fractional Quantity</th>
 						<th>Sub Unit Label</th>
 						<th>Allow Flat Rupee Value Booking</th>
 						<th>Min Order Quantity Step</th>
 						<th>Item Image Path</th>
+						<th>Status</th>
 						<th>Actions</th>
 					</tr>
 				</thead>
 
 				<tbody>
 					<tr *ngFor="let tblitemmaster of tblitemmasters">
-						<td class="cell-code">{{tblitemmaster.fldId}}</td>
+						<td class="cell-code col-technical">{{tblitemmaster.fldId}}</td>
 						<td class="cell-primary">{{tblitemmaster.fldItemName}}</td>
 						<td>{{tblitemmaster.fldItemType}}</td>
 						<td>{{tblitemmaster.fldCategoryName}}</td>
@@ -103,7 +107,12 @@
 							</span>
 						</td>
 						<td>{{tblitemmaster.fldMinOrderQuantityStep}}</td>
-						<td>{{tblitemmaster.fldItemImagePath}}</td>
+						<td class="col-technical">{{tblitemmaster.fldItemImagePath}}</td>
+						<td>
+							<span class="status-badge" [ngClass]="tblitemmaster.fldIsActive ? 'status-delivered' : 'status-cancelled'">
+								{{tblitemmaster.fldIsActive ? 'Active' : 'Inactive'}}
+							</span>
+						</td>
 						<td>
 							<div class="row-actions">
 								<a class="icon-btn edit" title="Edit"

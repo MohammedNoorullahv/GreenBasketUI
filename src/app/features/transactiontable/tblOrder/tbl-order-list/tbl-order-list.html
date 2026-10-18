@@ -5,7 +5,10 @@
 		 ============================================ -->
 	<div class="page-header-bar">
 
-		<h1 class="page-caption">TblOrdersList</h1>
+		<h1 class="page-caption page-caption-with-icon">
+			<i class="bi bi-clock-history page-caption-icon"></i>
+			<span>Order History</span>
+		</h1>
 
 		<div class="page-header-center">
 			<button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
@@ -31,7 +34,7 @@
 		<div class="page-header-right">
 			<a [routerLink]="['add']" class="btn-app btn-new">
 				<i class="bi bi-plus-lg"></i>
-				New Record
+				New Order
 			</a>
 		</div>
 
@@ -96,8 +99,18 @@
 						<td>{{tblorder.tblProfileVendorId.fldFullName}}</td>
 						<td class="cell-primary">{{tblorder.fldOrderNumber}}</td>
 						<td>{{tblorder.fldOrderDate | date:'dd-MMM-yy' }}</td>
-						<td>{{tblorder.fldGrandTotal}}</td>
-						<td>{{tblorder.fldOrderStatus}}</td>
+						<td class="cell-amount">₹{{tblorder.fldGrandTotal}}</td>
+						<td>
+							<span class="status-badge" [ngClass]="{
+								'status-new': tblorder.fldOrderStatus === 'Pending',
+								'status-accepted': tblorder.fldOrderStatus === 'Accepted',
+								'status-packing': tblorder.fldOrderStatus === 'Packing',
+								'status-outfordelivery': tblorder.fldOrderStatus === 'Out for Delivery',
+								'status-delivered': tblorder.fldOrderStatus === 'Delivered',
+								'status-cancelled': tblorder.fldOrderStatus === 'Cancelled',
+								'status-denied': tblorder.fldOrderStatus === 'Denied'
+							}">{{tblorder.fldOrderStatus}}</span>
+						</td>
 						
 						<td>
 							<div class="row-actions">

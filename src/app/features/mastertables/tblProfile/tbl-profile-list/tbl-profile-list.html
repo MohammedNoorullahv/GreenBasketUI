@@ -5,7 +5,10 @@
 		 ============================================ -->
     <div class="page-header-bar">
 
-        <h1 class="page-caption">TblProfilesList</h1>
+        <h1 class="page-caption page-caption-with-icon">
+            <i class="bi bi-people page-caption-icon"></i>
+            <span>Customer / Vendor Master</span>
+        </h1>
 
         <div class="page-header-center">
             <button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
@@ -26,7 +29,7 @@
         <div class="page-header-right">
             <a [routerLink]="['add']" class="btn-app btn-new">
                 <i class="bi bi-plus-lg"></i>
-                New Record
+                Add Customer
             </a>
         </div>
 
@@ -70,39 +73,46 @@
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Id</th>
+                        <th class="col-technical">Id</th>
                         <th>User Type</th>
-                        <th>Contact Number</th>
-                        <th>Alternate Contact Number</th>
-                        <th>Full Name</th>
-                        <th>Complex Or Building Name</th>
+                        <th>Name</th>
+                        <th>Phone No</th>
+                        <th>Alternate No</th>
+                        <th>Complex / Building</th>
                         <th>Door No</th>
-                        <th>F K Street Id</th>
+                        <th class="col-technical">F K Street Id</th>
                         <th>Street Name</th>
-                        <th>G P S Location</th>
-                        <th>House Image Path</th>
-                        <th>Is Terms Agreed</th>
+                        <th>Location</th>
+                        <th class="col-technical">House Image Path</th>
+                        <th class="col-technical">Is Terms Agreed</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
 
                 <tbody>
                     <tr *ngFor="let tblprofile of tblprofiles">
-                        <td class="cell-code">{{tblprofile.fldId}}</td>
+                        <td class="cell-code col-technical">{{tblprofile.fldId}}</td>
                         <td class="cell-primary">{{tblprofile.fldUserType}}</td>
+                        <td>{{tblprofile.fldFullName}}</td>
                         <td class="cell-mono">{{tblprofile.fldContactNumber}}</td>
                         <td class="cell-mono">{{tblprofile.fldAlternateContactNumber}}</td>
-                        <td>{{tblprofile.fldFullName}}</td>
                         <td>{{tblprofile.fldComplexOrBuildingName}}</td>
                         <td>{{tblprofile.fldDoorNo}}</td>
-                        <td>{{tblprofile.fldFKStreetId}}</td>
+                        <td class="col-technical">{{tblprofile.fldFKStreetId}}</td>
                         <td>{{tblprofile.fldStreetName}}</td>
                         <td>{{tblprofile.fldGPSLocation}}</td>
-                        <td>{{tblprofile.fldHouseImagePath}}</td>
-                        <td>
+                        <td class="col-technical">{{tblprofile.fldHouseImagePath}}</td>
+                        <td class="col-technical">
                             <span class="badge-pill"
                                 [ngClass]="tblprofile.fldIsTermsAgreed ? 'badge-success' : 'badge-muted'">
                                 {{tblprofile.fldIsTermsAgreed ? 'Yes' : 'No'}}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-badge"
+                                [ngClass]="tblprofile.fldIsActive ? 'status-delivered' : 'status-cancelled'">
+                                {{tblprofile.fldIsActive ? 'Active' : 'Inactive'}}
                             </span>
                         </td>
                         <td>

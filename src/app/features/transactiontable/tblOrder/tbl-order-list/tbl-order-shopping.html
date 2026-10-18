@@ -121,11 +121,19 @@
         </strong>
       </p>
 
-      <p>
+      <p class="gb-tracking-status">
         Status:
-        <strong>
+        <span class="status-badge" [ngClass]="{
+          'status-new': order.fldOrderStatus === 'Pending',
+          'status-accepted': order.fldOrderStatus === 'Accepted',
+          'status-packing': order.fldOrderStatus === 'Packing',
+          'status-outfordelivery': order.fldOrderStatus === 'Out for Delivery',
+          'status-delivered': order.fldOrderStatus === 'Delivered',
+          'status-cancelled': order.fldOrderStatus === 'Cancelled',
+          'status-denied': order.fldOrderStatus === 'Denied'
+        }">
           {{ order.fldOrderStatus }}
-        </strong>
+        </span>
       </p>
 
 
@@ -374,13 +382,21 @@
 
         </div>
 
-        <div>
+        <div class="gb-modal-status">
 
           <strong>
             Status:
           </strong>
 
-          {{ order.fldOrderStatus }}
+          <span class="status-badge" [ngClass]="{
+            'status-new': order.fldOrderStatus === 'Pending',
+            'status-accepted': order.fldOrderStatus === 'Accepted',
+            'status-packing': order.fldOrderStatus === 'Packing',
+            'status-outfordelivery': order.fldOrderStatus === 'Out for Delivery',
+            'status-delivered': order.fldOrderStatus === 'Delivered',
+            'status-cancelled': order.fldOrderStatus === 'Cancelled',
+            'status-denied': order.fldOrderStatus === 'Denied'
+          }">{{ order.fldOrderStatus }}</span>
 
         </div>
 
@@ -508,12 +524,22 @@
     <header class="gb-header">
 
       <div class="gb-brand">
-        🛒 Green Basket
+
+        <img class="gb-brand-logo" src="/Images/Green%20Basket%20Light.jpg" alt="Green Basket" />
+
+        <span class="gb-brand-name">Green Basket</span>
+
       </div>
 
-      <span class="gb-cart-badge">
-        {{ cart.length }} items
-      </span>
+      <div class="gb-cart-pill">
+
+        <i class="bi bi-cart3" aria-hidden="true"></i>
+
+        <span class="gb-cart-badge">
+          {{ cart.length }}
+        </span>
+
+      </div>
 
     </header>
 
@@ -1020,20 +1046,26 @@
       <footer class="gb-footer">
 
 
-        <div>
+        <div class="gb-footer-summary">
 
-          <strong>
+          <i class="bi bi-cart3 gb-footer-cart-icon" aria-hidden="true"></i>
 
-            ₹{{ grandTotal | number:'1.2-2' }}
+          <div class="gb-footer-amount">
 
-          </strong>
+            <strong>
+
+              ₹{{ grandTotal | number:'1.2-2' }}
+
+            </strong>
 
 
-          <small>
+            <small>
 
-            {{ cart.length }} items
+              {{ cart.length }} items
 
-          </small>
+            </small>
+
+          </div>
 
         </div>
 

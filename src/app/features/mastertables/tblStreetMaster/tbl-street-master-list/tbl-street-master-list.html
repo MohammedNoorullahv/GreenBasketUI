@@ -5,7 +5,10 @@
 		 ============================================ -->
 	<div class="page-header-bar">
 
-		<h1 class="page-caption">TblStreetMastersList</h1>
+		<h1 class="page-caption page-caption-with-icon">
+			<i class="bi bi-signpost-2 page-caption-icon"></i>
+			<span>Street Master</span>
+		</h1>
 
 		<div class="page-header-center">
 			<button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
@@ -26,7 +29,7 @@
 		<div class="page-header-right">
 			<a [routerLink]="['add']" class="btn-app btn-new">
 				<i class="bi bi-plus-lg"></i>
-				New Record
+				Add Street
 			</a>
 		</div>
 
@@ -70,8 +73,8 @@
 			<table class="data-table">
 				<thead>
 					<tr>
-						<th>Id</th>
-						<th>F K City</th>
+						<th class="col-technical">Id</th>
+						<th class="col-technical">F K City</th>
 						<th>Street Name</th>
 						<th>Actions</th>
 					</tr>
@@ -79,8 +82,8 @@
 
 				<tbody>
 					<tr *ngFor="let tblstreetmaster of tblstreetmasters">
-						<td class="cell-code">{{tblstreetmaster.fldId}}</td>
-						<td>{{tblstreetmaster.fldFKCity}}</td>
+						<td class="cell-code col-technical">{{tblstreetmaster.fldId}}</td>
+						<td class="col-technical">{{tblstreetmaster.fldFKCity}}</td>
 						<td class="cell-primary">{{tblstreetmaster.fldStreetName}}</td>
 						<td>
 							<div class="row-actions">

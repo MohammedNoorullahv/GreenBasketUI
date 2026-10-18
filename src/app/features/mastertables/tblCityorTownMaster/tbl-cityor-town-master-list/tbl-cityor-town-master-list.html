@@ -5,7 +5,10 @@
 		 ============================================ -->
 	<div class="page-header-bar">
 
-		<h1 class="page-caption">City / TownMastersList</h1>
+		<h1 class="page-caption page-caption-with-icon">
+			<i class="bi bi-geo-alt page-caption-icon"></i>
+			<span>City / Town Master</span>
+		</h1>
 
 		<div class="page-header-center">
 			<button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
@@ -26,7 +29,7 @@
 		<div class="page-header-right">
 			<a [routerLink]="['add']" class="btn-app btn-new">
 				<i class="bi bi-plus-lg"></i>
-				New Record
+				Add City / Town
 			</a>
 		</div>
 
@@ -72,8 +75,8 @@
 			<table class="data-table">
 				<thead>
 					<tr>
-						<th>Id</th>
-						<th>Cityor Town Name</th>
+						<th class="col-technical">Id</th>
+						<th>City / Town Name</th>
 						<th>Area Name</th>
 						<th>Pincode</th>
 						<th>Actions</th>
@@ -82,7 +85,7 @@
 
 				<tbody>
 					<tr *ngFor="let tblcityortownmaster of tblcityortownmasters">
-						<td class="cell-code">{{tblcityortownmaster.fldId}}</td>
+						<td class="cell-code col-technical">{{tblcityortownmaster.fldId}}</td>
 						<td class="cell-primary">{{tblcityortownmaster.fldCityorTownName}}</td>
 						<td>{{tblcityortownmaster.fldAreaName}}</td>
 						<td class="cell-mono">{{tblcityortownmaster.fldPincode}}</td>

@@ -28,7 +28,43 @@
   class="login-page"
   *ngIf="!showIntroVideo">
 
-  <div class="login-card">
+  <div class="login-shell">
+
+    <!-- Desktop-only brand / marketing panel -->
+
+    <aside class="login-visual" aria-hidden="true">
+
+      <div class="login-visual-brand">
+
+        <img src="/Images/Green%20Basket%20Light.jpg" alt="" class="login-visual-logo" />
+
+        <span class="login-visual-name">Green Basket</span>
+
+      </div>
+
+      <div class="login-visual-copy">
+
+        <h2>Fresh vegetables, straight from your local vendors.</h2>
+
+        <p>Order today's harvest, follow every step and have it delivered to your doorstep.</p>
+
+      </div>
+
+      <ul class="login-visual-points">
+
+        <li><i class="bi bi-basket2-fill"></i><span>Handpicked farm produce</span></li>
+
+        <li><i class="bi bi-truck"></i><span>Convenient delivery slots</span></li>
+
+        <li><i class="bi bi-shield-check"></i><span>Trusted local vendors</span></li>
+
+      </ul>
+
+      <div class="login-visual-art"></div>
+
+    </aside>
+
+    <div class="login-card">
 
     <!-- Logo / Branding -->
 
@@ -74,6 +110,9 @@
         <span>Green Basket</span>
       </h2>
 
+      <p class="login-subtitle">
+        Fresh Vegetables. Local Vendors. Your Doorstep.
+      </p>
 
 
       <!-- Error Message -->
@@ -97,7 +136,7 @@
 
       <!-- Mobile Number Entry -->
 
-      <form *ngIf="!otpSent" (ngSubmit)="sendOTP()">
+      <form *ngIf="!otpSent" (ngSubmit)="sendOTP()" class="login-form">
 
         <label class="input-label" for="mobileNumber">
 
@@ -129,97 +168,137 @@
         </button>
 
       </form>
-      <!-- 
-      <div style="padding: 10px; background: yellow; color: black;">
 
-        <div>
-          OTP Sent: {{ otpSent }}
-        </div>
-
-        <div>
-          Loading: {{ isLoading }}
-        </div>
-
-        <button type="button" (click)="testOTPScreen()">
-
-          TEST OTP SCREEN
-
-        </button>
-
-      </div> -->
 
       <!-- =====================================
      OTP VERIFICATION SCREEN
 ===================================== -->
 
-      <form *ngIf="otpSent" (ngSubmit)="verifyLogin()">
+      <form *ngIf="otpSent" (ngSubmit)="verifyLogin()" class="login-form">
+
         <div class="otp-header">
-          <div class="otp-icon"><span>{{ verificationMethod === 'OTP' ? '✉' : '🔒' }}</span></div>
-          <h3>Verify &amp; Login</h3>
-          <p>Use your OTP or your existing MPIN to continue.</p>
+
+          <div class="otp-icon">
+
+            <span>{{ verificationMethod === 'OTP' ? '✉' : '🔒' }}</span>
+
+          </div>
+
+          <h3>
+            {{ verificationMethod === 'OTP' ? 'Verify Your Phone Number' : 'Enter Your MPIN' }}
+          </h3>
+
+          <p *ngIf="verificationMethod === 'OTP'">
+            We have sent a 6-digit OTP to
+            <strong>+91 {{ mobileNumber }}</strong>
+          </p>
+
+          <p *ngIf="verificationMethod === 'MPIN'">
+            Use your existing MPIN to continue.
+          </p>
+
           <div class="otp-mobile">
+
             +91 {{ mobileNumber }}
+
             <button type="button" class="change-number-btn" [disabled]="isLoading"
               (click)="changeMobileNumber()">Change</button>
+
           </div>
+
         </div>
 
-        <fieldset style="border: 0; padding: 0; margin: 16px 0;">
+        <fieldset class="verification-method">
+
           <legend class="input-label">Choose verification method</legend>
-          <div style="display: flex; gap: 24px; flex-wrap: wrap;">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="radio" name="verificationMethod" value="OTP"
-                [ngModel]="verificationMethod" (ngModelChange)="selectVerificationMethod($event)"
-                [disabled]="isLoading" style="width: auto; margin: 0;" />
+
+          <div class="verification-options">
+
+            <label class="verification-option">
+
+              <input type="radio" name="verificationMethod" value="OTP" [ngModel]="verificationMethod"
+                (ngModelChange)="selectVerificationMethod($event)" [disabled]="isLoading" />
+
               OTP
+
             </label>
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="radio" name="verificationMethod" value="MPIN"
-                [ngModel]="verificationMethod" (ngModelChange)="selectVerificationMethod($event)"
-                [disabled]="isLoading" style="width: auto; margin: 0;" />
+
+            <label class="verification-option">
+
+              <input type="radio" name="verificationMethod" value="MPIN" [ngModel]="verificationMethod"
+                (ngModelChange)="selectVerificationMethod($event)" [disabled]="isLoading" />
+
               MPIN
+
             </label>
+
           </div>
+
         </fieldset>
 
         <ng-container *ngIf="verificationMethod === 'OTP'">
+
           <label class="input-label" for="otp">Enter OTP</label>
+
           <input id="otp" name="otp" class="otp-input" type="text" inputmode="numeric"
             autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}"
             placeholder="• • • • • •" [(ngModel)]="otp" (ngModelChange)="onOTPChange($event)"
             [disabled]="isLoading" required />
+
           <p class="otp-expiry">OTP is valid for 5 minutes</p>
+
         </ng-container>
 
         <ng-container *ngIf="verificationMethod === 'MPIN'">
+
           <label class="input-label" for="mpin">Enter {{ mpinLength }}-digit MPIN</label>
+
           <input id="mpin" name="mpin" class="otp-input" [type]="showMPIN ? 'text' : 'password'"
             inputmode="numeric" autocomplete="current-password" [maxlength]="mpinLength"
             [pattern]="'[0-9]{' + mpinLength + '}'" placeholder="Enter your MPIN"
             [(ngModel)]="mpin" (ngModelChange)="onMPINChange($event)" [disabled]="isLoading" required />
+
           <button type="button" class="change-number-btn" [disabled]="isLoading"
             [attr.aria-pressed]="showMPIN" (click)="showMPIN = !showMPIN">
+
             {{ showMPIN ? 'Hide MPIN' : 'Show MPIN' }}
+
           </button>
+
           <p class="otp-expiry">Use your existing MPIN. If you have not set one, select OTP.</p>
+
         </ng-container>
 
         <button class="primary-button" type="submit"
           [disabled]="isLoading || (verificationMethod === 'OTP' ? otp.length !== 6 : mpin.length !== mpinLength)">
-          {{ isLoading ? 'Verifying ' + verificationMethod + '...' : 'Verify & Login' }}
+
+          {{ isLoading ? 'Verifying ' + verificationMethod + '...' : 'Verify OTP' }}
+
         </button>
 
         <div class="otp-resend" *ngIf="verificationMethod === 'OTP'">
-          Didn't receive the OTP?
+
+          Didn't receive OTP?
+
           <button type="button" class="resend-button" [disabled]="isLoading" (click)="sendOTP()">
+
             Resend OTP
+
           </button>
+
         </div>
+
       </form>
 
 
 
       <!-- Registration -->
+
+      <div class="or-divider" *ngIf="!otpSent">
+
+        <span>or</span>
+
+      </div>
 
       <div class="register-section">
 
@@ -260,6 +339,8 @@
       </div>
 
     </footer>
+
+    </div>
 
   </div>
 

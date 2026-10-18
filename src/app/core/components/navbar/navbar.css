@@ -12,7 +12,7 @@
 
   --text-muted: #B8C9D5;
 
-  --main-bg: #F4F7F9;
+  --main-bg: #eef6f0;
 
 
   /* Premium Typography */
@@ -26,7 +26,9 @@
 
   width: 100%;
 
-  height: 100vh;
+  height: 100%;
+
+  min-height: 0;
 
 }
 
@@ -39,9 +41,13 @@
 
   display: flex;
 
-  min-height: 100vh;
+  height: 100%;
+
+  min-height: 0;
 
   width: 100%;
+
+  overflow: hidden;
 
   background-color: var(--main-bg);
 
@@ -72,7 +78,11 @@
 
   flex-shrink: 0;
 
-  height: 100vh;
+  height: 100%;
+
+  min-height: 0;
+
+  overflow-y: auto;
 
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.08);
 
@@ -311,17 +321,19 @@
 
 .main-content {
 
-  flex: 1;
+  flex: 1 1 auto;
 
   min-width: 0;
 
+  min-height: 0;
+
   background-color: var(--main-bg);
 
-  padding: 30px;
+  padding: 24px;
 
   overflow-y: auto;
 
-  height: 100vh;
+  height: 100%;
 
   font-family: var(--font-menu);
 
@@ -353,17 +365,13 @@
 
     color: var(--text-light);
 
-    padding: 0 20px;
+    padding: 0 16px;
 
-    height: 65px;
+    height: 60px;
 
-    position: fixed;
+    flex: 0 0 auto;
 
-    top: 0;
-
-    left: 0;
-
-    right: 0;
+    position: relative;
 
     z-index: 101;
 
@@ -398,21 +406,25 @@
 
     position: fixed;
 
-    top: 65px;
+    top: 0;
 
     left: 0;
 
     bottom: 0;
 
-    width: 270px;
+    width: 272px;
 
-    height: calc(100vh - 65px);
+    height: 100dvh;
+
+    overflow-y: auto;
 
     transform: translateX(-100%);
 
     box-shadow: none;
 
     border-radius: 0;
+
+    z-index: 200;
 
   }
 
@@ -429,7 +441,7 @@
 
   .sidebar-header {
 
-    display: none;
+    display: block;
 
   }
 
@@ -438,7 +450,7 @@
 
     position: fixed;
 
-    top: 65px;
+    top: 0;
 
     left: 0;
 
@@ -450,18 +462,22 @@
 
     backdrop-filter: blur(2px);
 
-    z-index: 99;
+    z-index: 150;
 
   }
 
 
   .main-content {
 
-    margin-top: 65px;
+    margin-top: 0;
 
-    padding: 20px;
+    padding: 16px;
 
-    height: calc(100vh - 65px);
+    height: auto;
+
+    min-height: 0;
+
+    flex: 1 1 auto;
 
   }
 
@@ -654,6 +670,82 @@
   width: 76px;
   flex: none;
   font-size: 12px;
+}
+
+/* =========================================
+   REFERENCE-ALIGNED REFRESH (UI only)
+   ========================================= */
+
+.sidebar {
+  background: linear-gradient(180deg, #123140 0%, #0e2634 100%);
+}
+
+.sidebar-header {
+  padding: 22px 20px;
+}
+
+.desktop-brand-logo {
+  width: 42px;
+  max-width: 42px;
+  height: 42px;
+  padding: 2px;
+  border-radius: 10px;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.desktop-brand-name h4 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.sidebar-menu {
+  padding: 16px 12px;
+  gap: 4px;
+}
+
+.menu-item {
+  border-radius: 9px;
+}
+
+/* Sub-menu routes use routerLinkActive="active-submenu"; give it the
+   same green highlight as a fully active route. */
+.menu-item.active-submenu {
+  background-color: var(--sidebar-hover) !important;
+  color: var(--text-light) !important;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(10, 160, 84, 0.25);
+}
+
+.menu-item.active-submenu i {
+  color: #ffffff;
+  opacity: 1;
+}
+
+.logout-btn {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  font-family: var(--font-menu);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color .18s ease, border-color .18s ease;
+}
+
+.logout-btn:hover:not(:disabled) {
+  background: #c62828;
+  border-color: #c62828;
+}
+
+.logout-btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
 }
 
 @media (max-width: 380px) {

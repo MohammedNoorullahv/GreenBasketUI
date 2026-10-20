@@ -255,7 +255,7 @@
 
           <input id="mpin" name="mpin" class="otp-input" [type]="showMPIN ? 'text' : 'password'"
             inputmode="numeric" autocomplete="current-password" [maxlength]="mpinLength"
-            [pattern]="'[0-9]{' + mpinLength + '}'" placeholder="Enter your MPIN"
+            [pattern]="'[0-9]{' + mpinLength + '}'"
             [(ngModel)]="mpin" (ngModelChange)="onMPINChange($event)" [disabled]="isLoading" required />
 
           <button type="button" class="change-number-btn" [disabled]="isLoading"

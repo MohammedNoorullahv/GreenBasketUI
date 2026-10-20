@@ -51,7 +51,7 @@
 			<div class="page-header-right">
 				<ng-container *ngIf="tblOrderDetail$ | async as tblorderdetails">
 					<span class="pagination-info">
-						Showing {{ tblorderdetails.length }} of {{ tblorderdetails.length }} Records
+						Showing {{ (tblorderdetails | columnFilter:filters).length }} of {{ tblorderdetails.length }} Records
 					</span>
 				</ng-container>
 
@@ -66,25 +66,72 @@
 		</div>
 
 		<ng-container *ngIf="tblOrderDetail$ | async as tblorderdetails">
+		<ng-container *ngIf="tblorderdetails | columnFilter:filters as filteredDetails">
 
 			<table class="data-table">
 				<thead>
 					<tr>
-						<th>Id</th>
-						<th>F K Order Header Id</th>
-						<th>F K Item Id</th>
-						<th>F K Daily Inventory Id</th>
-						<th>Quantity</th>
-						<th>Unit</th>
-						<th>Rate</th>
-						<th>Flat Rupee Booking Value</th>
-						<th>Value</th>
+						<th><span class="column-heading">Id<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">F K Order Header Id<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">F K Item Id<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">F K Daily Inventory Id<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Quantity<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Unit<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Rate<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Flat Rupee Booking Value<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Value<app-column-filter-icon></app-column-filter-icon></span></th>
 						<th>Actions</th>
+					</tr>
+					<tr class="column-filter-row">
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Id" aria-label="Filter by Id"
+								[(ngModel)]="filters['fldId']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Order Id"
+								aria-label="Filter by order header Id"
+								[(ngModel)]="filters['fldFKOrderHeaderId']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Item Id"
+								aria-label="Filter by item Id" [(ngModel)]="filters['fldFKItemId']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Inventory Id"
+								aria-label="Filter by daily inventory Id"
+								[(ngModel)]="filters['fldFKDailyInventoryId']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Qty"
+								aria-label="Filter by quantity" [(ngModel)]="filters['fldQuantity']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Unit"
+								aria-label="Filter by unit" [(ngModel)]="filters['fldUnit']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Rate"
+								aria-label="Filter by rate" [(ngModel)]="filters['fldRate']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Flat value"
+								aria-label="Filter by flat rupee booking value"
+								[(ngModel)]="filters['fldFlatRupeeBookingValue']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Value"
+								aria-label="Filter by value" [(ngModel)]="filters['value']" />
+						</th>
+						<th class="col-filter-empty">
+							<button type="button" class="column-filter-clear" (click)="filters = {}">
+								Clear
+							</button>
+						</th>
 					</tr>
 				</thead>
 
 				<tbody>
-					<tr *ngFor="let tblorderdetail of tblorderdetails">
+					<tr *ngFor="let tblorderdetail of filteredDetails">
 						<td class="cell-code">{{tblorderdetail.fldId}}</td>
 						<td>{{tblorderdetail.fldFKOrderHeaderId}}</td>
 						<td>{{tblorderdetail.fldFKItemId}}</td>
@@ -113,10 +160,11 @@
 
 			</table>
 
-			<p class="grid-footnote" *ngIf="tblorderdetails.length === 0">
-				No records found.
+			<p class="grid-footnote" *ngIf="filteredDetails.length === 0">
+				{{ tblorderdetails.length === 0 ? 'No records found.' : 'No records match the filters.' }}
 			</p>
 
+		</ng-container>
 		</ng-container>
 
 	</div>

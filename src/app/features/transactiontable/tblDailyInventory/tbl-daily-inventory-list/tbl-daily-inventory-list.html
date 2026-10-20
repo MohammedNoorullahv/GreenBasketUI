@@ -81,7 +81,7 @@
 			<div class="page-header-right">
 				<ng-container *ngIf="tblDailyInventory$ | async as tbldailyinventorys">
 					<span class="pagination-info">
-						Showing {{ tbldailyinventorys.length }} of {{ tbldailyinventorys.length }} Records
+						Showing {{ (tbldailyinventorys | columnFilter:filters).length }} of {{ tbldailyinventorys.length }} Records
 					</span>
 				</ng-container>
 
@@ -96,6 +96,7 @@
 		</div>
 
 		<ng-container *ngIf="tblDailyInventory$ | async as tbldailyinventorys">
+		<ng-container *ngIf="tbldailyinventorys | columnFilter:filters as filteredInventory">
 
 			<table class="data-table">
 				<thead>
@@ -103,22 +104,74 @@
 						<th *ngIf="removeMultipleItems">
 							Select
 						</th>
-						<th class="col-technical">Id</th>
-						<th class="col-technical">F K Vendor Id</th>
-						<th class="col-technical">F K Item Id</th>
-						<th>Vegetable</th>
-						<th>Unit</th>
-						<th>Date</th>
-						<th>Rate (₹)</th>
-						<th>Stock</th>
-						<th>Initial Stock</th>
-						<th>Available</th>
+						<th class="col-technical"><span class="column-heading">Id<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th class="col-technical"><span class="column-heading">F K Vendor Id<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th class="col-technical"><span class="column-heading">F K Item Id<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Vegetable<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Unit<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Date<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Rate (₹)<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Stock<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Initial Stock<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Available<app-column-filter-icon></app-column-filter-icon></span></th>
 						<th>Actions</th>
+					</tr>
+					<tr class="column-filter-row">
+						<th *ngIf="removeMultipleItems" class="col-filter-empty"></th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Id" aria-label="Filter by Id"
+								[(ngModel)]="filters['fldId']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Vendor Id"
+								aria-label="Filter by vendor Id" [(ngModel)]="filters['fldFKVendorId']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Item Id"
+								aria-label="Filter by item Id" [(ngModel)]="filters['fldFKItemId']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Vegetable"
+								aria-label="Filter by vegetable" [(ngModel)]="filters['fldItemName']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Unit"
+								aria-label="Filter by unit" [(ngModel)]="filters['fldBaseUnit']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Date"
+								aria-label="Filter by inventory date" [(ngModel)]="filters['fldInventoryDate']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Rate"
+								aria-label="Filter by selling rate" [(ngModel)]="filters['fldSellingRate']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Stock"
+								aria-label="Filter by available stock" [(ngModel)]="filters['fldAvailableStock']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Initial"
+								aria-label="Filter by initial stock" [(ngModel)]="filters['fldInitialStock']" />
+						</th>
+						<th>
+							<select class="column-filter-input" aria-label="Filter by availability"
+								[(ngModel)]="filters['fldIsAvailable']">
+								<option value="">All</option>
+								<option value="true">Yes</option>
+								<option value="false">No</option>
+							</select>
+						</th>
+						<th class="col-filter-empty">
+							<button type="button" class="column-filter-clear" (click)="filters = {}">
+								Clear
+							</button>
+						</th>
 					</tr>
 				</thead>
 
 				<tbody>
-					<tr *ngFor="let tbldailyinventory of tbldailyinventorys">
+					<tr *ngFor="let tbldailyinventory of filteredInventory">
 						
 						<!-- MULTIPLE SELECTION -->
 						<td *ngIf="removeMultipleItems">
@@ -164,10 +217,11 @@
 
 			</table>
 
-			<p class="grid-footnote" *ngIf="tbldailyinventorys.length === 0">
-				No records found.
+			<p class="grid-footnote" *ngIf="filteredInventory.length === 0">
+				{{ tbldailyinventorys.length === 0 ? 'No records found.' : 'No records match the filters.' }}
 			</p>
 
+		</ng-container>
 		</ng-container>
 
 	</div>

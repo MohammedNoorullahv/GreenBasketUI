@@ -8,11 +8,12 @@ import { environment } from '../../../../../environments/environment'; // Verify
 import { TblDailyInventoryService } from '../services/tbl-daily-inventory';
 
 import { StockEntryItem, StockEntryRow, DailyStockEntrySaveRow, DailyStockEntrySaveRequest } from '../models/tblDailyInventoryforStockEntry.model';
+import { ColumnFilterIconComponent } from '../../../../shared/components/column-filter-icon/column-filter-icon.component';
 
 @Component({
   selector: 'app-tbl-daily-inventory-add',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ColumnFilterIconComponent],
   templateUrl: './tbl-daily-inventory-add.html',
   styleUrl: './tbl-daily-inventory-add.css',
 })
@@ -24,6 +25,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
   isSaving = false;
   searchText = '';
   showOnlyChanged = false;
+  columnFilters: Record<string, string> = {};
   private subscriptions = new Subscription();
   readonly imageBaseUrl = environment.apiBaseUrl.trim().replace(/\/+$/, '').replace(/\/api$/i, '');
   fldInventoryDate = Date;
@@ -138,10 +140,30 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
         row.fldItemNameTamil ?? '',
         row.fldItemNameUrdu ?? '',
         row.fldCategoryName
-      ].some(text => text.toLowerCase().includes(q)))
+      ].some(text => text.toLowerCase().includes(q))) &&
+
+      // Simple local column filters
+      this.matchesColumnFilter(row.fldItemName, 'fldItemName') &&
+      this.matchesColumnFilter(row.fldAvailableStock, 'fldAvailableStock') &&
+      this.matchesColumnFilter(row.fldNewStock, 'fldNewStock') &&
+      this.matchesColumnFilter(row.fldCurrentStock, 'fldCurrentStock') &&
+      this.matchesColumnFilter(row.fldSellingRate, 'fldSellingRate') &&
+      this.matchesColumnFilter(row.fldIsAvailable, 'fldIsAvailable')
 
     );
 
+  }
+
+  private matchesColumnFilter(value: unknown, key: string): boolean {
+    const filter = String(this.columnFilters[key] ?? '').trim().toLowerCase();
+
+    if (!filter) return true;
+
+    if (typeof value === 'boolean') {
+      return String(value) === filter;
+    }
+
+    return String(value ?? '').toLowerCase().includes(filter);
   }
 
   isChanged(row: StockEntryRow): boolean {

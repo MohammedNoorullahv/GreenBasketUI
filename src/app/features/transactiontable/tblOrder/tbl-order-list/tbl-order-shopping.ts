@@ -1,6 +1,6 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
-  ChangeDetectorRef, Component, Input, OnChanges, OnDestroy,
+  ChangeDetectorRef, Component, HostListener, Input, OnChanges, OnDestroy,
   OnInit, SimpleChanges, PLATFORM_ID, Inject
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -50,6 +50,8 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
   category = 'All';
   stock: OrderStockItem[] = [];
   cart: OrderCartLine[] = [];
+  // Inline, per-item quantity validation messages keyed by stock id.
+  quantityErrors: { [stockId: number]: string } = {};
   loading = false;
   showCheckout = false;
   private request?: Subscription;
@@ -98,6 +100,13 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
     private platformId: object) { }
 
   ngOnInit(): void {
+
+    // Never create the "unable to identify user" toast during server-side
+    // rendering / prerendering: it would be serialized into the page and shown
+    // after hydration even when a valid profile exists in sessionStorage.
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
 
     const profileLoaded =
       this.loadLoggedInProfile();
@@ -176,9 +185,17 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
     this.vendorId = id;
     this.cart = [];
     this.stock = [];
+    this.quantityErrors = {};
     this.vendorProfile = null;
     this.deliveryCharges = 0;
     this.showCheckout = false;
+
+    // Delivery rules are vendor-specific. Start from the safe current-day
+    // defaults so an Advance option from the previous vendor cannot remain
+    // selected on a vendor that does not support it.
+    this.orderOption = 'Current Day Order';
+    this.fldOrderType = 'Normal Delivery';
+    this.requestedDeliveryDate = this.today();
     this.upiQrDataUrl = '';
     this.upiTransactionReference = '';
     this.loadStock();
@@ -362,6 +379,101 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
 
   }
 
+  quantityErrorFor(item: OrderStockItem): string {
+    return this.quantityErrors[item.fldId] ?? '';
+  }
+
+  hasQuantityError(item: OrderStockItem): boolean {
+    return !!this.quantityErrorFor(item);
+  }
+
+  get hasQuantityErrors(): boolean {
+    return Object.keys(this.quantityErrors).length > 0;
+  }
+
+  // Only errors on items that are actually in the cart should block checkout.
+  // An invalid value for an item the customer never added is still shown
+  // inline, but it does not prevent them from ordering the current basket.
+  get hasBlockingQuantityErrors(): boolean {
+    return this.cart.some(
+      line => !!this.quantityErrors[line.stock.fldId]
+    );
+  }
+
+  private setQuantityError(item: OrderStockItem, message: string): void {
+    if (this.quantityErrors[item.fldId] === message) return;
+
+    this.quantityErrors = {
+      ...this.quantityErrors,
+      [item.fldId]: message
+    };
+  }
+
+  clearQuantityErrorById(stockId: number): void {
+    if (!this.quantityErrors[stockId]) return;
+
+    const next = { ...this.quantityErrors };
+    delete next[stockId];
+    this.quantityErrors = next;
+  }
+
+  clearQuantityError(item: OrderStockItem): void {
+    this.clearQuantityErrorById(item.fldId);
+  }
+
+  // Filtering can hide a product entirely. Drop errors for items that are no
+  // longer visible so they cannot block checkout from behind a filter, while
+  // keeping errors on items that are still on screen.
+  clearHiddenQuantityErrors(): void {
+    if (!this.hasQuantityErrors) return;
+
+    const visibleIds = new Set(
+      this.visibleStock.map(item => item.fldId)
+    );
+
+    const next: { [stockId: number]: string } = {};
+
+    for (const [stockId, message] of Object.entries(this.quantityErrors)) {
+      const id = Number(stockId);
+
+      if (visibleIds.has(id)) {
+        next[id] = message;
+      }
+    }
+
+    this.quantityErrors = next;
+  }
+
+  setCategory(category: string): void {
+    this.category = category;
+    this.clearHiddenQuantityErrors();
+  }
+
+  // Immediate feedback while the customer is still typing.
+  onQuantityInput(item: OrderStockItem, raw: number | string): void {
+    const quantity = Number(raw);
+    const availableStock = Number(item.fldAvailableStock);
+
+    if (
+      raw !== '' &&
+      Number.isFinite(quantity) &&
+      Number.isFinite(availableStock) &&
+      quantity > availableStock
+    ) {
+      this.setQuantityError(
+        item,
+        `Maximum ${this.formatQuantity(availableStock)} ${item.fldBaseUnit} available.`
+      );
+      return;
+    }
+
+    this.clearQuantityError(item);
+  }
+
+  private formatQuantity(value: number): string {
+    return value.toLocaleString('en-IN', { maximumFractionDigits: 3 });
+  }
+
   setQuantity(
     item: OrderStockItem,
     raw: number | string
@@ -374,15 +486,16 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
     );
 
     // 1. Validate quantity.
-    if (
-      raw === '' ||
-      !Number.isFinite(quantity) ||
-      quantity < 0
-    ) {
+    if (raw === '' || !Number.isFinite(quantity)) {
 
-      this.toastr.warning(
-        'Enter a valid quantity.'
-      );
+      this.setQuantityError(item, 'Enter a valid quantity.');
+
+      return;
+    }
+
+    if (quantity < 0) {
+
+      this.setQuantityError(item, 'Quantity cannot be negative.');
 
       return;
     }
@@ -393,18 +506,16 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
       availableStock < 0
     ) {
 
-      this.toastr.warning(
-        'Available stock information is invalid.'
-      );
+      this.setQuantityError(item, 'Available stock information is invalid.');
 
       return;
     }
 
     if (quantity > availableStock) {
 
-      this.toastr.warning(
-        `Only ${availableStock} ${item.fldBaseUnit} ` +
-        `available for ${item.fldItemName}.`
+      this.setQuantityError(
+        item,
+        `Maximum ${this.formatQuantity(availableStock)} ${item.fldBaseUnit} available.`
       );
 
       return;
@@ -416,9 +527,7 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
       !Number.isInteger(quantity)
     ) {
 
-      this.toastr.warning(
-        `${item.fldItemName} allows whole-number quantities only.`
-      );
+      this.setQuantityError(item, 'Use a whole-number quantity for this item.');
 
       return;
     }
@@ -438,12 +547,16 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
       )
     ) {
 
-      this.toastr.warning(
-        `Quantity must be in multiples of ${step}.`
+      this.setQuantityError(
+        item,
+        `Quantity must be a multiple of ${this.formatQuantity(step)}.`
       );
 
       return;
     }
+
+    // The value was accepted, so remove any previous inline error.
+    this.clearQuantityError(item);
 
     // 5. Find the selected Daily Inventory record.
     if (!Number.isInteger(Number(item.fldId)) || Number(item.fldId) <= 0) {
@@ -516,6 +629,7 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
 
   remove(stockId: number): void {
     this.cart = this.cart.filter(line => line.stock.fldId !== stockId);
+    this.clearQuantityErrorById(stockId);
     if (!this.cart.length) this.showCheckout = false;
     void this.refreshUpiQr();
     this.cdr.detectChanges();
@@ -534,6 +648,23 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
   private moneyValue(value: unknown): number {
     const amount = Number(value ?? 0);
     return Number.isFinite(amount) && amount >= 0 ? Math.round(amount * 100) / 100 : 0;
+  }
+
+  private deliveryPriceLabel(value: unknown): string {
+    const amount = this.moneyValue(value);
+    return amount > 0 ? `₹${amount.toFixed(2)}` : 'Free';
+  }
+
+  get regularDeliveryPriceLabel(): string {
+    return this.deliveryPriceLabel(this.vendorProfile?.fldvRDCharges);
+  }
+
+  get priorityDeliveryPriceLabel(): string {
+    return this.deliveryPriceLabel(this.vendorProfile?.fldvPDCharges);
+  }
+
+  get advanceDeliveryPriceLabel(): string {
+    return this.deliveryPriceLabel(this.vendorProfile?.fldvADCharges);
   }
 
   get deliveryPolicy(): { minimum: number; waiver: number; originalCharge: number } {
@@ -559,6 +690,17 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
   get amountToMinimum(): number {
     return this.moneyValue(Math.max(0, this.minimumOrderValue - this.subtotal));
   }
+
+  // Used by the progress indicator in the order settings and sticky cart bar.
+  get minimumOrderProgress(): number {
+    if (this.minimumOrderValue <= 0) {
+      return 100;
+    }
+    if (this.cart.length === 0) {
+      return 0;
+    }
+    return Math.max(0, Math.min(100, Math.round((this.subtotal / this.minimumOrderValue) * 100)));
+  }
   get deliverySavings(): number {
     return this.cart.length > 0 && this.minimumOrderMet && this.waiverOrderValue > 0 &&
       this.subtotal >= this.waiverOrderValue ? this.originalDeliveryCharge : 0;
@@ -576,6 +718,21 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
 
   previewOrder(): void {
     if (!this.cart.length) return;
+    if (this.hasBlockingQuantityErrors) {
+      this.toastr.warning('Correct the highlighted quantities before continuing.');
+      return;
+    }
+    if (!this.vendorProfile) {
+      this.toastr.warning('Vendor delivery settings are still loading. Please try again.');
+      return;
+    }
+    if (!this.minimumOrderMet) {
+      this.toastr.warning(
+        `Minimum item value for this delivery option is ₹${this.minimumOrderValue.toFixed(2)}. ` +
+        `Add ₹${this.amountToMinimum.toFixed(2)} more.`
+      );
+      return;
+    }
     if (this.orderOption === 'Advance Order' && this.requestedDeliveryDate < this.getTomorrowDate()) {
       this.toastr.warning('Select tomorrow or a later date for advance orders.');
       return;
@@ -763,6 +920,7 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
 
     this.pendingOrderRequest?.unsubscribe();
 
+    this.unlockBackgroundScroll();
 
 
   }
@@ -865,8 +1023,15 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
 
     if (this.orderOption === 'Advance Order') {
 
-      this.deliveryEstimate =
-        `Scheduled for ${this.requestedDeliveryDate}`;
+      const requested = new Date(`${this.requestedDeliveryDate}T00:00:00`);
+
+      this.deliveryEstimate = Number.isNaN(requested.getTime())
+        ? `Scheduled for ${this.requestedDeliveryDate}`
+        : `Scheduled for ${requested.toLocaleDateString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        })}`;
 
       return;
 
@@ -1124,6 +1289,10 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     if (this.orderSaved) return;
+    if (this.hasBlockingQuantityErrors) {
+      this.toastr.warning('Correct the highlighted quantities before placing the order.');
+      return;
+    }
     if (!this.vendorProfile) {
       this.toastr.warning('Vendor delivery settings are not available. Please reload the vendor.');
       return;
@@ -1275,8 +1444,9 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
 
           next: (orders: TblPendingOrderDto[]) => {
 
+            // Show the latest order first.
             this.pendingOrders =
-              orders ?? [];
+              this.sortOrdersLatestFirst(orders ?? []);
 
             this.checkingPendingOrders = false;
 
@@ -1337,6 +1507,83 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
         });
   }
 
+  // My Orders list must always display the most recent order first.
+  private sortOrdersLatestFirst(
+    orders: TblPendingOrderDto[]
+  ): TblPendingOrderDto[] {
+
+    return [...orders].sort((a, b) => {
+
+      const timeDifference =
+        this.orderTimestamp(b) - this.orderTimestamp(a);
+
+      if (timeDifference !== 0) {
+        return timeDifference;
+      }
+
+      // Fall back to the newest order id when timestamps match.
+      return Number(b.fldOrderId ?? b.fldId ?? 0) -
+        Number(a.fldOrderId ?? a.fldId ?? 0);
+
+    });
+
+  }
+
+  private orderTimestamp(
+    order: TblPendingOrderDto
+  ): number {
+
+    const candidates = [
+      order.fldOrderGeneratedAt,
+      order.fldOrderDate
+    ];
+
+    for (const value of candidates) {
+
+      if (!value) {
+        continue;
+      }
+
+      const time = new Date(value).getTime();
+
+      if (Number.isFinite(time)) {
+        return time;
+      }
+
+    }
+
+    return 0;
+
+  }
+
+  backToMyOrders(): void {
+
+    // Keep the in-progress cart in memory. Re-entering a new order resets it,
+    // but this avoids losing a half-built basket if the customer is only
+    // checking their order history.
+    this.showCheckout = false;
+
+    this.shoppingStarted = false;
+
+    this.showPendingOrders = true;
+
+    this.cdr.detectChanges();
+
+  }
+
+  viewMyOrdersAfterOrder(): void {
+
+    // Refresh the order list so the order that was just placed appears.
+    this.showCheckout = false;
+
+    this.shoppingStarted = false;
+
+    this.showPendingOrders = false;
+
+    this.checkPendingOrders();
+
+  }
+
   startNewOrder(): void {
 
     this.showPendingOrders = false;
@@ -1351,6 +1598,8 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
     this.cart = [];
 
     this.stock = [];
+
+    this.quantityErrors = {};
 
     this.vendorId = 0;
 
@@ -1409,6 +1658,34 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
 
   }
 
+  // Highlights the next stage the order is waiting on.
+  isActiveOrderStage(
+    order: TblPendingOrderDto,
+    index: number
+  ): boolean {
+
+    if (
+      order.fldOrderStatus === 'Cancelled' ||
+      order.fldOrderStatus === 'Denied'
+    ) {
+      return false;
+    }
+
+    const stageTimes = [
+      order.fldOrderGeneratedAt,
+      order.fldAcceptedAt,
+      order.fldPackedAt,
+      order.fldOutForDeliveryAt,
+      order.fldDeliveredAt
+    ];
+
+    const nextIncompleteStage =
+      stageTimes.findIndex(completedAt => !completedAt);
+
+    return nextIncompleteStage === index;
+
+  }
+
   selectedPendingOrder: TblPendingOrderDto | null = null;
 
   // Zero-based index of the order selected for viewing.
@@ -1423,6 +1700,8 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
 
     this.selectedPendingOrderIndex = index;
 
+    this.lockBackgroundScroll();
+
     this.cdr.detectChanges();
 
   }
@@ -1431,7 +1710,45 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
 
     this.selectedPendingOrder = null;
 
+    this.unlockBackgroundScroll();
+
     this.cdr.detectChanges();
+
+  }
+
+  private previousBodyOverflow = '';
+
+  private lockBackgroundScroll(): void {
+
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    this.previousBodyOverflow =
+      document.body.style.overflow;
+
+    document.body.style.overflow = 'hidden';
+
+  }
+
+  private unlockBackgroundScroll(): void {
+
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    document.body.style.overflow =
+      this.previousBodyOverflow;
+
+  }
+
+  // Standard dialog behaviour: Escape closes the detail view.
+  @HostListener('document:keydown.escape')
+  onDialogEscape(): void {
+
+    if (this.selectedPendingOrder) {
+      this.closePendingOrderDetails();
+    }
 
   }
 

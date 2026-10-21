@@ -5,6 +5,8 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../../environments/environment';
 import { finalize } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { VendorNotificationService } from '../../services/vendor-notification.service';
+import { VendorPushService } from '../../services/vendor-push.service';
 
 type GreenBasketLanguage = "en" | "ta" | "ur";
 
@@ -35,6 +37,17 @@ export class Navbar {
 
   private readonly platformId =
     inject(PLATFORM_ID);
+
+  private readonly vendorNotifications =
+    inject(VendorNotificationService);
+
+  readonly vendorPush = inject(VendorPushService);
+
+  enableVendorNotifications(): void {
+    if (this.isVendor) {
+      void this.vendorPush.enable();
+    }
+  }
 
   constructor(private router: Router, private http: HttpClient) {
 
@@ -178,6 +191,8 @@ export class Navbar {
             error
           );
 
+
+
           // Clear local credentials even if
           // the server request fails.
           this.clearLoginAndRedirect();
@@ -197,6 +212,8 @@ export class Navbar {
     sessionStorage.removeItem(
       'gbProfile'
     );
+
+    void this.vendorNotifications.refreshSession();
 
     this.router.navigateByUrl('/login');
 

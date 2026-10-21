@@ -90,21 +90,43 @@
                 <i class="bi bi-grid-1x2"></i> <span>Dashboard</span>
             </a>
 
-            <a *ngIf="isAdmin" class="menu-item" routerLink="/mastertables/tblCityorTownMaster" routerLinkActive="active-submenu"
-                (click)="isSidebarCollapsed = true">
+
+
+            <a *ngIf="isAdmin" class="menu-item" routerLink="/mastertables/tblPropertyMaster"
+                routerLinkActive="active-submenu" (click)="isSidebarCollapsed = true">
+                <i class="bi bi-buildings"></i>
+                <span>{{ 'MENU.PROPERTY_MASTER' | translate }}</span>
+            </a>
+
+
+            <a *ngIf="isAdmin" class="menu-item" routerLink="/mastertables/tblProperty"
+                routerLinkActive="active-submenu" (click)="isSidebarCollapsed = true">
+                <i class="bi bi-buildings"></i>
+                <span>{{ 'MENU.PROPERTY' | translate }}</span>
+            </a>
+
+
+            <a *ngIf="isAdmin" class="menu-item" routerLink="/mastertables/tblMenuMaster"
+                routerLinkActive="active-submenu" (click)="isSidebarCollapsed = true">
+                <i class="bi bi-buildings"></i>
+                <span>{{ 'MENU.MENU_MASTER' | translate }}</span>
+            </a>
+
+            <a *ngIf="isAdmin" class="menu-item" routerLink="/mastertables/tblCityorTownMaster"
+                routerLinkActive="active-submenu" (click)="isSidebarCollapsed = true">
                 <i class="bi bi-buildings"></i>
                 <span>{{ 'MENU.CITY_MASTER' | translate }}</span>
             </a>
 
-            <a *ngIf="isAdmin" class="menu-item" routerLink="/mastertables/tblStreetMaster" routerLinkActive="active-submenu"
-                (click)="isSidebarCollapsed = true">
+            <a *ngIf="isAdmin" class="menu-item" routerLink="/mastertables/tblStreetMaster"
+                routerLinkActive="active-submenu" (click)="isSidebarCollapsed = true">
                 <i class="bi bi-geo-alt"></i>
                 <span>{{ 'MENU.STREET_MASTER' | translate }}</span>
             </a>
 
             <!-- <a routerLink="/mastertables/tblProfile" routerLinkActive="active-submenu">Profile</a> -->
-            <a *ngIf="isAdmin || isCustomer || isVendor" class="menu-item" routerLink="/mastertables/tblProfile" routerLinkActive="active-submenu"
-                (click)="isSidebarCollapsed = true">
+            <a *ngIf="isAdmin || isCustomer || isVendor" class="menu-item" routerLink="/mastertables/tblProfile"
+                routerLinkActive="active-submenu" (click)="isSidebarCollapsed = true">
                 <i class="bi bi-person-badge"></i>
                 <span>{{ 'MENU.PROFILE' | translate }}</span>
             </a>
@@ -115,7 +137,7 @@
                 <span>{{ 'MENU.ITEM_MASTER' | translate }}</span>
             </a>
 
-            <a *ngIf="isAdmin || isVendor"  class="menu-item" routerLink="/transactiontables/tblDailyInventory"
+            <a *ngIf="isAdmin || isVendor" class="menu-item" routerLink="/transactiontables/tblDailyInventory"
                 routerLinkActive="active-submenu" (click)="isSidebarCollapsed = true">
                 <i class="bi bi-clipboard-data"></i>
                 <span>{{ 'MENU.DAILY_INVENTORY' | translate }}</span>
@@ -128,7 +150,8 @@
                 <span>{{ 'MENU.ORDERS' | translate }}</span>
             </a>
 
-            <a *ngIf="isAdmin || isCustomer || isVendor" class="menu-item" routerLink="/concerns" routerLinkActive="active" (click)="isSidebarCollapsed = true">
+            <a *ngIf="isAdmin || isCustomer || isVendor" class="menu-item" routerLink="/concerns"
+                routerLinkActive="active" (click)="isSidebarCollapsed = true">
                 <i class="bi bi-exclamation-triangle"></i> <span>{{ 'MENU.CUSTOMER_CONCERNS' | translate }}</span>
             </a>
 
@@ -140,6 +163,35 @@
             <a class="menu-item" routerLink="/reports" routerLinkActive="active" (click)="isSidebarCollapsed = true">
                 <i class="bi bi-pie-chart"></i> <span>{{ 'MENU.REPORTS' | translate }}</span>
             </a>
+
+
+            <div *ngIf="isVendor" class="vendor-push-settings">
+                <button type="button" class="menu-item" [disabled]="vendorPush.busy()"
+                    (click)="enableVendorNotifications()">
+
+                    <i class="bi bi-bell"></i>
+
+                    <span>
+                        {{
+                        vendorPush.busy()
+                        ? 'Enabling...'
+                        : vendorPush.saved()
+                        ? 'Refresh Notifications'
+                        : 'Enable Notifications'
+                        }}
+                    </span>
+                </button>
+
+                <small *ngIf="vendorPush.status()" role="status"
+                    style="display:block; padding:8px 12px; color:inherit;">
+                    {{ vendorPush.status() }}
+                </small>
+
+                <small style="display:block; padding:8px 12px; color:inherit;">
+                    Enable on your own device to receive order alerts
+                    even when you are logged out.
+                </small>
+            </div>
 
             <button type="button" class="logout-btn" [disabled]="isLoggingOut" (click)="logout()">
 

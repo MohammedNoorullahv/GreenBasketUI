@@ -5,6 +5,9 @@
   },
   "MENU": {
     "DASHBOARD": "முகப்புப் பலகை",
+    "PROPERTY_MASTER" : "Property Master", 
+    "PROPERTY": "Property",
+    "MENU_MASTER": "Menu Master",
     "CITY_MASTER": "நகரம் / பேரூராட்சி பட்டியல்",
     "STREET_MASTER": "தெரு பட்டியல்",
     "PROFILE": "சுயவிவரம்",

@@ -5,6 +5,9 @@
   },
   "MENU": {
     "DASHBOARD": "ڈیش بورڈ",
+    "PROPERTY_MASTER" : "Property Master", 
+    "PROPERTY": "Property",
+    "MENU_MASTER": "Menu Master",
     "CITY_MASTER": "شہر / قصبہ ماسٹر",
     "STREET_MASTER": "گلی ماسٹر",
     "PROFILE": "پروفائل",

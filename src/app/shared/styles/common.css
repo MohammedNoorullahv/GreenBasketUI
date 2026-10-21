@@ -1,5 +1,6 @@
 /* Load this file globally. Leaflet's CSS is required for tiles and controls. */
 @import 'leaflet/dist/leaflet.css';
+@import 'ngx-toastr/toastr';
 
 /* =========================================================
    Green Basket - Common Page Styles

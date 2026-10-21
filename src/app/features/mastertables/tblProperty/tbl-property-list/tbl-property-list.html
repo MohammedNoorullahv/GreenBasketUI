@@ -1,0 +1,120 @@
+<!-- Path: src/app/features/mastertables/tblProperty/tbl-property-list/tbl-property-list.html -->
+<div class="container grid-page-shell">
+
+    <!-- Page header: caption + record toggle + New Record -->
+    <div class="page-header-bar">
+
+        <h1 class="page-caption">Properties</h1>
+
+        <div class="page-header-center">
+            <button type="button" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
+                (click)="OnFormSubmit('Load All')"
+                [attr.title]="actionType !== 'Load All' ? 'Load All Records' : 'All Records'">
+                <i class="bi bi-list-ul"></i>
+                All Records
+            </button>
+
+            <button type="button" class="btn-app btn-toggle" [disabled]="actionType === 'Active Only'"
+                (click)="OnFormSubmit('Active Only')"
+                [attr.title]="actionType !== 'Active Only' ? 'Load Active Records' : 'Active Records'">
+                <i class="bi bi-check-circle"></i>
+                Active Records
+            </button>
+        </div>
+
+        <div class="page-header-right">
+            <a [routerLink]="['/mastertables/tblProperty/add']" class="btn-app btn-new">
+                <i class="bi bi-plus-lg"></i>
+                New Record
+            </a>
+        </div>
+
+    </div>
+
+    <div class="page-card">
+
+        @if (tblProperty$ | async; as items) {
+
+        <div class="page-header-bar-secondary">
+
+            <div class="page-header-left">
+                <button type="button" class="btn-app btn-outline">
+                    <i class="bi bi-funnel"></i>
+                    Filter
+                </button>
+
+                <button type="button" class="btn-app btn-outline">
+                    <i class="bi bi-download"></i>
+                    Export CSV
+                </button>
+            </div>
+
+            <div class="page-header-right">
+                <span class="pagination-info">
+                    Showing {{ items.length }} of {{ items.length }} Records
+                </span>
+
+                <button type="button" class="pager-btn" disabled>
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <button type="button" class="pager-btn" disabled>
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Property Master</th>
+                    <th>Sl No</th>
+                    <th>Description</th>
+                    <th>Short Name</th>
+                    <th>Set As Default</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @for (r of items; track r.fldId) {
+                <tr>
+                    <td class="cell-code">{{ r.fldId }}</td>
+                    <td>{{ r.tblPropertyMasterId?.fldDescription }}</td>
+                    <td>{{ r.fldSlNo }}</td>
+                    <td class="cell-primary">{{ r.fldDescription }}</td>
+                    <td class="cell-mono">{{ r.fldShortName }}</td>
+                    <td>
+                        <span class="badge-pill" [ngClass]="r.fldSetAsDefault ? 'badge-success' : 'badge-muted'">
+                            {{ r.fldSetAsDefault ? 'Yes' : 'No' }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="row-actions">
+                            <a class="icon-btn edit" title="Edit"
+                                [routerLink]="['/mastertables/tblProperty/edit', r.fldId]"
+                                [queryParams]="{ action: 'Edit' }">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <a class="icon-btn delete" title="Delete"
+                                [routerLink]="['/mastertables/tblProperty/edit', r.fldId]"
+                                [queryParams]="{ action: 'Delete' }">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (items.length === 0) {
+        <p class="grid-footnote">No records found.</p>
+        }
+
+        }
+
+    </div>
+
+</div>

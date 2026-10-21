@@ -14,9 +14,19 @@ import {
 } from "@ngx-translate/core";
 
 import {
-  provideTranslateHttpLoader
+  provideTranslateHttpLoader,
 } from "@ngx-translate/http-loader";
 import { provideAnimations } from '@angular/platform-browser/animations';
+
+import {
+  afterNextRender,
+  provideAppInitializer, isDevMode
+} from '@angular/core';
+
+import {
+  VendorNotificationService
+} from './core/services/vendor-notification.service';
+import { provideServiceWorker } from '@angular/service-worker';
 
 // Send the session token only to this application's configured API.
 // Keep the environment import aligned with the environment used by login/services.
@@ -77,6 +87,17 @@ export const appConfig: ApplicationConfig = {
       })
     }),
     provideAnimations(),
-    
+
+    provideAppInitializer(() => {
+      const notifications = inject(VendorNotificationService);
+
+      afterNextRender(() => {
+        notifications.initialize();
+      });
+    }), provideServiceWorker('ngsw-worker.js', {
+            enabled: !isDevMode(),
+            registrationStrategy: 'registerWhenStable:30000'
+          }),
+
   ]
 };

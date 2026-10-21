@@ -1,0 +1,128 @@
+<!-- Path: src/app/features/mastertables/tblMenuMaster/tbl-menu-master-list/tbl-menu-master-list.html -->
+<div class="container grid-page-shell">
+
+    <!-- Page header: caption + record toggle + New Record -->
+    <div class="page-header-bar">
+
+        <h1 class="page-caption">Menu Masters</h1>
+
+        <div class="page-header-center">
+            <button type="button" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
+                (click)="OnFormSubmit('Load All')"
+                [attr.title]="actionType !== 'Load All' ? 'Load All Records' : 'All Records'">
+                <i class="bi bi-list-ul"></i>
+                All Records
+            </button>
+
+            <button type="button" class="btn-app btn-toggle" [disabled]="actionType === 'Active Only'"
+                (click)="OnFormSubmit('Active Only')"
+                [attr.title]="actionType !== 'Active Only' ? 'Load Active Records' : 'Active Records'">
+                <i class="bi bi-check-circle"></i>
+                Active Records
+            </button>
+        </div>
+
+        <div class="page-header-right">
+            <a [routerLink]="['/mastertables/tblMenuMaster/add']" class="btn-app btn-new">
+                <i class="bi bi-plus-lg"></i>
+                New Record
+            </a>
+        </div>
+
+    </div>
+
+    <div class="page-card">
+
+        @if (tblMenuMaster$ | async; as items) {
+
+        <div class="page-header-bar-secondary">
+
+            <div class="page-header-left">
+                <button type="button" class="btn-app btn-outline">
+                    <i class="bi bi-funnel"></i>
+                    Filter
+                </button>
+
+                <button type="button" class="btn-app btn-outline">
+                    <i class="bi bi-download"></i>
+                    Export CSV
+                </button>
+            </div>
+
+            <div class="page-header-right">
+                <span class="pagination-info">
+                    Showing {{ items.length }} of {{ items.length }} Records
+                </span>
+
+                <button type="button" class="pager-btn" disabled>
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <button type="button" class="pager-btn" disabled>
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Table / View</th>
+                    <th>Category</th>
+                    <th>Menu Name</th>
+                    <th>Table Or View Name</th>
+                    <th>Condition</th>
+                    <th>Role Of The Menu</th>
+                    <th>Controller Name</th>
+                    <th>Icon</th>
+                    <th>Is Process Program</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @for (r of items; track r.fldId) {
+                <tr>
+                    <td class="cell-code">{{ r.fldId }}</td>
+                    <td class="cell-mono">{{ r.fldTableOrView }}</td>
+                    <td>{{ r.tblPropertyCategoryId?.fldDescription }}</td>
+                    <td class="cell-primary">{{ r.fldMenuName }}</td>
+                    <td>{{ r.fldTableOrViewName }}</td>
+                    <td>{{ r.fldCondition }}</td>
+                    <td>{{ r.fldRoleOfTheMenu }}</td>
+                    <td>{{ r.fldControllerName }}</td>
+                    <td class="cell-mono">{{ r.fldIcon }}</td>
+                    <td>
+                        <span class="badge-pill" [ngClass]="r.fldIsProcessProgram ? 'badge-success' : 'badge-muted'">
+                            {{ r.fldIsProcessProgram ? 'Yes' : 'No' }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="row-actions">
+                            <a class="icon-btn edit" title="Edit"
+                                [routerLink]="['/mastertables/tblMenuMaster/edit', r.fldId]"
+                                [queryParams]="{ action: 'Edit' }">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <a class="icon-btn delete" title="Delete"
+                                [routerLink]="['/mastertables/tblMenuMaster/edit', r.fldId]"
+                                [queryParams]="{ action: 'Delete' }">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (items.length === 0) {
+        <p class="grid-footnote">No records found.</p>
+        }
+
+        }
+
+    </div>
+
+</div>

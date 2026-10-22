@@ -41,4 +41,8 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# Local environment settings
 .env
+.env.*
+!.env.example
+

@@ -1,8 +1,16 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
 
 export const serverRoutes: ServerRoute[] = [
+  
+    {
+    path: 'mastertables/**',
+    renderMode: RenderMode.Client
+  },
   {
-    path: '**',
-    renderMode: RenderMode.Prerender
+    path: 'transactiontables/**',
+    renderMode: RenderMode.Client
+  },{
+  path: '**',
+  renderMode: RenderMode.Prerender
   }
 ];

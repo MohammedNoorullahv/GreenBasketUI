@@ -22,6 +22,15 @@ import { TblOrderDetailUpdateComponent } from './features/transactiontable/tblOr
 import { TblOrderShoppingComponent } from './features/transactiontable/tblOrder/tbl-order-list/tbl-order-shopping';
 import { LoginComponent } from './core/components/login/login-component/login-component';
 import { TblProfileUpdateComponent } from './features/mastertables/tblProfile/tbl-profile-update/tbl-profile-update';
+import { TblPropertyMasterListComponent } from './features/mastertables/tblPropertyMaster/tbl-property-master-list/tbl-property-master-list';
+import { TblPropertyMasterAddComponent } from './features/mastertables/tblPropertyMaster/tbl-property-master-add/tbl-property-master-add';
+import { TblPropertyMasterUpdateComponent } from './features/mastertables/tblPropertyMaster/tbl-property-master-update/tbl-property-master-update';
+import { TblPropertyListComponent } from './features/mastertables/tblProperty/tbl-property-list/tbl-property-list';
+import { TblPropertyAddComponent } from './features/mastertables/tblProperty/tbl-property-add/tbl-property-add';
+import { TblPropertyUpdateComponent } from './features/mastertables/tblProperty/tbl-property-update/tbl-property-update';
+import { TblMenuMasterListComponent } from './features/mastertables/tblMenuMaster/tbl-menu-master-list/tbl-menu-master-list';
+import { TblMenuMasterAddComponent } from './features/mastertables/tblMenuMaster/tbl-menu-master-add/tbl-menu-master-add';
+import { TblMenuMasterUpdateComponent } from './features/mastertables/tblMenuMaster/tbl-menu-master-update/tbl-menu-master-update';
 
 // import { TblCityorTownMasterListComponent }
 //   from './features/mastertables/tblCityorTownMaster/tbl-cityor-town-master-list/tbl-cityor-town-master-list';
@@ -132,7 +141,23 @@ export const routes: Routes = [
         path: 'transactiontables/tblOrderDetail/Edit/:id',
         component: TblOrderDetailUpdateComponent,
       },
-      { path: 'transactiontables/tblOrder/shop', component: TblOrderShoppingComponent }
+      { path: 'transactiontables/tblOrder/shop', component: TblOrderShoppingComponent },
+      { path: 'mastertables/tblPropertyMaster', component: TblPropertyMasterListComponent },
+      // AUTH-STAGE-2: canActivate: [menuGuard]
+      { path: 'mastertables/tblPropertyMaster/add', component: TblPropertyMasterAddComponent },
+      // AUTH-STAGE-2: canActivate: [menuGuard]
+      { path: 'mastertables/tblPropertyMaster/edit/:id', component: TblPropertyMasterUpdateComponent },
+      { path: 'mastertables/tblProperty', component: TblPropertyListComponent },
+      // AUTH-STAGE-2: canActivate: [menuGuard]
+      { path: 'mastertables/tblProperty/add', component: TblPropertyAddComponent },
+      // AUTH-STAGE-2: canActivate: [menuGuard]
+      { path: 'mastertables/tblProperty/edit/:id', component: TblPropertyUpdateComponent },
+      // AUTH-STAGE-2: canActivate: [menuGuard]
+      { path: 'mastertables/tblMenuMaster', component: TblMenuMasterListComponent },
+      // AUTH-STAGE-2: canActivate: [menuGuard]
+      { path: 'mastertables/tblMenuMaster/add', component: TblMenuMasterAddComponent },
+      // AUTH-STAGE-2: canActivate: [menuGuard]
+      { path: 'mastertables/tblMenuMaster/edit/:id', component: TblMenuMasterUpdateComponent },
 
 
 

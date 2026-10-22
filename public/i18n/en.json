@@ -7,6 +7,9 @@
   "MENU": {
     "DASHBOARD": "Dashboard",
     "VEGETABLE_MASTER": "Vegetable Master",
+    "PROPERTY_MASTER" : "Property Master", 
+    "PROPERTY": "Property",
+    "MENU_MASTER": "Menu Master",
     "CITY_MASTER": "City/Town Master",
     "STREET_MASTER": "Street Master",
     "PROFILE": "Profile",

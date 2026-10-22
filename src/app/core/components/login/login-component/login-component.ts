@@ -25,6 +25,7 @@ import {
 } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { environment } from '../../../../../environments/environment';
+import { VendorNotificationService } from '../../../services/vendor-notification.service';
 // import { environment } from '../../../environments/environment';
 
 interface LoginResponse {
@@ -77,7 +78,8 @@ export class LoginComponent {
     private router: Router,
     @Inject(PLATFORM_ID)
     private platformId: object,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private vendorNotifications: VendorNotificationService
   ) { }
 
   onIntroVideoEnded(): void {
@@ -207,7 +209,7 @@ export class LoginComponent {
       this.errorMessage = 'Please enter a valid 10-digit mobile number.';
       return;
     }
-    
+
     const enteredOTP =
       method === 'OTP' ? this.otp.trim() : '';
 
@@ -217,7 +219,7 @@ export class LoginComponent {
     // The selected credential must contain exactly six digits.
     const credential = enteredOTP || enteredMPIN;
     //const credential = method === 'OTP' ? this.otp.trim() : this.mpin.trim();
-    console.log("01. OTP/MPIN LENGTH");
+
     const expectedLength = method === 'OTP' ? 6 : this.mpinLength;
     if (!new RegExp(`^\\d{${expectedLength}}$`).test(credential)) {
       this.errorMessage = `Please enter a valid ${expectedLength}-digit ${method}.`;
@@ -225,9 +227,9 @@ export class LoginComponent {
       return;
     }
     this.isLoading = true;
-    console.log("02. OTP/MPIN LENGTH");
 
-    
+
+
 
     // At least one credential is compulsory.
     if (!enteredOTP && !enteredMPIN) {
@@ -236,9 +238,9 @@ export class LoginComponent {
       return;
     }
 
-    
 
-    console.log("03. OTP/MPIN LENGTH");
+
+
     if (!/^\d{6}$/.test(credential)) {
       this.errorMessage =
         `Please enter a valid 6-digit ${method}.`;
@@ -246,7 +248,7 @@ export class LoginComponent {
       this.cdr.detectChanges();
       return;
     }
-    console.log("04. OTP/MPIN LENGTH");
+
 
     const payload = {
       FldContactNumber: mobile,
@@ -263,7 +265,7 @@ export class LoginComponent {
     // // MPIN must be validated on the server, returning the same LoginResponse as OTP.
     //const endpoint = method === 'OTP' ? 'ValidateOTPAndLogin' : 'ValidateMPINAndLogin';
     const endpoint = method === 'OTP' ? 'ValidateOTPAndLogin' : 'ValidateOTPAndLogin';
-    console.log("05. Payload", payload);
+
     this.http.post<LoginResponse>(`${this.apiUrl}/${endpoint}`, payload)
       .subscribe({
 
@@ -293,7 +295,11 @@ export class LoginComponent {
               JSON.stringify(response.profile)
             );
 
+            void this.vendorNotifications.refreshSession();
+
           }
+
+          
 
           this.successMessage =
             'Login successful.';

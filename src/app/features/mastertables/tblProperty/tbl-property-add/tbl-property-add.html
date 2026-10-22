@@ -1,0 +1,93 @@
+<!-- Path: src/app/features/mastertables/tblProperty/tbl-property-add/tbl-property-add.html -->
+<div class="container grid-page-shell">
+
+    <div class="page-header-bar-simple">
+        <h1 class="page-caption">Add Property</h1>
+    </div>
+
+    <form #form="ngForm" novalidate>
+
+        <div class="page-card">
+
+            <div class="d-flex flex-row form-row">
+                <div class="col-3 field-group">
+                    <label class="form-label" for="fldFKProperty">Property Master <span class="required">*</span></label>
+                    <select id="fldFKProperty" class="form-select form-control" name="fldFKProperty"
+                        [(ngModel)]="model.fldFKProperty" required>
+                        <option [ngValue]="0">-- Select --</option>
+                        @for (pm of (tblPropertyMaster$ | async); track pm.fldId) {
+                        <option [ngValue]="pm.fldId">{{ pm.fldDescription }}</option>
+                        }
+                    </select>
+                    <div class="text-danger"
+                        *ngIf="form.controls['fldFKProperty']?.touched && (!model.fldFKProperty || model.fldFKProperty <= 0)">
+                        Property Master is required.
+                    </div>
+                </div>
+                <div class="col-3 field-group">
+                    <label class="form-label" for="fldSlNo">Sl No <span class="required">*</span></label>
+                    <input type="number" id="fldSlNo" class="form-control" name="fldSlNo" [(ngModel)]="model.fldSlNo"
+                        step="1" min="1" required>
+                    <div class="text-danger" *ngIf="form.controls['fldSlNo']?.touched && form.controls['fldSlNo']?.invalid">
+                        Sl No is required and should be greater than 0.
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex flex-row form-row">
+                <div class="col-3 field-group">
+                    <label class="form-label" for="fldDescription">Description <span class="required">*</span></label>
+                    <input type="text" id="fldDescription" class="form-control" name="fldDescription"
+                        [(ngModel)]="model.fldDescription" maxlength="100" pattern="[0-9a-zA-Z]+" required>
+                    <div class="text-danger"
+                        *ngIf="form.controls['fldDescription']?.touched && form.controls['fldDescription']?.errors?.['required']">
+                        Description is required.
+                    </div>
+                    <div class="text-danger"
+                        *ngIf="form.controls['fldDescription']?.touched && form.controls['fldDescription']?.errors?.['pattern']">
+                        Description Must be AlphaNumeric.
+                    </div>
+                </div>
+                <div class="col-3 field-group">
+                    <label class="form-label" for="fldShortName">Short Name</label>
+                    <input type="text" id="fldShortName" class="form-control" name="fldShortName"
+                        [(ngModel)]="model.fldShortName" maxlength="30" pattern="[0-9a-zA-Z]*">
+                    <div class="text-danger"
+                        *ngIf="form.controls['fldShortName']?.touched && form.controls['fldShortName']?.errors?.['pattern']">
+                        Short Name Must be AlphaNumeric.
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex flex-row form-row">
+                <div class="col-3 field-group">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="fldSetAsDefault"
+                            name="fldSetAsDefault" [(ngModel)]="model.fldSetAsDefault">
+                        <label class="form-check-label" for="fldSetAsDefault">Set As Default</label>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="page-actions-bar">
+            <button type="button" (click)="OnFormSubmit(form, 'SaveAndAddNew')" class="btn-app btn-save"
+                [disabled]="isSaving">
+                <i class="bi bi-floppy"></i>
+                Save &amp; Add New
+            </button>
+            <button type="button" (click)="OnFormSubmit(form, 'SaveAndClose')" class="btn-app btn-new"
+                [disabled]="isSaving">
+                <i class="bi bi-check2-circle"></i>
+                Save &amp; Close
+            </button>
+            <button type="button" (click)="backToHome()" class="btn-app btn-back">
+                <i class="bi bi-arrow-left"></i>
+                Back
+            </button>
+        </div>
+
+    </form>
+
+</div>

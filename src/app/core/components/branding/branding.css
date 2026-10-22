@@ -17,21 +17,23 @@
 .brand-container {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-width: 0;
   gap: 12px;
 }
 
 .brand-logo {
   display: block;
-
-  width: 60px;
-  height: 60px;
-
-  max-width: 60px;
-
+  width: 220px;
+  max-width: 100%;
+  height: auto;
+  max-height: none;
   object-fit: contain;
-
   flex-shrink: 0;
 }
+
+
 
 .brand-information {
   display: flex;
@@ -68,10 +70,11 @@
     min-height: 64px;
   }
 
-  .brand-logo {
-    width: 42px;
-    height: 42px;
-  }
+.brand-logo {
+  width: 180px;
+  max-width: 100%;
+  height: auto;
+}
 
   .brand-name {
     font-size: 21px;

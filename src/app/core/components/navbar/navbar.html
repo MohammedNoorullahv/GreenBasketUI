@@ -90,7 +90,7 @@
                 <i class="bi bi-grid-1x2"></i> <span>Dashboard</span>
             </a>
 
-
+           
 
             <a *ngIf="isAdmin" class="menu-item" routerLink="/mastertables/tblPropertyMaster"
                 routerLinkActive="active-submenu" (click)="isSidebarCollapsed = true">
@@ -98,14 +98,14 @@
                 <span>{{ 'MENU.PROPERTY_MASTER' | translate }}</span>
             </a>
 
-
+           
             <a *ngIf="isAdmin" class="menu-item" routerLink="/mastertables/tblProperty"
                 routerLinkActive="active-submenu" (click)="isSidebarCollapsed = true">
                 <i class="bi bi-buildings"></i>
                 <span>{{ 'MENU.PROPERTY' | translate }}</span>
             </a>
 
-
+            
             <a *ngIf="isAdmin" class="menu-item" routerLink="/mastertables/tblMenuMaster"
                 routerLinkActive="active-submenu" (click)="isSidebarCollapsed = true">
                 <i class="bi bi-buildings"></i>
@@ -164,32 +164,43 @@
                 <i class="bi bi-pie-chart"></i> <span>{{ 'MENU.REPORTS' | translate }}</span>
             </a>
 
+            <div *ngIf="isVendor" class="vendor-push-settings"
+                 style="padding:8px 12px;">
+                <p *ngIf="vendorPush.saved()" role="status"
+                   style="margin:0 0 8px; color:inherit; font-weight:600;">
+                    <i class="bi bi-bell-fill" aria-hidden="true"></i>
+                    Notifications enabled
+                </p>
 
-            <div *ngIf="isVendor" class="vendor-push-settings">
-                <button type="button" class="menu-item" [disabled]="vendorPush.busy()"
-                    (click)="enableVendorNotifications()">
-
-                    <i class="bi bi-bell"></i>
-
-                    <span>
-                        {{
-                        vendorPush.busy()
-                        ? 'Enabling...'
-                        : vendorPush.saved()
-                        ? 'Refresh Notifications'
-                        : 'Enable Notifications'
-                        }}
-                    </span>
+                <button *ngIf="!vendorPush.saved()" type="button"
+                        class="btn btn-success btn-sm"
+                        [disabled]="vendorPush.busy()"
+                        (click)="enableVendorNotifications()">
+                    <i class="bi bi-bell" aria-hidden="true"></i>
+                    Enable Notifications
                 </button>
 
-                <small *ngIf="vendorPush.status()" role="status"
-                    style="display:block; padding:8px 12px; color:inherit;">
+                <button *ngIf="vendorPush.saved()" type="button"
+                        class="btn btn-warning btn-sm"
+                        [disabled]="vendorPush.busy()"
+                        (click)="disableVendorNotifications()">
+                    Disable on this device
+                </button>
+
+                <button type="button" class="btn btn-outline-light btn-sm"
+                        style="margin-top:8px;"
+                        [disabled]="vendorPush.busy()"
+                        (click)="checkVendorNotifications()">
+                    Check status
+                </button>
+
+                <small role="status" aria-live="polite"
+                       style="display:block; margin-top:8px; color:inherit;">
                     {{ vendorPush.status() }}
                 </small>
-
-                <small style="display:block; padding:8px 12px; color:inherit;">
-                    Enable on your own device to receive order alerts
-                    even when you are logged out.
+                <small style="display:block; margin-top:8px; color:inherit;">
+                    When enabled, order alerts continue after logout.
+                    Disable alerts before leaving a shared device.
                 </small>
             </div>
 

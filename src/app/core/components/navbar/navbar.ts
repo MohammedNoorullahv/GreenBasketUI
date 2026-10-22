@@ -1,12 +1,13 @@
 import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { Component, inject, PLATFORM_ID } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, inject, PLATFORM_ID, afterNextRender, DestroyRef } from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../../environments/environment';
-import { finalize } from 'rxjs';
+import { finalize, filter } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { VendorPushService } from '../../services/vendor-push.service';
 import { HttpClient } from '@angular/common/http';
 import { VendorNotificationService } from '../../services/vendor-notification.service';
-import { VendorPushService } from '../../services/vendor-push.service';
 
 type GreenBasketLanguage = "en" | "ta" | "ur";
 
@@ -18,6 +19,23 @@ type GreenBasketLanguage = "en" | "ta" | "ur";
 })
 
 export class Navbar {
+  readonly vendorPush = inject(VendorPushService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  enableVendorNotifications(): void {
+    if (this.isVendor) void this.vendorPush.enable();
+  }
+
+  disableVendorNotifications(): void {
+    if (this.isVendor) void this.vendorPush.disable();
+  }
+
+  checkVendorNotifications(): void {
+    this.loadLoggedInProfile();
+    if (this.isVendor) void this.vendorPush.refreshStatus();
+    else this.vendorPush.reset();
+  }
+
   // 1. Define a state variable to track the active menu
   activeMenu: string | null = null;
   isSidebarCollapsed: boolean = true;
@@ -40,14 +58,6 @@ export class Navbar {
 
   private readonly vendorNotifications =
     inject(VendorNotificationService);
-
-  readonly vendorPush = inject(VendorPushService);
-
-  enableVendorNotifications(): void {
-    if (this.isVendor) {
-      void this.vendorPush.enable();
-    }
-  }
 
   constructor(private router: Router, private http: HttpClient) {
 
@@ -77,6 +87,25 @@ export class Navbar {
     }
 
     this.changeLanguage(initialLanguage);
+
+    // Browser-only initialization, after hydration. Also handles a layout
+    // that remains mounted across login and later route navigation.
+    afterNextRender(() => {
+      this.checkVendorNotifications();
+      this.router.events.pipe(
+        filter(event => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => this.checkVendorNotifications());
+
+      const onVisible = () => {
+        if (this.document.visibilityState === 'visible') {
+          this.checkVendorNotifications();
+        }
+      };
+      this.document.addEventListener('visibilitychange', onVisible);
+      this.destroyRef.onDestroy(() =>
+        this.document.removeEventListener('visibilitychange', onVisible));
+    });
 
   }
 
@@ -204,6 +233,7 @@ export class Navbar {
   }
 
   private clearLoginAndRedirect(): void {
+    this.vendorPush.reset();
 
     sessionStorage.removeItem(
       'gbAccessToken'

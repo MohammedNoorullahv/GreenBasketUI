@@ -25,13 +25,15 @@
 
 .brand-logo {
   display: block;
-  width: 360px;
+  width: 220px;
   max-width: 100%;
   height: auto;
   max-height: none;
   object-fit: contain;
   flex-shrink: 0;
 }
+
+
 
 .brand-information {
   display: flex;
@@ -69,7 +71,7 @@
   }
 
 .brand-logo {
-  width: 260px;
+  width: 180px;
   max-width: 100%;
   height: auto;
 }

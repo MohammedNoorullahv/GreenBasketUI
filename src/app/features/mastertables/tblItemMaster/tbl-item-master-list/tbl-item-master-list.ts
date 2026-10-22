@@ -1,14 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CommonModule, AsyncPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { ColumnFilterIconComponent } from '../../../../shared/components/column-filter-icon/column-filter-icon.component';
+import { ColumnFilterPipe } from '../../../../shared/pipes/column-filter.pipe';
 
 import { TblItemMaster } from '../models/tblItemMaster.model';
 import { TblItemMasterService } from '../services/tbl-item-master'
 
 @Component({
   selector: 'app-tbl-item-master-list',
-  imports: [AsyncPipe, CommonModule, RouterLink],
+  imports: [AsyncPipe, CommonModule, FormsModule, RouterLink, ColumnFilterPipe, ColumnFilterIconComponent],
   templateUrl: './tbl-item-master-list.html',
   styleUrl: './tbl-item-master-list.css',
 })
@@ -17,6 +20,7 @@ export class TblItemMasterListComponent implements OnInit {
 tblItemMaster$?: Observable<TblItemMaster[]>;
 actionType: string = '';
 submitAction: 'Load All' | 'Active Only' = 'Load All'; // default to Load All
+filters: Record<string, string> = {};
 
 constructor(private tblItemMasterService: TblItemMasterService) {
 }

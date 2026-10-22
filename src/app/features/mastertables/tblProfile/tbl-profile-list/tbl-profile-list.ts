@@ -1,13 +1,16 @@
 import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CommonModule, AsyncPipe, isPlatformBrowser } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { ColumnFilterIconComponent } from '../../../../shared/components/column-filter-icon/column-filter-icon.component';
+import { ColumnFilterPipe } from '../../../../shared/pipes/column-filter.pipe';
 
 import { TblProfile } from '../models/tblProfile.model';
 import { TblProfileService } from '../services/tbl-profile';
 @Component({
   selector: 'app-tbl-profile-list',
-  imports: [AsyncPipe, CommonModule, RouterLink],
+  imports: [AsyncPipe, CommonModule, FormsModule, RouterLink, ColumnFilterPipe, ColumnFilterIconComponent],
   templateUrl: './tbl-profile-list.html',
   styleUrl: './tbl-profile-list.css',
 })
@@ -18,6 +21,7 @@ export class TblProfileListComponent implements OnInit {
   tblProfile$?: Observable<TblProfile[]>;
   actionType: string = '';
   submitAction: 'Load All' | 'Active Only' = 'Load All'; // default to Load All
+  filters: Record<string, string> = {};
   isAdmin: boolean = false;
 
   constructor(private tblProfileService: TblProfileService, private router: Router) {

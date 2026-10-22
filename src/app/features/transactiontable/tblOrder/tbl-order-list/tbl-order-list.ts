@@ -2,7 +2,10 @@ import { renderOrderReceipt } from './order-receipt';
 import { Component, OnInit, Inject, PLATFORM_ID, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Observable, Subscription, timeout, finalize } from 'rxjs';
 import { CommonModule, AsyncPipe, isPlatformBrowser } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { ColumnFilterIconComponent } from '../../../../shared/components/column-filter-icon/column-filter-icon.component';
+import { ColumnFilterPipe } from '../../../../shared/pipes/column-filter.pipe';
 import { TblOrder } from '../models/tblOrder.model';
 import { TblOrderService } from '../services/tbl-order';
 
@@ -10,7 +13,7 @@ import { TblOrderService } from '../services/tbl-order';
 
 @Component({
   selector: 'app-tbl-order-list',
-  imports: [AsyncPipe, CommonModule, RouterLink],
+  imports: [AsyncPipe, CommonModule, FormsModule, RouterLink, ColumnFilterPipe, ColumnFilterIconComponent],
   templateUrl: './tbl-order-list.html',
   styleUrl: './tbl-order-list.css',
 })
@@ -19,6 +22,7 @@ export class TblOrderListComponent implements OnInit, OnDestroy {
 tblOrder$?: Observable<TblOrder[]>;
 actionType: string = '';
 submitAction: 'Load All' | 'Active Only' = 'Load All'; // default to Load All
+filters: Record<string, string> = {};
 
 constructor(private tblOrderService: TblOrderService, @Inject(PLATFORM_ID) private platformId: object, private cdr: ChangeDetectorRef) {
 }

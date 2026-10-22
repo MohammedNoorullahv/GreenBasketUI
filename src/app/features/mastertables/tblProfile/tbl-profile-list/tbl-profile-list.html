@@ -5,7 +5,10 @@
 		 ============================================ -->
     <div class="page-header-bar">
 
-        <h1 class="page-caption">TblProfilesList</h1>
+        <h1 class="page-caption page-caption-with-icon">
+            <i class="bi bi-people page-caption-icon"></i>
+            <span>Customer / Vendor Master</span>
+        </h1>
 
         <div class="page-header-center">
             <button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
@@ -26,7 +29,7 @@
         <div class="page-header-right">
             <a [routerLink]="['add']" class="btn-app btn-new">
                 <i class="bi bi-plus-lg"></i>
-                New Record
+                Add Customer
             </a>
         </div>
 
@@ -51,7 +54,7 @@
             <div class="page-header-right">
                 <ng-container *ngIf="tblProfile$ | async as tblprofiles">
                     <span class="pagination-info">
-                        Showing {{ tblprofiles.length }} of {{ tblprofiles.length }} Records
+                        Showing {{ (tblprofiles | columnFilter:filters).length }} of {{ tblprofiles.length }} Records
                     </span>
                 </ng-container>
 
@@ -66,43 +69,121 @@
         </div>
 
         <ng-container *ngIf="tblProfile$ | async as tblprofiles">
+        <ng-container *ngIf="tblprofiles | columnFilter:filters as filteredProfiles">
 
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Id</th>
-                        <th>User Type</th>
-                        <th>Contact Number</th>
-                        <th>Alternate Contact Number</th>
-                        <th>Full Name</th>
-                        <th>Complex Or Building Name</th>
-                        <th>Door No</th>
-                        <th>F K Street Id</th>
-                        <th>Street Name</th>
-                        <th>G P S Location</th>
-                        <th>House Image Path</th>
-                        <th>Is Terms Agreed</th>
+                        <th class="col-technical"><span class="column-heading">Id<app-column-filter-icon></app-column-filter-icon></span></th>
+                        <th><span class="column-heading">User Type<app-column-filter-icon></app-column-filter-icon></span></th>
+                        <th><span class="column-heading">Name<app-column-filter-icon></app-column-filter-icon></span></th>
+                        <th><span class="column-heading">Phone No<app-column-filter-icon></app-column-filter-icon></span></th>
+                        <th><span class="column-heading">Alternate No<app-column-filter-icon></app-column-filter-icon></span></th>
+                        <th><span class="column-heading">Complex / Building<app-column-filter-icon></app-column-filter-icon></span></th>
+                        <th><span class="column-heading">Door No<app-column-filter-icon></app-column-filter-icon></span></th>
+                        <th class="col-technical"><span class="column-heading">F K Street Id<app-column-filter-icon></app-column-filter-icon></span></th>
+                        <th><span class="column-heading">Street Name<app-column-filter-icon></app-column-filter-icon></span></th>
+                        <th><span class="column-heading">Location<app-column-filter-icon></app-column-filter-icon></span></th>
+                        <th class="col-technical"><span class="column-heading">House Image Path<app-column-filter-icon></app-column-filter-icon></span></th>
+                        <th class="col-technical"><span class="column-heading">Is Terms Agreed<app-column-filter-icon></app-column-filter-icon></span></th>
+                        <th><span class="column-heading">Status<app-column-filter-icon></app-column-filter-icon></span></th>
                         <th>Actions</th>
+                    </tr>
+                    <tr class="column-filter-row">
+                        <th>
+                            <input class="column-filter-input" type="text" placeholder="Id" aria-label="Filter by Id"
+                                [(ngModel)]="filters['fldId']" />
+                        </th>
+                        <th>
+                            <input class="column-filter-input" type="text" placeholder="User type"
+                                aria-label="Filter by user type" [(ngModel)]="filters['fldUserType']" />
+                        </th>
+                        <th>
+                            <input class="column-filter-input" type="text" placeholder="Name"
+                                aria-label="Filter by name" [(ngModel)]="filters['fldFullName']" />
+                        </th>
+                        <th>
+                            <input class="column-filter-input" type="text" placeholder="Phone"
+                                aria-label="Filter by phone number" [(ngModel)]="filters['fldContactNumber']" />
+                        </th>
+                        <th>
+                            <input class="column-filter-input" type="text" placeholder="Alternate"
+                                aria-label="Filter by alternate number"
+                                [(ngModel)]="filters['fldAlternateContactNumber']" />
+                        </th>
+                        <th>
+                            <input class="column-filter-input" type="text" placeholder="Complex"
+                                aria-label="Filter by complex or building"
+                                [(ngModel)]="filters['fldComplexOrBuildingName']" />
+                        </th>
+                        <th>
+                            <input class="column-filter-input" type="text" placeholder="Door no."
+                                aria-label="Filter by door number" [(ngModel)]="filters['fldDoorNo']" />
+                        </th>
+                        <th>
+                            <input class="column-filter-input" type="text" placeholder="Street Id"
+                                aria-label="Filter by street Id" [(ngModel)]="filters['fldFKStreetId']" />
+                        </th>
+                        <th>
+                            <input class="column-filter-input" type="text" placeholder="Street"
+                                aria-label="Filter by street name" [(ngModel)]="filters['fldStreetName']" />
+                        </th>
+                        <th>
+                            <input class="column-filter-input" type="text" placeholder="Location"
+                                aria-label="Filter by location" [(ngModel)]="filters['fldGPSLocation']" />
+                        </th>
+                        <th>
+                            <input class="column-filter-input" type="text" placeholder="Image path"
+                                aria-label="Filter by house image path"
+                                [(ngModel)]="filters['fldHouseImagePath']" />
+                        </th>
+                        <th>
+                            <select class="column-filter-input" aria-label="Filter by terms agreed"
+                                [(ngModel)]="filters['fldIsTermsAgreed']">
+                                <option value="">All</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </th>
+                        <th>
+                            <select class="column-filter-input" aria-label="Filter by status"
+                                [(ngModel)]="filters['fldIsActive']">
+                                <option value="">All</option>
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </th>
+                        <th class="col-filter-empty">
+                            <button type="button" class="column-filter-clear" (click)="filters = {}">
+                                Clear
+                            </button>
+                        </th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    <tr *ngFor="let tblprofile of tblprofiles">
-                        <td class="cell-code">{{tblprofile.fldId}}</td>
+                    <tr *ngFor="let tblprofile of filteredProfiles">
+                        <td class="cell-code col-technical">{{tblprofile.fldId}}</td>
                         <td class="cell-primary">{{tblprofile.fldUserType}}</td>
+                        <td>{{tblprofile.fldFullName}}</td>
                         <td class="cell-mono">{{tblprofile.fldContactNumber}}</td>
                         <td class="cell-mono">{{tblprofile.fldAlternateContactNumber}}</td>
-                        <td>{{tblprofile.fldFullName}}</td>
                         <td>{{tblprofile.fldComplexOrBuildingName}}</td>
                         <td>{{tblprofile.fldDoorNo}}</td>
-                        <td>{{tblprofile.fldFKStreetId}}</td>
+                        <td class="col-technical">{{tblprofile.fldFKStreetId}}</td>
                         <td>{{tblprofile.fldStreetName}}</td>
                         <td>{{tblprofile.fldGPSLocation}}</td>
-                        <td>{{tblprofile.fldHouseImagePath}}</td>
-                        <td>
+                        <td class="col-technical">{{tblprofile.fldHouseImagePath}}</td>
+                        <td class="col-technical">
                             <span class="badge-pill"
                                 [ngClass]="tblprofile.fldIsTermsAgreed ? 'badge-success' : 'badge-muted'">
                                 {{tblprofile.fldIsTermsAgreed ? 'Yes' : 'No'}}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-badge"
+                                [ngClass]="tblprofile.fldIsActive ? 'status-delivered' : 'status-cancelled'">
+                                {{tblprofile.fldIsActive ? 'Active' : 'Inactive'}}
                             </span>
                         </td>
                         <td>
@@ -124,10 +205,11 @@
 
             </table>
 
-            <p class="grid-footnote" *ngIf="tblprofiles.length === 0">
-                No records found.
+            <p class="grid-footnote" *ngIf="filteredProfiles.length === 0">
+                {{ tblprofiles.length === 0 ? 'No records found.' : 'No records match the filters.' }}
             </p>
 
+        </ng-container>
         </ng-container>
 
     </div>

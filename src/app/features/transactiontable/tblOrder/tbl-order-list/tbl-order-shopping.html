@@ -4,9 +4,13 @@
      CUSTOMER INITIAL LOADING
      ============================================== -->
 
-  <div *ngIf="checkingPendingOrders" class="gb-message">
+  <div *ngIf="checkingPendingOrders" class="gb-orders-state" role="status" aria-live="polite">
 
-    Checking your existing orders...
+    <span class="gb-orders-spinner" aria-hidden="true"></span>
+
+    <h2>Loading your orders</h2>
+
+    <p>Please wait while we fetch your latest orders.</p>
 
   </div>
 
@@ -15,14 +19,17 @@
      PENDING ORDER API ERROR
      ============================================== -->
 
-  <div *ngIf="pendingOrderLoadError" class="gb-message">
+  <div *ngIf="pendingOrderLoadError" class="gb-orders-state gb-orders-state-error" role="alert">
 
-    <p>
-      Unable to load your existing orders.
-    </p>
+    <i class="bi bi-cloud-slash" aria-hidden="true"></i>
 
-    <button type="button" (click)="checkPendingOrders()">
-      Retry
+    <h2>We couldn't load your orders</h2>
+
+    <p>Please check your connection and try again.</p>
+
+    <button type="button" class="gb-btn gb-btn-primary" (click)="checkPendingOrders()">
+      <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+      Try again
     </button>
 
   </div>
@@ -31,286 +38,345 @@
      CUSTOMER PENDING ORDER TRACKING
      ============================================== -->
 
-  <section *ngIf="showPendingOrders" class="gb-order-tracking">
+  <section *ngIf="showPendingOrders" class="gb-order-tracking" aria-labelledby="gbOrdersTitle">
 
-    <div class="gb-tracking-header">
+    <header class="gb-orders-header">
 
-      <!-- ==========================================
-     TOTAL ORDERS INFORMATION PANEL
-     ========================================== -->
+      <div class="gb-orders-heading">
 
-      <div class="gb-order-summary-panel">
+        <span class="gb-orders-eyebrow">
+          <i class="bi bi-bag-check" aria-hidden="true"></i>
+          Green Basket
+        </span>
 
-        <div class="gb-order-summary-top">
+        <h2 id="gbOrdersTitle">
+          {{ isVendor ? 'Customer Orders' : 'My Orders' }}
+        </h2>
 
-          <span>
-            Total Orders
-          </span>
-
-          <strong>
-            {{ pendingOrders.length }}
-          </strong>
-
-        </div>
-
-        <div class="gb-order-summary-selected">
-
-          <span>
-            Currently Viewing
-          </span>
-
-          <strong>
-            {{ selectedOrderPosition }}
-            of
-            {{ pendingOrders.length }}
-          </strong>
-
-        </div>
-
-        <div class="gb-order-summary-number" *ngIf="pendingOrders.length > 0">
-
-          Order #
-
+        <p class="gb-orders-subtitle">
           {{
-          pendingOrders[selectedPendingOrderIndex]
-          .fldOrderNumber
+          isVendor
+          ? 'Review and update customer orders in one place.'
+          : 'Track every order from confirmation to delivery.'
           }}
-
-        </div>
+        </p>
 
       </div>
 
-      <h2>
-        {{ isVendor ? 'Customer Orders' : 'My Orders' }}
-      </h2>
+      <div class="gb-orders-actions">
 
-      <a [routerLink]="['/transactiontables/tblOrderList']" class="btn-app btn-outline">
-        <i class="bi bi-list-ul"></i>
-        Order List
-      </a>
+        <a [routerLink]="['/transactiontables/tblOrderList']" class="gb-btn gb-btn-secondary">
+          <i class="bi bi-clock-history" aria-hidden="true"></i>
+          Order History
+        </a>
 
+        <button *ngIf="isCustomer" type="button" class="gb-btn gb-btn-primary" (click)="startNewOrder()">
+          <i class="bi bi-plus-lg" aria-hidden="true"></i>
+          New Order
+        </button>
 
-      <button *ngIf="isCustomer" type="button" class="gb-place-order-btn" (click)="startNewOrder()">
+      </div>
 
-        + New Order
+    </header>
 
-      </button>
+    <!-- ORDER SUMMARY -->
+
+    <div class="gb-orders-summary" role="group" aria-label="Order summary" aria-live="polite">
+
+      <div class="gb-summary-item">
+
+        <span class="gb-summary-label">Total orders</span>
+
+        <strong class="gb-summary-value">{{ pendingOrders.length }}</strong>
+
+      </div>
+
+      <div class="gb-summary-item">
+
+        <span class="gb-summary-label">Currently viewing</span>
+
+        <strong class="gb-summary-value">
+          {{ selectedOrderPosition }}
+          <span class="gb-summary-of">of {{ pendingOrders.length }}</span>
+        </strong>
+
+      </div>
+
+      <div class="gb-summary-item" *ngIf="pendingOrders.length > 0">
+
+        <span class="gb-summary-label">Latest order</span>
+
+        <strong class="gb-summary-value gb-summary-order">
+          #{{ pendingOrders[0].fldOrderNumber }}
+        </strong>
+
+      </div>
 
     </div>
 
-    <article class="gb-tracking-card" *ngFor="let order of pendingOrders; let i = index" [class.gb-selected-order]="
-    selectedPendingOrderIndex === i
-  ">
 
-      <div class="gb-tracking-card-header">
+    <!-- ORDER CARDS -->
 
-        <h3>
-          Order #{{ order.fldOrderNumber }}
-        </h3>
+    <div class="gb-orders-list">
 
-        <span>
-          {{ order.fldOrderDate | date:'dd MMM yyyy' }}
-        </span>
+      <article class="gb-tracking-card" *ngFor="let order of pendingOrders; let i = index"
+        [class.gb-selected-order]="selectedPendingOrderIndex === i" [attr.aria-labelledby]="'gbOrderTitle-' + i">
 
-      </div>
+        <header class="gb-tracking-card-header">
 
-      <p>
-        Vendor:
-        <strong>
-          {{ order.fldVendorFullName }}
-        </strong>
-      </p>
+          <div class="gb-order-identity">
 
-      <p>
-        Status:
-        <strong>
-          {{ order.fldOrderStatus }}
-        </strong>
-      </p>
+            <span class="gb-order-label">Order</span>
 
+            <h3 class="gb-order-number" [id]="'gbOrderTitle-' + i">
+              #{{ order.fldOrderNumber }}
+            </h3>
 
-      <!-- ORDER PLACED -->
+            <span class="gb-order-date">
+              <i class="bi bi-calendar3" aria-hidden="true"></i>
+              {{ order.fldOrderDate | date:'dd MMM yyyy' }}
+            </span>
 
-      <div class="gb-tracking-stage" [class.completed]="!!order.fldOrderGeneratedAt"
-        [class.pending]="!order.fldOrderGeneratedAt">
+          </div>
 
-        <span class="gb-stage-icon">
-          {{ order.fldOrderGeneratedAt ? '✓' : '○' }}
-        </span>
+          <span class="status-badge gb-order-status"
+            [attr.aria-label]="'Order status: ' + (order.fldOrderStatus || 'Pending')" [ngClass]="{
+              'status-new': order.fldOrderStatus === 'Pending',
+              'status-accepted': order.fldOrderStatus === 'Accepted',
+              'status-packing': order.fldOrderStatus === 'Packing',
+              'status-outfordelivery': order.fldOrderStatus === 'Out for Delivery',
+              'status-delivered': order.fldOrderStatus === 'Delivered',
+              'status-cancelled': order.fldOrderStatus === 'Cancelled',
+              'status-denied': order.fldOrderStatus === 'Denied'
+            }">
+            <span class="gb-status-dot" aria-hidden="true"></span>
+            {{ order.fldOrderStatus || 'Pending' }}
+          </span>
 
-        <div>
+        </header>
 
-          <strong>Order Placed</strong>
+        <div class="gb-order-meta">
 
-          <small>
-            {{
-            order.fldOrderGeneratedAt
-            ? (order.fldOrderGeneratedAt
-            | date:'dd MMM yyyy, hh:mm a')
-            : 'Not yet completed'
-            }}
-          </small>
+          <div class="gb-order-vendor">
 
-        </div>
+            <i class="bi bi-shop" aria-hidden="true"></i>
 
-      </div>
+            <span class="gb-order-meta-label">Vendor</span>
 
+            <strong>{{ order.fldVendorFullName || 'Not assigned' }}</strong>
 
-      <!-- ACCEPTED -->
+          </div>
 
-      <div class="gb-tracking-stage" [class.completed]="!!order.fldAcceptedAt" [class.pending]="!order.fldAcceptedAt">
+          <div class="gb-order-total">
 
-        <span class="gb-stage-icon">
-          {{ order.fldAcceptedAt ? '✓' : '○' }}
-        </span>
+            <span class="gb-order-meta-label">Order total</span>
 
-        <div>
+            <strong>₹{{ order.fldGrandTotal | number:'1.2-2' }}</strong>
 
-          <strong>Accepted by Vendor</strong>
-
-          <small>
-            {{
-            order.fldAcceptedAt
-            ? (order.fldAcceptedAt
-            | date:'dd MMM yyyy, hh:mm a')
-            : 'Not yet accepted'
-            }}
-          </small>
+          </div>
 
         </div>
 
-      </div>
+        <!-- CANCELLED / DENIED ORDERS DO NOT SHOW A PROGRESS TRACKER -->
 
-      <!-- PACKED -->
+        <div class="gb-order-cancelled"
+          *ngIf="order.fldOrderStatus === 'Cancelled' || order.fldOrderStatus === 'Denied'">
 
-      <div class="gb-tracking-stage" [class.completed]="!!order.fldPackedAt" [class.pending]="!order.fldPackedAt">
+          <i class="bi bi-x-octagon" aria-hidden="true"></i>
 
-        <span class="gb-stage-icon">
-          {{ order.fldPackedAt ? '✓' : '○' }}
-        </span>
+          <div>
 
-        <div>
+            <strong>
+              {{ order.fldOrderStatus === 'Cancelled' ? 'Order cancelled' : 'Order declined by vendor' }}
+            </strong>
 
-          <strong>Packed</strong>
+            <small *ngIf="order.fldCancelledAt">
+              {{ order.fldCancelledAt | date:'dd MMM yyyy, hh:mm a' }}
+            </small>
 
-          <small>
-            {{
-            order.fldPackedAt
-            ? (order.fldPackedAt
-            | date:'dd MMM yyyy, hh:mm a')
-            : 'Not yet packed'
-            }}
-          </small>
+            <small *ngIf="!order.fldCancelledAt">
+              This order will not be processed.
+            </small>
 
-        </div>
-
-      </div>
-
-
-      <!-- OUT FOR DELIVERY -->
-
-      <div class="gb-tracking-stage" [class.completed]="!!order.fldOutForDeliveryAt"
-        [class.pending]="!order.fldOutForDeliveryAt">
-
-        <span class="gb-stage-icon">
-          {{ order.fldOutForDeliveryAt ? '✓' : '○' }}
-        </span>
-
-        <div>
-
-          <strong>Out for Delivery</strong>
-
-          <small>
-            {{
-            order.fldOutForDeliveryAt
-            ? (order.fldOutForDeliveryAt
-            | date:'dd MMM yyyy, hh:mm a')
-            : 'Not yet dispatched'
-            }}
-          </small>
+          </div>
 
         </div>
 
-      </div>
+        <div class="gb-order-progress"
+          *ngIf="order.fldOrderStatus !== 'Cancelled' && order.fldOrderStatus !== 'Denied'" role="list"
+          aria-label="Order progress">
 
+          <!-- ORDER PLACED -->
 
-      <!-- DELIVERED -->
+          <div class="gb-tracking-stage" [class.completed]="!!order.fldOrderGeneratedAt"
+            [class.pending]="!order.fldOrderGeneratedAt" [class.active]="isActiveOrderStage(order, 0)"
+            [attr.aria-current]="isActiveOrderStage(order, 0) ? 'step' : null" role="listitem">
 
-      <div class="gb-tracking-stage" [class.completed]="!!order.fldDeliveredAt" [class.pending]="!order.fldDeliveredAt">
+            <span class="gb-stage-icon" aria-hidden="true">
+              <i class="bi" [ngClass]="order.fldOrderGeneratedAt ? 'bi-check-lg' : 'bi-circle'"></i>
+            </span>
 
-        <span class="gb-stage-icon">
-          {{ order.fldDeliveredAt ? '✓' : '○' }}
-        </span>
+            <div class="gb-stage-body">
 
-        <div>
+              <strong>Order placed</strong>
 
-          <strong>Delivered</strong>
+              <small>
+                {{
+                order.fldOrderGeneratedAt
+                ? (order.fldOrderGeneratedAt | date:'dd MMM, hh:mm a')
+                : 'Awaiting confirmation'
+                }}
+              </small>
 
-          <small>
-            {{
-            order.fldDeliveredAt
-            ? (order.fldDeliveredAt
-            | date:'dd MMM yyyy, hh:mm a')
-            : 'Not yet delivered'
-            }}
-          </small>
+            </div>
+
+          </div>
+
+          <!-- ACCEPTED -->
+
+          <div class="gb-tracking-stage" [class.completed]="!!order.fldAcceptedAt"
+            [class.pending]="!order.fldAcceptedAt" [class.active]="isActiveOrderStage(order, 1)"
+            [attr.aria-current]="isActiveOrderStage(order, 1) ? 'step' : null" role="listitem">
+
+            <span class="gb-stage-icon" aria-hidden="true">
+              <i class="bi" [ngClass]="order.fldAcceptedAt ? 'bi-check-lg' : 'bi-circle'"></i>
+            </span>
+
+            <div class="gb-stage-body">
+
+              <strong>Accepted</strong>
+
+              <small>
+                {{
+                order.fldAcceptedAt
+                ? (order.fldAcceptedAt | date:'dd MMM, hh:mm a')
+                : 'Waiting for vendor'
+                }}
+              </small>
+
+            </div>
+
+          </div>
+
+          <!-- PACKED -->
+
+          <div class="gb-tracking-stage" [class.completed]="!!order.fldPackedAt"
+            [class.pending]="!order.fldPackedAt" [class.active]="isActiveOrderStage(order, 2)"
+            [attr.aria-current]="isActiveOrderStage(order, 2) ? 'step' : null" role="listitem">
+
+            <span class="gb-stage-icon" aria-hidden="true">
+              <i class="bi" [ngClass]="order.fldPackedAt ? 'bi-check-lg' : 'bi-circle'"></i>
+            </span>
+
+            <div class="gb-stage-body">
+
+              <strong>Packed</strong>
+
+              <small>
+                {{
+                order.fldPackedAt
+                ? (order.fldPackedAt | date:'dd MMM, hh:mm a')
+                : 'Not yet packed'
+                }}
+              </small>
+
+            </div>
+
+          </div>
+
+          <!-- OUT FOR DELIVERY -->
+
+          <div class="gb-tracking-stage" [class.completed]="!!order.fldOutForDeliveryAt"
+            [class.pending]="!order.fldOutForDeliveryAt" [class.active]="isActiveOrderStage(order, 3)"
+            [attr.aria-current]="isActiveOrderStage(order, 3) ? 'step' : null" role="listitem">
+
+            <span class="gb-stage-icon" aria-hidden="true">
+              <i class="bi" [ngClass]="order.fldOutForDeliveryAt ? 'bi-check-lg' : 'bi-circle'"></i>
+            </span>
+
+            <div class="gb-stage-body">
+
+              <strong>Out for delivery</strong>
+
+              <small>
+                {{
+                order.fldOutForDeliveryAt
+                ? (order.fldOutForDeliveryAt | date:'dd MMM, hh:mm a')
+                : 'Not yet dispatched'
+                }}
+              </small>
+
+            </div>
+
+          </div>
+
+          <!-- DELIVERED -->
+
+          <div class="gb-tracking-stage" [class.completed]="!!order.fldDeliveredAt"
+            [class.pending]="!order.fldDeliveredAt" [class.active]="isActiveOrderStage(order, 4)"
+            [attr.aria-current]="isActiveOrderStage(order, 4) ? 'step' : null" role="listitem">
+
+            <span class="gb-stage-icon" aria-hidden="true">
+              <i class="bi" [ngClass]="order.fldDeliveredAt ? 'bi-check-lg' : 'bi-circle'"></i>
+            </span>
+
+            <div class="gb-stage-body">
+
+              <strong>Delivered</strong>
+
+              <small>
+                {{
+                order.fldDeliveredAt
+                ? (order.fldDeliveredAt | date:'dd MMM, hh:mm a')
+                : 'Not yet delivered'
+                }}
+              </small>
+
+            </div>
+
+          </div>
 
         </div>
 
-      </div>
+        <footer class="gb-tracking-footer">
 
-      <!-- <small *ngIf="isVendor">
-        DEBUG: {{ order.fldOrderStatus }} || {{ order.fldPackedAt }}
-      </small>
+          <div class="gb-order-actions">
 
-      <small>
-        Role: {{ userType }} |
-        Vendor: {{ isVendor }} |
-        Status: {{ order.fldOrderStatus }}
-      </small> 
+            <button type="button" class="gb-btn gb-btn-primary" (click)="viewPendingOrderDetails(order, i)">
+              <i class="bi bi-receipt" aria-hidden="true"></i>
+              View details
+            </button>
 
-      <button *ngIf="isVendor && canUpdateOrderStatus(order)" type="button" class="gb-status-update-btn"
-        (click)="updateToNextStatus(order)">
+            <!-- VENDOR: DENY PENDING ORDER -->
+            <button *ngIf="isVendor && canDenyOrder(order)" type="button" class="gb-btn gb-btn-danger"
+              [disabled]="updatingOrderId === order.fldId" (click)="canDenyOrder(order)">
 
-        {{ getNextStatusButtonText(order) }}
+              <i class="bi bi-x-lg" aria-hidden="true"></i>
+              Deny order
 
-      </button>-->
+            </button>
 
-      <div class="gb-tracking-footer">
+            <!-- VENDOR: NEXT STATUS -->
+            <button *ngIf="isVendor && canUpdateOrderStatus(order)" type="button" class="gb-btn gb-btn-secondary"
+              [disabled]="updatingOrderId === order.fldId" (click)="updateToNextStatus(order)">
 
-        <strong>
-          Total: ₹{{ order.fldGrandTotal | number:'1.2-2' }}
-        </strong>
+              <i class="bi bi-arrow-right-circle" aria-hidden="true"></i>
 
-        <button type="button" class="gb-view-details-btn" (click)="viewPendingOrderDetails(order, i)">
+              {{
+              updatingOrderId === order.fldId
+              ? 'Updating...'
+              : getNextStatusButtonText(order)
+              }}
 
-          View Details
+            </button>
 
-        </button>
+          </div>
 
-        <!-- VENDOR: DENY PENDING ORDER -->
-        <button *ngIf="isVendor && canDenyOrder(order)" type="button" class="gb-deny-order-btn"
-          [disabled]="updatingOrderId === order.fldId" (click)="canDenyOrder(order)">
+        </footer>
 
-          Deny Order
+      </article>
 
-        </button>
-
-        <!-- VENDOR: NEXT STATUS -->
-        <button *ngIf="isVendor && canUpdateOrderStatus(order)" type="button" class="gb-status-update-btn"
-          [disabled]="updatingOrderId === order.fldId" (click)="updateToNextStatus(order)">
-
-          {{
-          updatingOrderId === order.fldId
-          ? 'Updating...'
-          : getNextStatusButtonText(order)
-          }}
-
-        </button>
-
-      </div>
-
-    </article>
+    </div>
 
   </section>
 
@@ -321,1170 +387,834 @@
   <div class="gb-order-modal-backdrop" *ngIf="selectedPendingOrder as order" (click)="closePendingOrderDetails()">
 
     <div class="gb-order-modal" role="dialog" aria-modal="true" aria-labelledby="gbOrderDetailsTitle"
-      (click)="$event.stopPropagation()">
+      aria-describedby="gbOrderDetailsMeta" (click)="$event.stopPropagation()">
 
-      <!-- POPUP HEADER -->
+      <!-- DIALOG HEADER -->
 
-      <div class="gb-order-modal-header">
+      <header class="gb-order-modal-header">
 
-        <div>
+        <div class="gb-modal-heading">
+
+          <span class="gb-modal-eyebrow">
+            <i class="bi bi-receipt" aria-hidden="true"></i>
+            Order details
+          </span>
 
           <h2 id="gbOrderDetailsTitle">
-            Order Details
+            Order #{{ order.fldOrderNumber }}
           </h2>
 
-          <small>
-            {{ selectedOrderPosition }}
-            of
-            {{ pendingOrders.length }}
-          </small>
+          <p id="gbOrderDetailsMeta">
+            Placed
+            {{
+            order.fldOrderGeneratedAt
+            ? (order.fldOrderGeneratedAt | date:'dd MMM yyyy, hh:mm a')
+            : (order.fldOrderDate | date:'dd MMM yyyy')
+            }}
+          </p>
 
         </div>
 
-        <button type="button" class="gb-order-modal-close" aria-label="Close order details"
-          (click)="closePendingOrderDetails()">
-          &times;
-        </button>
+        <div class="gb-modal-header-side">
 
-      </div>
+          <span class="status-badge gb-order-status"
+            [attr.aria-label]="'Order status: ' + (order.fldOrderStatus || 'Pending')" [ngClass]="{
+              'status-new': order.fldOrderStatus === 'Pending',
+              'status-accepted': order.fldOrderStatus === 'Accepted',
+              'status-packing': order.fldOrderStatus === 'Packing',
+              'status-outfordelivery': order.fldOrderStatus === 'Out for Delivery',
+              'status-delivered': order.fldOrderStatus === 'Delivered',
+              'status-cancelled': order.fldOrderStatus === 'Cancelled',
+              'status-denied': order.fldOrderStatus === 'Denied'
+            }">
+            <span class="gb-status-dot" aria-hidden="true"></span>
+            {{ order.fldOrderStatus || 'Pending' }}
+          </span>
 
-
-      <!-- ORDER INFORMATION -->
-
-      <div class="gb-order-modal-info">
-
-        <h3>
-          #{{ order.fldOrderNumber }}
-        </h3>
-
-        <p>
-          {{
-          order.fldOrderGeneratedAt
-          | date:'dd MMM yyyy, hh:mm a'
-          }}
-        </p>
-
-        <div>
-
-          <strong>
-            Vendor:
-          </strong>
-
-          {{ order.fldVendorFullName }}
+          <button type="button" class="gb-order-modal-close" aria-label="Close order details"
+            (click)="closePendingOrderDetails()">
+            &times;
+          </button>
 
         </div>
 
-        <div>
-
-          <strong>
-            Status:
-          </strong>
-
-          {{ order.fldOrderStatus }}
-
-        </div>
-
-      </div>
+      </header>
 
 
-      <!-- ORDERED VEGETABLES -->
+      <div class="gb-order-modal-body">
 
-      <div class="gb-order-modal-items">
+        <!-- ORDER SUMMARY -->
 
-        <h3>
-          Ordered Vegetables
-        </h3>
+        <section class="gb-modal-meta" aria-label="Order information">
 
-        <div class="gb-order-detail-row" *ngFor="
-          let item of order.pendingOrderdtls
-        ">
+          <div class="gb-modal-meta-item">
 
-          <!-- VEGETABLE IMAGE -->
+            <span class="gb-modal-meta-label">Vendor</span>
 
-          <img class="gb-order-detail-image" [src]="imageUrl(item.fldItemImagePath)"
-            [alt]="item.fldItemName || 'Vegetable'" (error)="onImageError($event)" />
-
-
-          <!-- VEGETABLE NAME -->
-
-          <div class="gb-order-detail-name">
-
-            <strong>
-              {{ item.fldItemName }}
-            </strong>
-
-            <small>
-              {{ item.fldQuantity }}
-              {{ item.fldUnit }}
-            </small>
+            <strong>{{ order.fldVendorFullName || 'Not assigned' }}</strong>
 
           </div>
 
+          <div class="gb-modal-meta-item">
 
-          <!-- RATE AND VALUE -->
+            <span class="gb-modal-meta-label">Order type</span>
 
-          <div class="gb-order-detail-amount">
+            <strong>{{ order.fldOrderType || order.fldOrderOption || 'Not specified' }}</strong>
 
-            <small>
-              ₹{{ item.fldRate | number:'1.2-2' }}
-              / {{ item.fldUnit }}
-            </small>
+          </div>
+
+          <div class="gb-modal-meta-item">
+
+            <span class="gb-modal-meta-label">Requested delivery</span>
 
             <strong>
-              ₹{{ item.fldvalue | number:'1.2-2' }}
+              {{
+              order.fldRequestedDeliveryDate
+              ? (order.fldRequestedDeliveryDate | date:'dd MMM yyyy')
+              : 'Not specified'
+              }}
             </strong>
 
           </div>
 
-        </div>
+        </section>
+
+
+        <!-- ORDERED ITEMS -->
+
+        <section class="gb-order-modal-items" aria-labelledby="gbModalItemsTitle">
+
+          <div class="gb-modal-section-head">
+
+            <h3 id="gbModalItemsTitle">Order items</h3>
+
+            <span class="gb-item-count">
+              {{ order.pendingOrderdtls.length }}
+              {{ order.pendingOrderdtls.length === 1 ? 'item' : 'items' }}
+            </span>
+
+          </div>
+
+          <div class="gb-order-modal-items-list">
+
+            <div class="gb-order-detail-row" *ngFor="let item of order.pendingOrderdtls">
+
+              <img class="gb-order-detail-image" [src]="imageUrl(item.fldItemImagePath)"
+                [alt]="item.fldItemName || 'Vegetable'" (error)="onImageError($event)" />
+
+              <div class="gb-order-detail-name">
+
+                <strong>{{ item.fldItemName || 'Item' }}</strong>
+
+                <small>
+                  {{ item.fldQuantity | number:'1.0-3' }}
+                  {{ item.fldUnit }}
+                  <span aria-hidden="true">·</span>
+                  ₹{{ item.fldRate | number:'1.2-2' }} / {{ item.fldUnit }}
+                </small>
+
+              </div>
+
+              <div class="gb-order-detail-amount">
+
+                <strong>₹{{ item.fldvalue | number:'1.2-2' }}</strong>
+
+              </div>
+
+            </div>
+
+            <p class="gb-modal-empty" *ngIf="!order.pendingOrderdtls.length">
+              No items were returned for this order.
+            </p>
+
+          </div>
+
+        </section>
+
+
+        <!-- BILL SUMMARY -->
+
+        <section class="gb-order-modal-bill" aria-labelledby="gbModalBillTitle">
+
+          <h3 id="gbModalBillTitle">Bill summary</h3>
+
+          <div class="gb-bill-line">
+
+            <span>Item subtotal</span>
+
+            <strong>₹{{ order.fldItemSubTotal | number:'1.2-2' }}</strong>
+
+          </div>
+
+          <div class="gb-bill-line">
+
+            <span>Delivery charges</span>
+
+            <strong>₹{{ order.fldDeliveryCharges | number:'1.2-2' }}</strong>
+
+          </div>
+
+          <div class="gb-order-modal-grand-total">
+
+            <span>Grand total</span>
+
+            <strong>₹{{ order.fldGrandTotal | number:'1.2-2' }}</strong>
+
+          </div>
+
+        </section>
 
       </div>
 
 
-      <!-- BILL SUMMARY -->
+      <!-- DIALOG FOOTER -->
 
-      <div class="gb-order-modal-bill">
+      <footer class="gb-order-modal-actions">
 
-        <div>
-
-          <span>
-            Item Subtotal
-          </span>
-
-          <strong>
-            ₹{{ order.fldItemSubTotal | number:'1.2-2' }}
-          </strong>
-
-        </div>
-
-        <div>
-
-          <span>
-            Delivery Charges
-          </span>
-
-          <strong>
-            ₹{{ order.fldDeliveryCharges | number:'1.2-2' }}
-          </strong>
-
-        </div>
-
-        <div class="gb-order-modal-grand-total">
-
-          <strong>
-            Grand Total
-          </strong>
-
-          <strong>
-            ₹{{ order.fldGrandTotal | number:'1.2-2' }}
-          </strong>
-
-        </div>
-
-      </div>
-
-
-      <!-- CLOSE BUTTON -->
-
-      <div class="gb-order-modal-actions">
-
-        <button type="button" (click)="closePendingOrderDetails()">
-
+        <button type="button" class="gb-btn gb-btn-primary" (click)="closePendingOrderDetails()">
+          <i class="bi bi-check2" aria-hidden="true"></i>
           Close
-
         </button>
 
-      </div>
+      </footer>
 
     </div>
 
   </div>
 
   <ng-container *ngIf="shoppingStarted">
-    <!-- =====================================================
-       HEADER
-       ===================================================== -->
-
     <header class="gb-header">
-
       <div class="gb-brand">
-        🛒 Green Basket
+        <img class="gb-brand-logo" src="/Images/Green%20Basket%20Light.jpg" alt="" />
+        <div class="gb-brand-copy">
+          <span class="gb-brand-name">Green Basket</span>
+          <small>Fresh vegetables from local vendors</small>
+        </div>
       </div>
-
-      <span class="gb-cart-badge">
-        {{ cart.length }} items
-      </span>
-
+      <div class="gb-header-actions">
+        <span class="gb-header-user" *ngIf="profileName">
+          <i class="bi bi-person-circle" aria-hidden="true"></i>
+          {{ profileName }}
+        </span>
+        <div class="gb-cart-pill" role="status" aria-live="polite"
+          [attr.aria-label]="cart.length + ' items in cart'">
+          <i class="bi bi-cart3" aria-hidden="true"></i>
+          <span class="gb-cart-badge">{{ cart.length }}</span>
+        </div>
+      </div>
     </header>
 
-
-    <!-- =====================================================
-       VENDOR AND ORDER OPTIONS
-       ===================================================== -->
-
-    <section class="gb-controls">
-
-      <label for="gbVendor">
-        Select Vendor
-      </label>
-
-      <select id="gbVendor" class="gb-input" [ngModel]="vendorId" (ngModelChange)="changeVendor($event)">
-
-        <option [ngValue]="0">
-          -- Select vendor --
-        </option>
-
-        <option *ngFor="let vendor of vendorOptions" [ngValue]="vendor.fldId">
-          {{ vendor.fldDescription }}
-        </option>
-
-      </select>
-
-
-      <!-- ORDER OPTION -->
-
-      <div class="gb-order-options">
-
-        <label>
-
-          <input type="radio" name="orderOption" value="Current Day Order" [(ngModel)]="orderOption"
-            (ngModelChange)="onOrderOptionChange()" />
-
-          Current Day Order
-
-        </label>
-
-
-        <label>
-
-          <input type="radio" name="orderOption" value="Advance Order" [(ngModel)]="orderOption"
-            [disabled]="vendorProfile?.fldvAllowAdvanceOrder !== true" (ngModelChange)="onOrderOptionChange()" />
-
-          Advance Order
-
-        </label>
-
-      </div>
-
-
-      <!-- =====================================================
-         DELIVERY OPTIONS
-         ===================================================== -->
-
-      <div class="gb-delivery-options">
-
-        <!-- SELF PICKUP -->
-
-        <label>
-
-          <input type="radio" name="orderType" value="Self Pickup" [(ngModel)]="fldOrderType"
-            (ngModelChange)="onDeliveryTypeChange()" />
-
-          Self Pickup — Free
-
-        </label>
-
-
-        <!-- REGULAR DELIVERY: CURRENT DAY ONLY -->
-
-        <label *ngIf="orderOption === 'Current Day Order'">
-
-          <input type="radio" name="orderType" value="Normal Delivery" [(ngModel)]="fldOrderType"
-            (ngModelChange)="onDeliveryTypeChange()" />
-
-          Regular Delivery
-
-          <small *ngIf="vendorProfile">
-            — ₹{{ (vendorProfile.fldvRDCharges ?? 0) | number:'1.2-2' }}
-          </small>
-
-        </label>
-
-
-        <!-- PRIORITY DELIVERY: CURRENT DAY ONLY -->
-
-        <label *ngIf="
-          orderOption === 'Current Day Order' &&
-          vendorProfile?.fldvAcceptingPriortyOrder === true">
-
-          <input type="radio" name="orderType" value="Priority Delivery" [(ngModel)]="fldOrderType"
-            (ngModelChange)="onDeliveryTypeChange()" />
-
-          Priority Delivery
-
-          <small *ngIf="vendorProfile">
-            — ₹{{ (vendorProfile.fldvPDCharges ?? 0) | number:'1.2-2' }}
-          </small>
-
-        </label>
-
-
-        <!-- ADVANCE DELIVERY -->
-
-        <label *ngIf="orderOption === 'Advance Order'">
-
-          <input type="radio" name="orderType" value="Advance Delivery" [(ngModel)]="fldOrderType"
-            (ngModelChange)="onDeliveryTypeChange()" />
-
-          Advance Delivery
-
-          <small *ngIf="vendorProfile">
-            — ₹{{ (vendorProfile.fldvADCharges ?? 0) | number:'1.2-2' }}
-          </small>
-
-        </label>
-
-      </div>
-
-
-      <!-- =====================================================
-         ADVANCE ORDER DETAILS
-         ===================================================== -->
-
-      <div *ngIf="orderOption === 'Advance Order'" class="gb-advance">
-
-        <label for="requestedDeliveryDate">
-          Requested Delivery Date
-        </label>
-
-        <input id="requestedDeliveryDate" type="date" class="gb-input" name="requestedDeliveryDate"
-          [(ngModel)]="requestedDeliveryDate" [min]="getTomorrowDate()" (ngModelChange)="updateDeliveryEstimate()" />
-
-        <p>
-          Prices may change before delivery.
-          The earliest available delivery date is tomorrow.
+    <section class="gb-order-hero" *ngIf="!showCheckout" aria-labelledby="gbNewOrderTitle">
+      <div>
+        <button type="button" class="gb-back-link" (click)="backToMyOrders()">
+          <i class="bi bi-arrow-left" aria-hidden="true"></i>
+          Back to My Orders
+        </button>
+        <p class="gb-orders-eyebrow">
+          <i class="bi bi-bag-plus" aria-hidden="true"></i>
+          New order
         </p>
-
-
-        <label>
-
-          <input type="radio" name="priceChoice" value="Auto Apply" [(ngModel)]="priceChangeOption" />
-
-          Auto apply updated prices
-
-        </label>
-
-
-        <label>
-
-          <input type="radio" name="priceChoice" value="Get Confirmation" [(ngModel)]="priceChangeOption" />
-
-          Get my confirmation before applying price changes
-
-        </label>
-
+        <h1 id="gbNewOrderTitle">Build your vegetable basket</h1>
+        <p>Select a vendor and delivery option, then add fresh produce to your cart.</p>
       </div>
-
-
-      <!-- DELIVERY ESTIMATE -->
-
-      <div class="gb-estimate">
-
-        🕒 Estimated delivery / pickup:
-        {{ deliveryEstimate }}
-
-      </div>
-      <!-- 
-      <section class="gb-delivery-policy" aria-label="Delivery conditions" aria-live="polite"
-        style="margin-top:12px;padding:12px;border:1px solid #cbdcf1;border-radius:8px;background:#f8fbff">
-        <p *ngIf="!vendorProfile">Select a vendor and wait for delivery settings to load.</p>
-        <ng-container *ngIf="vendorProfile">
-          <p *ngIf="minimumOrderValue > 0">Minimum item value: <strong>₹{{ minimumOrderValue | number:'1.2-2' }}</strong></p>
-          <p *ngIf="amountToMinimum > 0" style="color:#9a3412">Add ₹{{ amountToMinimum | number:'1.2-2' }} more to place this order.</p>
-          <p *ngIf="waiverOrderValue > 0 && originalDeliveryCharge > 0">
-            Free delivery on item value of ₹{{ waiverOrderValue | number:'1.2-2' }} or more.
-          </p>
-          <p *ngIf="waiverOrderValue > 0 && originalDeliveryCharge > 0 && amountToWaiver > 0">
-            Add ₹{{ amountToWaiver | number:'1.2-2' }} more for free delivery.
-          </p>
-          <p *ngIf="deliverySavings > 0" style="color:#087f5b;font-weight:700">
-            Delivery charge waived — you save ₹{{ deliverySavings | number:'1.2-2' }}!
-          </p>
-        </ng-container>
-      </section> -->
-
-      <section class="gb-delivery-policy" aria-label="Delivery conditions" aria-live="polite" style="margin-top:12px;padding:12px;border:1px solid #cbdcf1;
-         border-radius:8px;background:#f8fbff">
-        <p *ngIf="!vendorProfile" style="color:#000000">
-          Select a vendor and wait for delivery settings to load.
-        </p>
-
-        <ng-container *ngIf="vendorProfile">
-
-          <!-- Hide once minimum order value is reached -->
-          <p *ngIf="minimumOrderValue > 0 && amountToMinimum > 0" style="color:#000000">
-            Minimum item value:
-            <strong>₹{{ minimumOrderValue | number:'1.2-2' }}</strong>
-          </p>
-
-          <p *ngIf="amountToMinimum > 0" style="color:#8b0000">
-            Add ₹{{ amountToMinimum | number:'1.2-2' }}
-            more to place this order.
-          </p>
-
-          <p *ngIf="deliverySavings <= 0 &&
-         waiverOrderValue > 0 &&
-         originalDeliveryCharge > 0" style="color:#000000">
-            Free delivery on item value of
-            ₹{{ waiverOrderValue | number:'1.2-2' }} or more.
-          </p>
-
-          <p *ngIf="waiverOrderValue > 0 &&
-             originalDeliveryCharge > 0 &&
-             amountToWaiver > 0" style="color:#8b0000">
-            Add ₹{{ amountToWaiver | number:'1.2-2' }}
-            more for free delivery.
-          </p>
-
-          <p *ngIf="deliverySavings > 0" style="color:#5b21b6;font-weight:700">
-            Delivery charge waived — you save
-            ₹{{ deliverySavings | number:'1.2-2' }}!
-          </p>
-
-        </ng-container>
-      </section>
-
-
-
+      <span class="gb-hero-badge">
+        <i class="bi bi-shield-check" aria-hidden="true"></i>
+        Fresh from verified local vendors
+      </span>
     </section>
 
+    <section class="gb-order-settings" *ngIf="!showCheckout" aria-labelledby="gbOrderSettingsTitle">
+      <div class="gb-settings-head">
+        <div>
+          <h2 id="gbOrderSettingsTitle">Order settings</h2>
+          <p>Delivery charges and the minimum order value depend on these choices.</p>
+        </div>
+        <div class="gb-estimate" aria-live="polite">
+          <i class="bi bi-clock-history" aria-hidden="true"></i>
+          <span>{{ deliveryEstimate || 'Choose a vendor to see the delivery estimate' }}</span>
+        </div>
+      </div>
 
-    <!-- =====================================================
-       VEGETABLE SHOPPING SCREEN
-       ===================================================== -->
+      <div class="gb-settings-grid">
+        <div class="gb-field gb-field-vendor">
+          <label for="gbVendor">Vendor</label>
+          <select id="gbVendor" class="gb-input" [ngModel]="vendorId" (ngModelChange)="changeVendor($event)">
+            <option [ngValue]="0">Select a vendor</option>
+            <option *ngFor="let vendor of vendorOptions" [ngValue]="vendor.fldId">
+              {{ vendor.fldDescription }}
+            </option>
+          </select>
+          <small>Stock and prices load from the selected vendor.</small>
+        </div>
+
+        <fieldset class="gb-field">
+          <legend>Order type</legend>
+          <div class="gb-segmented">
+            <label class="gb-segment">
+              <input type="radio" name="orderOption" value="Current Day Order" [(ngModel)]="orderOption"
+                (ngModelChange)="onOrderOptionChange()" />
+              <span>Current day</span>
+            </label>
+            <label class="gb-segment">
+              <input type="radio" name="orderOption" value="Advance Order" [(ngModel)]="orderOption"
+                [disabled]="vendorProfile?.fldvAllowAdvanceOrder !== true" (ngModelChange)="onOrderOptionChange()" />
+              <span>Advance</span>
+            </label>
+          </div>
+          <small *ngIf="!vendorProfile">Select a vendor to check advance ordering availability.</small>
+          <small *ngIf="vendorProfile && vendorProfile.fldvAllowAdvanceOrder !== true">
+            Advance ordering is not enabled for this vendor.
+          </small>
+        </fieldset>
+
+        <fieldset class="gb-field gb-field-delivery">
+          <legend>Delivery option</legend>
+          <div class="gb-choice-cards">
+            <label class="gb-choice-card">
+              <input type="radio" name="orderType" value="Self Pickup" [(ngModel)]="fldOrderType"
+                (ngModelChange)="onDeliveryTypeChange()" />
+              <span class="gb-choice-card-content">
+                <span class="gb-choice-card-title">
+                  Self pickup
+                  <span class="gb-price-tag">Free</span>
+                </span>
+                <small>Collect directly from the vendor</small>
+              </span>
+            </label>
+
+            <label class="gb-choice-card" *ngIf="orderOption === 'Current Day Order'">
+              <input type="radio" name="orderType" value="Normal Delivery" [(ngModel)]="fldOrderType"
+                (ngModelChange)="onDeliveryTypeChange()" />
+              <span class="gb-choice-card-content">
+                <span class="gb-choice-card-title">
+                  Regular delivery
+                  <span class="gb-price-tag" *ngIf="vendorProfile">
+                    {{ regularDeliveryPriceLabel }}
+                  </span>
+                </span>
+                <small>Delivered today</small>
+              </span>
+            </label>
+
+            <label class="gb-choice-card"
+              *ngIf="orderOption === 'Current Day Order' && vendorProfile?.fldvAcceptingPriortyOrder === true">
+              <input type="radio" name="orderType" value="Priority Delivery" [(ngModel)]="fldOrderType"
+                (ngModelChange)="onDeliveryTypeChange()" />
+              <span class="gb-choice-card-content">
+                <span class="gb-choice-card-title">
+                  Priority delivery
+                  <span class="gb-price-tag" *ngIf="vendorProfile">
+                    {{ priorityDeliveryPriceLabel }}
+                  </span>
+                </span>
+                <small>Faster delivery today</small>
+              </span>
+            </label>
+
+            <label class="gb-choice-card" *ngIf="orderOption === 'Advance Order'">
+              <input type="radio" name="orderType" value="Advance Delivery" [(ngModel)]="fldOrderType"
+                (ngModelChange)="onDeliveryTypeChange()" />
+              <span class="gb-choice-card-content">
+                <span class="gb-choice-card-title">
+                  Advance delivery
+                  <span class="gb-price-tag" *ngIf="vendorProfile">
+                    {{ advanceDeliveryPriceLabel }}
+                  </span>
+                </span>
+                <small>Choose a future delivery date</small>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+      </div>
+
+      <div *ngIf="orderOption === 'Advance Order'" class="gb-advance-panel">
+        <div class="gb-field">
+          <label for="requestedDeliveryDate">Requested delivery date</label>
+          <input id="requestedDeliveryDate" type="date" class="gb-input" name="requestedDeliveryDate"
+            [(ngModel)]="requestedDeliveryDate" [min]="getTomorrowDate()"
+            (ngModelChange)="updateDeliveryEstimate()" />
+          <small>The earliest available date is tomorrow.</small>
+        </div>
+        <fieldset class="gb-field">
+          <legend>If prices change before delivery</legend>
+          <label class="gb-radio-row">
+            <input type="radio" name="priceChoice" value="Auto Apply" [(ngModel)]="priceChangeOption" />
+            Auto-apply updated prices
+          </label>
+          <label class="gb-radio-row">
+            <input type="radio" name="priceChoice" value="Get Confirmation" [(ngModel)]="priceChangeOption" />
+            Ask me for confirmation first
+          </label>
+        </fieldset>
+      </div>
+
+      <div class="gb-policy" aria-live="polite">
+        <div class="gb-policy-empty" *ngIf="!vendorProfile">
+          <i class="bi bi-info-circle" aria-hidden="true"></i>
+          <div>
+            <strong>Select a vendor to continue</strong>
+            <p>Minimum order value and delivery conditions will appear here.</p>
+          </div>
+        </div>
+
+        <ng-container *ngIf="vendorProfile">
+          <div class="gb-policy-main">
+            <span class="gb-policy-icon" [class.gb-policy-icon-ready]="minimumOrderMet">
+              <i class="bi" [ngClass]="minimumOrderMet ? 'bi-check-circle' : 'bi-basket'" aria-hidden="true"></i>
+            </span>
+            <div class="gb-policy-copy">
+              <strong *ngIf="minimumOrderValue > 0 && !minimumOrderMet">
+                Minimum order ₹{{ minimumOrderValue | number:'1.2-2' }}
+              </strong>
+              <strong *ngIf="minimumOrderValue > 0 && minimumOrderMet">Minimum order reached</strong>
+              <strong *ngIf="minimumOrderValue <= 0">No minimum order for this option</strong>
+
+              <p *ngIf="minimumOrderValue > 0 && !minimumOrderMet">
+                Add ₹{{ amountToMinimum | number:'1.2-2' }} more to continue to checkout.
+              </p>
+              <p *ngIf="minimumOrderValue > 0 && minimumOrderMet">You can continue to checkout.</p>
+              <p *ngIf="minimumOrderValue <= 0 && cart.length === 0">Add items to start your order.</p>
+              <p *ngIf="minimumOrderValue <= 0 && cart.length > 0">You can check out with any basket size.</p>
+            </div>
+            <strong class="gb-policy-ratio" *ngIf="minimumOrderValue > 0">
+              ₹{{ subtotal | number:'1.0-0' }} / ₹{{ minimumOrderValue | number:'1.0-0' }}
+            </strong>
+          </div>
+
+          <div class="gb-policy-progress" *ngIf="minimumOrderValue > 0" role="progressbar"
+            [attr.aria-valuemin]="0" [attr.aria-valuemax]="100" [attr.aria-valuenow]="minimumOrderProgress"
+            aria-label="Minimum order progress">
+            <span [style.width.%]="minimumOrderProgress"></span>
+          </div>
+
+          <div class="gb-policy-meta">
+            <span *ngIf="waiverOrderValue > 0 && originalDeliveryCharge > 0">
+              <i class="bi bi-truck" aria-hidden="true"></i>
+              Free delivery from ₹{{ waiverOrderValue | number:'1.2-2' }}
+              <ng-container *ngIf="amountToWaiver > 0">
+                — add ₹{{ amountToWaiver | number:'1.2-2' }} more
+              </ng-container>
+            </span>
+            <span class="gb-policy-savings" *ngIf="deliverySavings > 0">
+              <i class="bi bi-piggy-bank" aria-hidden="true"></i>
+              You save ₹{{ deliverySavings | number:'1.2-2' }} on delivery
+            </span>
+            <span class="gb-policy-savings" *ngIf="originalDeliveryCharge === 0">
+              <i class="bi bi-check-circle" aria-hidden="true"></i>
+              No delivery charge for this option
+            </span>
+          </div>
+        </ng-container>
+      </div>
+    </section>
 
     <ng-container *ngIf="!showCheckout; else checkout">
 
-
-      <!-- SEARCH AND CATEGORY FILTER -->
-
-      <section class="gb-controls">
-
-        <input class="gb-input" type="search" placeholder="Search vegetables..." [(ngModel)]="searchText" />
-
-
-        <div class="gb-categories">
-
-          <button type="button" *ngFor="let c of categories" [class.active]="category === c" (click)="category = c">
-
-            {{ c }}
-
-          </button>
-
+      <section class="gb-catalog-toolbar" aria-label="Find vegetables">
+        <div class="gb-search">
+          <i class="bi bi-search" aria-hidden="true"></i>
+          <input class="gb-input" type="search" placeholder="Search vegetables..." aria-label="Search vegetables"
+            [(ngModel)]="searchText" (ngModelChange)="clearHiddenQuantityErrors()" />
         </div>
-
+        <div class="gb-categories" role="group" aria-label="Filter by category">
+          <button type="button" *ngFor="let c of categories" [class.active]="category === c"
+            [attr.aria-pressed]="category === c" (click)="setCategory(c)">
+            {{ c }}
+          </button>
+        </div>
       </section>
 
-
-      <!-- MESSAGES -->
+      <div class="gb-catalog-heading" *ngIf="vendorId">
+        <div>
+          <h2>Available vegetables</h2>
+          <p>{{ visibleStock.length }} {{ visibleStock.length === 1 ? 'item' : 'items' }} available</p>
+        </div>
+      </div>
 
       <div class="gb-message" *ngIf="!vendorId">
-
-        Select a vendor to load available vegetables.
-
+        <i class="bi bi-shop" aria-hidden="true"></i>
+        <p>Select a vendor to load available vegetables.</p>
       </div>
-
 
       <div class="gb-message" *ngIf="loading">
-
-        Loading available vegetables...
-
+        <span class="gb-orders-spinner" aria-hidden="true"></span>
+        <p>Loading available vegetables…</p>
       </div>
 
-
-      <div class="gb-message" *ngIf="
-        vendorId &&
-        !loading &&
-        visibleStock.length === 0
-      ">
-
-        No available vegetables match your selection.
-
+      <div class="gb-message" *ngIf="vendorId && !loading && visibleStock.length === 0">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <p>No available vegetables match your search.</p>
       </div>
 
-
-      <!-- =====================================================
-         VEGETABLE LIST
-         ===================================================== -->
-
-      <section class="gb-products">
-
-
+      <section class="gb-products" *ngIf="visibleStock.length > 0" aria-label="Available vegetables">
         <article class="gb-product" *ngFor="let item of visibleStock">
-
-
-          <!-- ITEM IMAGE -->
-
           <img class="gb-product-image" [src]="imageUrl(item.fldItemImagePath)" [alt]="item.fldItemName"
             loading="lazy" (error)="onImageError($event)" />
 
-
-          <!-- ITEM INFORMATION -->
-
           <div class="gb-product-info">
+            <div class="gb-product-heading">
+              <strong>{{ item.fldItemName }}</strong>
+              <span class="gb-product-price">
+                ₹{{ item.fldSellingRate | number:'1.2-2' }}
+                <small>/ {{ item.fldBaseUnit }}</small>
+              </span>
+            </div>
 
-            <strong>
-              {{ item.fldItemName }}
-            </strong>
+            <small class="gb-product-alt" *ngIf="item.fldItemNameTamil">{{ item.fldItemNameTamil }}</small>
 
-
-            <small *ngIf="item.fldItemNameTamil">
-              {{ item.fldItemNameTamil }}
-            </small>
-
-
-            <span>
-
-              ₹{{ item.fldSellingRate | number:'1.2-2' }}
-
-              / {{ item.fldBaseUnit }}
-              : {{ item.fldAvailableStock | number:'1.0-3' }}
-            </span>
-
-
-            <!-- AVAILABLE STOCK -->
-
-            <small>
-              Available Stock:
-              <strong>
-                {{ item.fldAvailableStock | number:'1.0-3' }}
-              </strong>
-              {{ item.fldBaseUnit }}
-            </small>
-
-
-            <!-- INVENTORY ID: USEFUL FOR MULTIPLE RATES -->
-
-            <!-- <small>
-            Stock ID: {{ item.fldId }}
-          </small> -->
-
-
-            <!-- SELECTED ITEM VALUE -->
-
-            <small *ngIf="quantityFor(item.fldId) > 0" style="color:#087f5b;font-weight:700;">
-
-              Selected Value:
-
-              ₹{{
-              flatValueFor(item.fldId) > 0
-              ? (flatValueFor(item.fldId) | number:'1.2-2')
-              : (
-              quantityFor(item.fldId) *
-              item.fldSellingRate
-              | number:'1.2-2'
-              )
-              }}
-
-            </small>
-
+            <div class="gb-product-chips">
+              <span class="gb-chip">
+                <i class="bi bi-box-seam" aria-hidden="true"></i>
+                {{ item.fldAvailableStock | number:'1.0-3' }} {{ item.fldBaseUnit }} available
+              </span>
+              <span class="gb-chip gb-chip-selected" *ngIf="quantityFor(item.fldId) > 0">
+                <i class="bi bi-check-circle" aria-hidden="true"></i>
+                Selected ₹{{
+                flatValueFor(item.fldId) > 0
+                ? (flatValueFor(item.fldId) | number:'1.2-2')
+                : (quantityFor(item.fldId) * item.fldSellingRate | number:'1.2-2')
+                }}
+              </span>
+            </div>
           </div>
-
-
-          <!-- =================================================
-             NORMAL QUANTITY BOOKING
-             ================================================= -->
 
           <div class="gb-quantity-entry" *ngIf="!item.fldAllowFlatRupeeValueBooking">
-
-
-            <label class="gb-entry-label">
-
-              Quantity
-
-            </label>
-
-
+            <label class="gb-entry-label" [attr.for]="'gbQty-' + item.fldId">Quantity</label>
             <div class="gb-quantity">
-
-
-              <!-- MINUS -->
-
-              <button type="button" (click)="adjust(item, -1)" [disabled]="quantityFor(item.fldId) <= 0">
-
-                −
-
-              </button>
-
-
-              <!-- MANUAL QUANTITY INPUT -->
-
-              <input type="number" class="gb-quantity-input" min="0" [max]="item.fldAvailableStock" [step]="step(item)"
-                [value]="quantityFor(item.fldId)" (change)="
-                setQuantity(
-                  item,
-                  $any($event.target).value
-                )
-              " />
-
-
-              <!-- PLUS -->
-
-              <button type="button" (click)="adjust(item, 1)" [disabled]="
-                quantityFor(item.fldId) + 1 >
-                item.fldAvailableStock
-              ">
-
-                +
-
-              </button>
-
+              <button type="button" [attr.aria-label]="'Decrease ' + item.fldItemName" (click)="adjust(item, -1)"
+                [disabled]="quantityFor(item.fldId) <= 0">−</button>
+              <input [id]="'gbQty-' + item.fldId" type="number" inputmode="decimal" class="gb-quantity-input"
+                min="0" [class.gb-input-invalid]="hasQuantityError(item)"
+                [attr.aria-invalid]="hasQuantityError(item)"
+                [attr.aria-describedby]="hasQuantityError(item) ? 'gbQtyError-' + item.fldId : null"
+                [max]="item.fldAvailableStock" [step]="step(item)" [value]="quantityFor(item.fldId)"
+                [attr.aria-label]="'Quantity for ' + item.fldItemName"
+                (input)="onQuantityInput(item, $any($event.target).value)"
+                (change)="setQuantity(item, $any($event.target).value)" />
+              <button type="button" [attr.aria-label]="'Increase ' + item.fldItemName" (click)="adjust(item, 1)"
+                [disabled]="quantityFor(item.fldId) + 1 > item.fldAvailableStock">+</button>
             </div>
-
-
-            <small *ngIf="item.fldAllowFractionalQuantity">
-
-              Manual quantity step:
-              {{ step(item) }}
-
-            </small>
-
-
-            <small *ngIf="!item.fldAllowFractionalQuantity">
-
-              Whole-number quantities only
-
-            </small>
-
+            <p class="gb-field-error" [id]="'gbQtyError-' + item.fldId" role="alert"
+              *ngIf="quantityErrorFor(item) as error">
+              <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+              {{ error }}
+            </p>
+            <small *ngIf="item.fldAllowFractionalQuantity">Step: {{ step(item) }}</small>
+            <small *ngIf="!item.fldAllowFractionalQuantity">Whole numbers only</small>
           </div>
-
-
-          <!-- =================================================
-             FLAT RUPEE VALUE BOOKING
-             ================================================= -->
 
           <div class="gb-flat-booking" *ngIf="item.fldAllowFlatRupeeValueBooking">
-
-
-            <label class="gb-entry-label">
-
-              Enter Amount (₹)
-
-            </label>
-
-
-            <input type="number" class="gb-input" min="0" step="0.01" [max]="
-              item.fldAvailableStock *
-              item.fldSellingRate
-            " [value]="flatValueFor(item.fldId)" (change)="
-              setFlatValue(
-                item,
-                $any($event.target).value
-              )
-            " />
-
-
-            <!-- QUANTITY EQUIVALENT -->
-
+            <label class="gb-entry-label" [attr.for]="'gbAmount-' + item.fldId">Enter amount (₹)</label>
+            <input [id]="'gbAmount-' + item.fldId" type="number" class="gb-input" min="0" step="0.01"
+              [max]="item.fldAvailableStock * item.fldSellingRate" [value]="flatValueFor(item.fldId)"
+              (change)="setFlatValue(item, $any($event.target).value)" />
             <small *ngIf="flatValueFor(item.fldId) > 0">
-
-              Approximate Quantity:
-
-              {{
-              quantityFor(item.fldId)
-              | number:'1.0-3'
-              }}
-
-              {{ item.fldBaseUnit }}
-
+              ≈ {{ quantityFor(item.fldId) | number:'1.0-3' }} {{ item.fldBaseUnit }}
             </small>
-
-
-            <!-- MAXIMUM AVAILABLE VALUE -->
-
-            <small>
-
-              Maximum Available Value:
-
-              ₹{{
-              item.fldAvailableStock *
-              item.fldSellingRate
-              | number:'1.2-2'
-              }}
-
-            </small>
-
+            <small>Maximum ₹{{ item.fldAvailableStock * item.fldSellingRate | number:'1.2-2' }}</small>
           </div>
-
-
         </article>
-
-
       </section>
 
+      <footer class="gb-footer" aria-label="Cart summary">
+        <div class="gb-footer-summary">
+          <span class="gb-footer-cart-icon">
+            <i class="bi bi-cart3" aria-hidden="true"></i>
+          </span>
+          <div class="gb-footer-amount">
+            <strong>₹{{ grandTotal | number:'1.2-2' }}</strong>
+            <small>
+              {{ cart.length }} {{ cart.length === 1 ? 'item' : 'items' }}
+              · Item total ₹{{ subtotal | number:'1.2-2' }}
+            </small>
+          </div>
 
-      <!-- =====================================================
-         SHOPPING FOOTER
-         ===================================================== -->
-
-      <footer class="gb-footer">
-
-
-        <div>
-
-          <strong>
-
-            ₹{{ grandTotal | number:'1.2-2' }}
-
-          </strong>
-
-
-          <small>
-
-            {{ cart.length }} items
-
-          </small>
-
+          <div class="gb-footer-progress"
+            *ngIf="vendorProfile && minimumOrderValue > 0 && cart.length > 0 && !minimumOrderMet">
+            <span>Add ₹{{ amountToMinimum | number:'1.2-2' }} more for the minimum order</span>
+            <span class="gb-footer-progress-track" aria-hidden="true">
+              <span [style.width.%]="minimumOrderProgress"></span>
+            </span>
+          </div>
         </div>
 
-
-        <button type="button" (click)="previewOrder()" [disabled]="cart.length === 0">
-
-          View Cart →
-
+        <button type="button" class="gb-footer-cta" (click)="previewOrder()"
+          [disabled]="cart.length === 0 || hasBlockingQuantityErrors || !minimumOrderMet">
+          <span *ngIf="cart.length === 0">Cart is empty</span>
+          <span *ngIf="cart.length > 0 && hasBlockingQuantityErrors">Fix quantity errors</span>
+          <span *ngIf="cart.length > 0 && !hasBlockingQuantityErrors && !vendorProfile">Loading vendor settings…</span>
+          <span *ngIf="cart.length > 0 && !hasBlockingQuantityErrors && vendorProfile && !minimumOrderMet">
+            Add ₹{{ amountToMinimum | number:'1.2-2' }} more
+          </span>
+          <span *ngIf="minimumOrderMet && !hasBlockingQuantityErrors">
+            Review cart
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+          </span>
         </button>
-
-
       </footer>
-
-
     </ng-container>
 
-
-    <!-- =====================================================
-       CHECKOUT SCREEN
-       ===================================================== -->
-
     <ng-template #checkout>
-
-
-      <section class="gb-checkout">
-
-
-        <!-- CHECKOUT HEADER -->
-
+      <section class="gb-checkout" aria-labelledby="gbCheckoutTitle">
         <div class="gb-checkout-title">
-
-
-          <h2>
-
-            Your Cart ({{ cart.length }} items)
-
-          </h2>
-
-
-          <button type="button" (click)="showCheckout = false">
-
-            ← Back
-
-          </button>
-
-
+          <div>
+            <span class="gb-orders-eyebrow">
+              <i class="bi bi-bag-check" aria-hidden="true"></i>
+              Checkout
+            </span>
+            <h2 id="gbCheckoutTitle">Review your order</h2>
+            <p class="gb-checkout-subtitle">
+              {{ cart.length }} {{ cart.length === 1 ? 'item' : 'items' }}
+              from {{ vendorProfile?.fldFullName || 'your selected vendor' }}
+            </p>
+          </div>
+          <div class="gb-checkout-title-actions">
+            <button *ngIf="orderSaved" type="button" class="gb-btn gb-btn-primary"
+              (click)="viewMyOrdersAfterOrder()">
+              <i class="bi bi-bag-check" aria-hidden="true"></i>
+              View My Orders
+            </button>
+            <button *ngIf="!orderSaved" type="button" class="gb-btn gb-btn-secondary"
+              (click)="showCheckout = false">
+              <i class="bi bi-arrow-left" aria-hidden="true"></i>
+              Back to shopping
+            </button>
+          </div>
         </div>
 
-
-        <!-- =================================================
-           CART ITEMS
-           ================================================= -->
-
-        <article class="gb-product" *ngFor="let line of cart">
-
-
-          <!-- IMAGE -->
-
-          <img class="gb-product-image" [src]="imageUrl(line.stock.fldItemImagePath)" [alt]="line.stock.fldItemName" (error)="onImageError($event)" />
-
-
-          <!-- ITEM DETAILS -->
-
-          <div class="gb-product-info">
-
-
-            <strong>
-
-              {{ line.stock.fldItemName }}
-
-            </strong>
-
-
-            <small>
-
-              ₹{{
-              line.stock.fldSellingRate
-              | number:'1.2-2'
-              }}
-
-              / {{ line.stock.fldBaseUnit }}
-
-            </small>
-
-
-            <small>
-
-              Available:
-
-              {{
-              line.stock.fldAvailableStock
-              | number:'1.0-3'
-              }}
-
-              {{ line.stock.fldBaseUnit }}
-
-            </small>
-
-
-            <!-- <small>
-
-            Inventory #{{ line.stock.fldId }}
-
-          </small> -->
-
-
-          </div>
-
-
-          <!-- =================================================
-             CART ACTIONS
-             ================================================= -->
-
-          <div class="gb-cart-actions">
-
-
-            <!-- NORMAL QUANTITY BOOKING -->
-
-            <div *ngIf="
-              !line.stock.fldAllowFlatRupeeValueBooking
-            ">
-
-
-              <div class="gb-quantity">
-
-
-                <button type="button" (click)="adjust(line.stock, -1)" [disabled]="line.quantity <= 0">
-
-                  −
-
-                </button>
-
-
-                <input type="number" class="gb-quantity-input" min="0" [max]="line.stock.fldAvailableStock"
-                  [step]="step(line.stock)" [value]="line.quantity" (change)="
-                  setQuantity(
-                    line.stock,
-                    $any($event.target).value
-                  )
-                " />
-
-
-                <button type="button" (click)="adjust(line.stock, 1)" [disabled]="
-                  line.quantity + 1 >
-                  line.stock.fldAvailableStock
-                ">
-
-                  +
-
-                </button>
-
-
+        <div class="gb-checkout-grid">
+          <div class="gb-checkout-main">
+            <section class="gb-checkout-card" aria-labelledby="gbCheckoutItemsTitle">
+              <div class="gb-checkout-card-head">
+                <h3 id="gbCheckoutItemsTitle">Your items</h3>
+                <span class="gb-item-count">
+                  {{ cart.length }} {{ cart.length === 1 ? 'item' : 'items' }}
+                </span>
               </div>
 
+              <article class="gb-product gb-checkout-item" *ngFor="let line of cart">
+                <img class="gb-product-image" [src]="imageUrl(line.stock.fldItemImagePath)"
+                  [alt]="line.stock.fldItemName" (error)="onImageError($event)" />
 
-            </div>
+                <div class="gb-product-info">
+                  <strong>{{ line.stock.fldItemName }}</strong>
+                  <small>
+                    ₹{{ line.stock.fldSellingRate | number:'1.2-2' }} / {{ line.stock.fldBaseUnit }}
+                  </small>
+                  <small>
+                    Available: {{ line.stock.fldAvailableStock | number:'1.0-3' }} {{ line.stock.fldBaseUnit }}
+                  </small>
+                </div>
 
+                <div class="gb-cart-actions">
+                  <div class="gb-quantity" *ngIf="!line.stock.fldAllowFlatRupeeValueBooking">
+                    <button type="button" [attr.aria-label]="'Decrease ' + line.stock.fldItemName"
+                      (click)="adjust(line.stock, -1)" [disabled]="line.quantity <= 0">−</button>
+                    <input type="number" inputmode="decimal" class="gb-quantity-input" min="0"
+                      [max]="line.stock.fldAvailableStock"
+                      [class.gb-input-invalid]="hasQuantityError(line.stock)"
+                      [attr.aria-invalid]="hasQuantityError(line.stock)"
+                      [attr.aria-describedby]="hasQuantityError(line.stock) ? 'gbQtyError-' + line.stock.fldId : null"
+                      [step]="step(line.stock)" [value]="line.quantity"
+                      [attr.aria-label]="'Quantity for ' + line.stock.fldItemName"
+                      (input)="onQuantityInput(line.stock, $any($event.target).value)"
+                      (change)="setQuantity(line.stock, $any($event.target).value)" />
+                    <button type="button" [attr.aria-label]="'Increase ' + line.stock.fldItemName"
+                      (click)="adjust(line.stock, 1)"
+                      [disabled]="line.quantity + 1 > line.stock.fldAvailableStock">+</button>
+                  </div>
 
-            <!-- FLAT RUPEE BOOKING -->
+                  <p class="gb-field-error" [id]="'gbQtyError-' + line.stock.fldId" role="alert"
+                    *ngIf="quantityErrorFor(line.stock) as error">
+                    <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                    {{ error }}
+                  </p>
 
-            <div class="gb-flat-booking" *ngIf="
-              line.stock.fldAllowFlatRupeeValueBooking
-            ">
+                  <div class="gb-flat-booking" *ngIf="line.stock.fldAllowFlatRupeeValueBooking">
+                    <label [attr.for]="'gbCheckoutAmount-' + line.stock.fldId">Amount (₹)</label>
+                    <input [id]="'gbCheckoutAmount-' + line.stock.fldId" type="number" class="gb-input" min="0"
+                      step="0.01" [max]="line.stock.fldAvailableStock * line.stock.fldSellingRate"
+                      [value]="line.flatRupeeBookingValue"
+                      (change)="setFlatValue(line.stock, $any($event.target).value)" />
+                    <small>
+                      Quantity: {{ line.quantity | number:'1.0-3' }} {{ line.stock.fldBaseUnit }}
+                    </small>
+                  </div>
 
+                  <strong class="gb-cart-line-total">₹{{ lineTotal(line) | number:'1.2-2' }}</strong>
 
-              <label>
+                  <button type="button" class="gb-remove" [attr.aria-label]="'Remove ' + line.stock.fldItemName"
+                    (click)="remove(line.stock.fldId)">
+                    <i class="bi bi-trash3" aria-hidden="true"></i>
+                    Remove
+                  </button>
+                </div>
+              </article>
+            </section>
 
-                Amount (₹)
+            <section class="gb-checkout-card" aria-label="Customer address">
+              <h3>{{ fldOrderType === 'Self Pickup' ? 'Customer contact / pickup' : 'Delivery address' }}</h3>
+              <p *ngIf="customerLoading">Loading registered customer details…</p>
+              <ng-container *ngIf="customerProfile as customer; else noCustomerProfile">
+                <p class="gb-address-name">
+                  <strong>{{ customer.fldFullName }}</strong><br />
+                  {{ customer.fldContactNumber }}
+                  <ng-container *ngIf="customer.fldAlternateContactNumber">
+                    / {{ customer.fldAlternateContactNumber }}
+                  </ng-container>
+                </p>
+                <p *ngIf="customerAddress">{{ customerAddress }}</p>
+                <p *ngIf="customer.fldGPSLocation">Location: {{ customer.fldGPSLocation }}</p>
+                <img *ngIf="customer.fldHouseImagePath" [src]="houseImageUrl(customer.fldHouseImagePath)"
+                  alt="Registered house photograph" class="gb-address-image" (error)="onImageError($event)" />
+                <p class="gb-note" *ngIf="fldOrderType === 'Self Pickup'">
+                  Self pickup selected. This address is for contact only — confirm the vendor's shop address before
+                  collection.
+                </p>
+              </ng-container>
+              <ng-template #noCustomerProfile>
+                <p *ngIf="!customerLoading">
+                  Registered customer address is unavailable. Please check the customer profile.
+                </p>
+              </ng-template>
+            </section>
 
-              </label>
+            <section class="gb-checkout-card" aria-label="Payment method">
+              <h3>Payment method</h3>
+              <div class="gb-payment-options">
+                <label class="gb-choice-card">
+                  <input type="radio" name="paymentMethod" value="COD" [(ngModel)]="paymentMethod"
+                    (ngModelChange)="onPaymentMethodChange()" />
+                  <span class="gb-choice-card-content">
+                    <span class="gb-choice-card-title">Cash on delivery</span>
+                    <small>Pay when your order arrives</small>
+                  </span>
+                </label>
+                <label class="gb-choice-card">
+                  <input type="radio" name="paymentMethod" value="UPI" [(ngModel)]="paymentMethod"
+                    (ngModelChange)="onPaymentMethodChange()" />
+                  <span class="gb-choice-card-content">
+                    <span class="gb-choice-card-title">UPI payment</span>
+                    <small>Pay now using the vendor's UPI QR</small>
+                  </span>
+                </label>
+              </div>
+            </section>
 
+            <section class="gb-checkout-card" *ngIf="paymentMethod === 'UPI'" aria-label="UPI payment details">
+              <h3>Pay vendor by UPI</h3>
+              <p><strong>Payee:</strong> {{ vendorUpiPayeeName || 'Not configured' }}</p>
+              <p><strong>UPI ID:</strong> {{ vendorUpiId || 'Not configured' }}</p>
+              <p><strong>Amount:</strong> ₹{{ grandTotal | number:'1.2-2' }}</p>
+              <div class="gb-minimum-alert" *ngIf="!vendorUpiId" role="status">
+                <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                <div>
+                  <strong>UPI is not configured for this vendor</strong>
+                  <p>Choose cash on delivery, or ask the vendor to add their UPI details.</p>
+                </div>
+              </div>
+              <p *ngIf="upiQrLoading">Generating payment QR…</p>
+              <p class="gb-error-text" *ngIf="upiQrError">{{ upiQrError }}</p>
+              <img *ngIf="upiQrDataUrl" [src]="upiQrDataUrl" alt="UPI QR code for vendor and current grand total"
+                class="gb-upi-qr" />
+              <label for="upiReference" class="gb-field-label">UPI transaction reference (optional)</label>
+              <input id="upiReference" class="gb-input" type="text" maxlength="100"
+                [(ngModel)]="upiTransactionReference" placeholder="Enter reference after payment" />
+              <p class="gb-note">
+                Payment remains pending verification until the vendor confirms receipt.
+                A QR scan or entered reference is not proof of successful payment.
+              </p>
+            </section>
 
-              <input type="number" class="gb-input" min="0" step="0.01" [max]="
-                line.stock.fldAvailableStock *
-                line.stock.fldSellingRate
-              " [value]="line.flatRupeeBookingValue" (change)="
-                setFlatValue(
-                  line.stock,
-                  $any($event.target).value
-                )
-              " />
-
-
-              <small>
-
-                Quantity:
-
-                {{
-                line.quantity
-                | number:'1.0-3'
-                }}
-
-                {{ line.stock.fldBaseUnit }}
-
-              </small>
-
-
-            </div>
-
-
-            <!-- ITEM TOTAL -->
-
-            <strong>
-
-              ₹{{
-              lineTotal(line)
-              | number:'1.2-2'
-              }}
-
-            </strong>
-
-
-            <!-- REMOVE -->
-
-            <button type="button" class="gb-remove" (click)="remove(line.stock.fldId)">
-
-              Remove
-
-            </button>
-
-
+            <section class="gb-checkout-card" *ngIf="paymentMethod === 'COD'">
+              <p class="gb-note">
+                <i class="bi bi-cash-coin" aria-hidden="true"></i>
+                Cash on delivery selected. Payment will be collected at delivery or pickup.
+              </p>
+            </section>
           </div>
 
-
-        </article>
-
-
-        <!-- CUSTOMER ADDRESS / PICKUP CONTACT -->
-        <section class="gb-bill" aria-label="Customer address">
-          <h3>{{ fldOrderType === 'Self Pickup' ? 'Customer Contact / Pickup' : 'Delivery Address' }}</h3>
-          <p *ngIf="customerLoading">Loading registered customer details...</p>
-          <ng-container *ngIf="customerProfile as customer; else noCustomerProfile">
-            <p><strong>{{ customer.fldFullName }}</strong><br />
-              {{ customer.fldContactNumber }}
-              <ng-container *ngIf="customer.fldAlternateContactNumber"> / {{ customer.fldAlternateContactNumber
-                }}</ng-container>
-            </p>
-            <p *ngIf="customerAddress">{{ customerAddress }}</p>
-            <p *ngIf="customer.fldGPSLocation">Location: {{ customer.fldGPSLocation }}</p>
-            <img *ngIf="customer.fldHouseImagePath" [src]="houseImageUrl(customer.fldHouseImagePath)"
-              alt="Registered house photograph"
-              style="display:block;max-width:240px;width:100%;height:auto;border-radius:10px;margin-top:12px" (error)="onImageError($event)" />
-            <p *ngIf="fldOrderType === 'Self Pickup'">
-              Self Pickup selected: this customer address is for contact/reference, not the pickup point.
-              Confirm the vendor's shop address before collection.
-            </p>
-          </ng-container>
-          <ng-template #noCustomerProfile>
-            <p *ngIf="!customerLoading">Registered customer address is unavailable. Please check the customer profile.
-            </p>
-          </ng-template>
-        </section>
-
-        <!-- PAYMENT METHOD -->
-        <section class="gb-bill" aria-label="Payment method">
-          <h3>Payment Method</h3>
-          <label style="display:block;margin:10px 0">
-            <input type="radio" name="paymentMethod" value="COD" [(ngModel)]="paymentMethod"
-              (ngModelChange)="onPaymentMethodChange()" />
-            Cash on Delivery (COD)
-          </label>
-          <label style="display:block;margin:10px 0">
-            <input type="radio" name="paymentMethod" value="UPI" [(ngModel)]="paymentMethod"
-              (ngModelChange)="onPaymentMethodChange()" />
-            UPI Payment
-          </label>
-        </section>
-
-        <!-- =================================================
-           BILL SUMMARY
-           ================================================= -->
-
-        <div class="gb-bill">
-
-
-          <h3>
-
-            Bill Summary
-
-          </h3>
-
-
-          <div>
-
-            <span>
-
-              Item Total
-
-            </span>
-
-
-            <strong>
-
-              ₹{{ subtotal | number:'1.2-2' }}
-
-            </strong>
-
-          </div>
-
-
-          <div *ngIf="deliverySavings > 0">
-            <span>Original Delivery Charges</span>
-            <strong>₹{{ originalDeliveryCharge | number:'1.2-2' }}</strong>
-          </div>
-          <div *ngIf="deliverySavings > 0" style="color:#087f5b">
-            <span>Delivery Savings (Waiver)</span>
-            <strong>− ₹{{ deliverySavings | number:'1.2-2' }}</strong>
-          </div>
-          <div>
-
-            <span>
-
-              Delivery Charges Payable
-
-            </span>
-
-
-            <strong>
-
-              ₹{{ charge | number:'1.2-2' }}
-
-            </strong>
-
-          </div>
-
-
-          <div class="gb-grand">
-
-            <span>
-
-              Grand Total
-
-            </span>
-
-
-            <strong>
-
-              ₹{{ grandTotal | number:'1.2-2' }}
-
-            </strong>
-
-          </div>
-
-
-          <!-- ADVANCE ORDER NOTE -->
-
-          <p *ngIf="orderOption === 'Advance Order'">
-
-            Advance order: prices may change.
-
-            Preference: {{ priceChangeOption }}.
-
-          </p>
-
-
-          <p>
-
-            Estimated delivery / pickup:
-
-            {{ deliveryEstimate }}
-
-          </p>
-
-
-        </div>
-
-
-        <!-- UPI PAYMENT REQUEST: shown on the bill only when selected -->
-        <section class="gb-bill" *ngIf="paymentMethod === 'UPI'" aria-label="UPI payment details">
-          <h3>Pay Vendor by UPI</h3>
-          <p><strong>Payee:</strong> {{ vendorUpiPayeeName || 'Not configured' }}</p>
-          <p><strong>UPI ID:</strong> {{ vendorUpiId || 'Not configured' }}</p>
-          <p><strong>Amount:</strong> ₹{{ grandTotal | number:'1.2-2' }}</p>
-          <p *ngIf="upiQrLoading">Generating payment QR...</p>
-          <p *ngIf="upiQrError" style="color:#a11">{{ upiQrError }}</p>
-          <img *ngIf="upiQrDataUrl" [src]="upiQrDataUrl" alt="UPI QR code for vendor and current grand total"
-            style="display:block;width:240px;max-width:100%;height:auto;background:white;padding:10px;margin:12px 0" />
-          <label for="upiReference" style="display:block;margin-top:12px">UPI transaction reference (optional)</label>
-          <input id="upiReference" class="gb-input" type="text" maxlength="100" [(ngModel)]="upiTransactionReference"
-            placeholder="Enter reference after payment" />
-          <p>Payment remains pending verification until the vendor confirms receipt.
-            A QR scan or entered reference is not proof of successful payment.</p>
-        </section>
-        <section class="gb-bill" *ngIf="paymentMethod === 'COD'">
-          <p>Cash on Delivery selected. Payment will be collected at delivery or pickup.</p>
-        </section>
-
-        <!-- =================================================
-           ORDER JSON PREVIEW
-           ================================================= -->
-
-        <!-- <div class="gb-preview">
-
-
-        <h3>
-
-          Order JSON — Preview only
-
-        </h3>
-
-
-        <p>
-
-          Order Header and Order Details have not
-          been saved yet.
-
-          The combined Save API will be connected later.
-
-        </p>
-
-
-        <pre>{{ requestPreview | json }}</pre>
-
-
-        <button type="button" (click)="copyRequest()" [disabled]="!requestPreview">
-
-          Copy Order JSON
-
-        </button>
-
-
-      </div> -->
-
-        <p *ngIf="!minimumOrderMet" role="status" style="color:#9a3412">
-          {{ !vendorProfile ? 'Vendor delivery settings must load before placing the order.' :
-          'Minimum item value has not been reached. Add items to continue.' }}
-        </p>
-        <div class="gb-checkout-actions">
-
-          <button type="button" class="gb-place-order-btn" (click)="saveOrder()" [disabled]="
-      savingOrder ||
-      orderSaved ||
-      cart.length === 0 ||
-      !minimumOrderMet ||
-      (paymentMethod === 'UPI' && !vendorUpiId)
-    ">
-
-            {{
-            savingOrder
-            ? 'Placing Order...'
-            : orderSaved
-            ? 'Order Placed Successfully'
-            : 'Place Order'
-            }}
-
-          </button>
-
+          <aside class="gb-checkout-aside">
+            <section class="gb-checkout-card gb-bill" aria-labelledby="gbBillSummaryTitle">
+              <h3 id="gbBillSummaryTitle">Bill summary</h3>
+
+              <div class="gb-bill-line">
+                <span>Item total</span>
+                <strong>₹{{ subtotal | number:'1.2-2' }}</strong>
+              </div>
+
+              <div class="gb-bill-line" *ngIf="deliverySavings > 0">
+                <span>Original delivery charges</span>
+                <strong>₹{{ originalDeliveryCharge | number:'1.2-2' }}</strong>
+              </div>
+              <div class="gb-bill-line gb-bill-savings" *ngIf="deliverySavings > 0">
+                <span>Delivery savings</span>
+                <strong>− ₹{{ deliverySavings | number:'1.2-2' }}</strong>
+              </div>
+              <div class="gb-bill-line">
+                <span>Delivery charges payable</span>
+                <strong>₹{{ charge | number:'1.2-2' }}</strong>
+              </div>
+
+              <div class="gb-grand">
+                <span>Grand total</span>
+                <strong>₹{{ grandTotal | number:'1.2-2' }}</strong>
+              </div>
+
+              <p class="gb-note" *ngIf="orderOption === 'Advance Order'">
+                Advance order: prices may change. Preference: {{ priceChangeOption }}.
+              </p>
+              <p class="gb-note">
+                <i class="bi bi-clock-history" aria-hidden="true"></i>
+                {{ deliveryEstimate }}
+              </p>
+
+              <div class="gb-minimum-alert" *ngIf="hasBlockingQuantityErrors" role="alert">
+                <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                <div>
+                  <strong>Quantity needs attention</strong>
+                  <p>Correct the highlighted quantities above before placing the order.</p>
+                </div>
+              </div>
+
+              <div class="gb-minimum-alert" *ngIf="!minimumOrderMet" role="status">
+                <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                <div>
+                  <strong *ngIf="!vendorProfile">Vendor delivery settings must load before placing the order.</strong>
+                  <ng-container *ngIf="vendorProfile">
+                    <strong>Minimum item value not reached</strong>
+                    <p>
+                      Add ₹{{ amountToMinimum | number:'1.2-2' }} more to place this order.
+                      Minimum is ₹{{ minimumOrderValue | number:'1.2-2' }}.
+                    </p>
+                  </ng-container>
+                </div>
+              </div>
+
+              <div class="gb-checkout-actions">
+                <button type="button" class="gb-place-order-btn" (click)="saveOrder()" [disabled]="
+                  savingOrder ||
+                  orderSaved ||
+                  cart.length === 0 ||
+                  hasBlockingQuantityErrors ||
+                  !minimumOrderMet ||
+                  (paymentMethod === 'UPI' && !vendorUpiId)
+                ">
+                  <i class="bi bi-bag-check" aria-hidden="true"></i>
+                  {{
+                  savingOrder
+                  ? 'Placing order…'
+                  : orderSaved
+                  ? 'Order placed successfully'
+                  : 'Place order'
+                  }}
+                </button>
+              </div>
+            </section>
+          </aside>
         </div>
       </section>
-
-
     </ng-template>
   </ng-container>
 

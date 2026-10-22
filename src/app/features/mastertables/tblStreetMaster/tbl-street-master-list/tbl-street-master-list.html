@@ -5,7 +5,10 @@
 		 ============================================ -->
 	<div class="page-header-bar">
 
-		<h1 class="page-caption">TblStreetMastersList</h1>
+		<h1 class="page-caption page-caption-with-icon">
+			<i class="bi bi-signpost-2 page-caption-icon"></i>
+			<span>Street Master</span>
+		</h1>
 
 		<div class="page-header-center">
 			<button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
@@ -26,7 +29,7 @@
 		<div class="page-header-right">
 			<a [routerLink]="['add']" class="btn-app btn-new">
 				<i class="bi bi-plus-lg"></i>
-				New Record
+				Add Street
 			</a>
 		</div>
 
@@ -51,7 +54,7 @@
 			<div class="page-header-right">
 				<ng-container *ngIf="tblStreetMaster$ | async as tblstreetmasters">
 					<span class="pagination-info">
-						Showing {{ tblstreetmasters.length }} of {{ tblstreetmasters.length }} Records
+						Showing {{ (tblstreetmasters | columnFilter:filters).length }} of {{ tblstreetmasters.length }} Records
 					</span>
 				</ng-container>
 
@@ -66,21 +69,41 @@
 		</div>
 
 		<ng-container *ngIf="tblStreetMaster$ | async as tblstreetmasters">
+		<ng-container *ngIf="tblstreetmasters | columnFilter:filters as filteredStreets">
 
 			<table class="data-table">
 				<thead>
 					<tr>
-						<th>Id</th>
-						<th>F K City</th>
-						<th>Street Name</th>
+						<th class="col-technical"><span class="column-heading">Id<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th class="col-technical"><span class="column-heading">F K City<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Street Name<app-column-filter-icon></app-column-filter-icon></span></th>
 						<th>Actions</th>
+					</tr>
+					<tr class="column-filter-row">
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Id" aria-label="Filter by Id"
+								[(ngModel)]="filters['fldId']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="City Id"
+								aria-label="Filter by city Id" [(ngModel)]="filters['fldFKCity']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Street"
+								aria-label="Filter by street name" [(ngModel)]="filters['fldStreetName']" />
+						</th>
+						<th class="col-filter-empty">
+							<button type="button" class="column-filter-clear" (click)="filters = {}">
+								Clear
+							</button>
+						</th>
 					</tr>
 				</thead>
 
 				<tbody>
-					<tr *ngFor="let tblstreetmaster of tblstreetmasters">
-						<td class="cell-code">{{tblstreetmaster.fldId}}</td>
-						<td>{{tblstreetmaster.fldFKCity}}</td>
+					<tr *ngFor="let tblstreetmaster of filteredStreets">
+						<td class="cell-code col-technical">{{tblstreetmaster.fldId}}</td>
+						<td class="col-technical">{{tblstreetmaster.fldFKCity}}</td>
 						<td class="cell-primary">{{tblstreetmaster.fldStreetName}}</td>
 						<td>
 							<div class="row-actions">
@@ -101,10 +124,11 @@
 
 			</table>
 
-			<p class="grid-footnote" *ngIf="tblstreetmasters.length === 0">
-				No records found.
+			<p class="grid-footnote" *ngIf="filteredStreets.length === 0">
+				{{ tblstreetmasters.length === 0 ? 'No records found.' : 'No records match the filters.' }}
 			</p>
 
+		</ng-container>
 		</ng-container>
 
 	</div>

@@ -5,7 +5,10 @@
 		 ============================================ -->
 	<div class="page-header-bar">
 
-		<h1 class="page-caption">TblItemMastersList</h1>
+		<h1 class="page-caption page-caption-with-icon">
+			<i class="bi bi-basket page-caption-icon"></i>
+			<span>Vegetable Master</span>
+		</h1>
 
 		<div class="page-header-center">
 			<button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
@@ -26,7 +29,7 @@
 		<div class="page-header-right">
 			<a [routerLink]="['add']" class="btn-app btn-new">
 				<i class="bi bi-plus-lg"></i>
-				New Record
+				Add Vegetable
 			</a>
 		</div>
 
@@ -51,7 +54,7 @@
 			<div class="page-header-right">
 				<ng-container *ngIf="tblItemMaster$ | async as tblitemmasters">
 					<span class="pagination-info">
-						Showing {{ tblitemmasters.length }} of {{ tblitemmasters.length }} Records
+						Showing {{ (tblitemmasters | columnFilter:filters).length }} of {{ tblitemmasters.length }} Records
 					</span>
 				</ng-container>
 
@@ -66,27 +69,93 @@
 		</div>
 
 		<ng-container *ngIf="tblItemMaster$ | async as tblitemmasters">
+		<ng-container *ngIf="tblitemmasters | columnFilter:filters as filteredItems">
 
 			<table class="data-table">
 				<thead>
 					<tr>
-						<th>Id</th>
-						<th>Item Name</th>
-						<th>Item Type</th>
-						<th>Category Name</th>
-						<th>Base Unit</th>
-						<th>Allow Fractional Quantity</th>
-						<th>Sub Unit Label</th>
-						<th>Allow Flat Rupee Value Booking</th>
-						<th>Min Order Quantity Step</th>
-						<th>Item Image Path</th>
+						<th class="col-technical"><span class="column-heading">Id<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Vegetable Name<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Item Type<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Category Name<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Unit<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Allow Fractional Quantity<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Sub Unit Label<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Allow Flat Rupee Value Booking<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Min Order Quantity Step<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Item Image Path<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Status<app-column-filter-icon></app-column-filter-icon></span></th>
 						<th>Actions</th>
+					</tr>
+					<tr class="column-filter-row">
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Id" aria-label="Filter by Id"
+								[(ngModel)]="filters['fldId']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Name"
+								aria-label="Filter by vegetable name" [(ngModel)]="filters['fldItemName']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Type"
+								aria-label="Filter by item type" [(ngModel)]="filters['fldItemType']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Category"
+								aria-label="Filter by category name" [(ngModel)]="filters['fldCategoryName']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Unit"
+								aria-label="Filter by unit" [(ngModel)]="filters['fldBaseUnit']" />
+						</th>
+						<th>
+							<select class="column-filter-input" aria-label="Filter by fractional quantity"
+								[(ngModel)]="filters['fldAllowFractionalQuantity']">
+								<option value="">All</option>
+								<option value="true">Yes</option>
+								<option value="false">No</option>
+							</select>
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Sub unit"
+								aria-label="Filter by sub unit label" [(ngModel)]="filters['fldSubUnitLabel']" />
+						</th>
+						<th>
+							<select class="column-filter-input" aria-label="Filter by flat rupee booking"
+								[(ngModel)]="filters['fldAllowFlatRupeeValueBooking']">
+								<option value="">All</option>
+								<option value="true">Yes</option>
+								<option value="false">No</option>
+							</select>
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Step"
+								aria-label="Filter by minimum order quantity step"
+								[(ngModel)]="filters['fldMinOrderQuantityStep']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Image path"
+								aria-label="Filter by item image path" [(ngModel)]="filters['fldItemImagePath']" />
+						</th>
+						<th>
+							<select class="column-filter-input" aria-label="Filter by status"
+								[(ngModel)]="filters['fldIsActive']">
+								<option value="">All</option>
+								<option value="true">Active</option>
+								<option value="false">Inactive</option>
+							</select>
+						</th>
+						<th class="col-filter-empty">
+							<button type="button" class="column-filter-clear" (click)="filters = {}">
+								Clear
+							</button>
+						</th>
 					</tr>
 				</thead>
 
 				<tbody>
-					<tr *ngFor="let tblitemmaster of tblitemmasters">
-						<td class="cell-code">{{tblitemmaster.fldId}}</td>
+					<tr *ngFor="let tblitemmaster of filteredItems">
+						<td class="cell-code col-technical">{{tblitemmaster.fldId}}</td>
 						<td class="cell-primary">{{tblitemmaster.fldItemName}}</td>
 						<td>{{tblitemmaster.fldItemType}}</td>
 						<td>{{tblitemmaster.fldCategoryName}}</td>
@@ -103,7 +172,12 @@
 							</span>
 						</td>
 						<td>{{tblitemmaster.fldMinOrderQuantityStep}}</td>
-						<td>{{tblitemmaster.fldItemImagePath}}</td>
+						<td class="col-technical">{{tblitemmaster.fldItemImagePath}}</td>
+						<td>
+							<span class="status-badge" [ngClass]="tblitemmaster.fldIsActive ? 'status-delivered' : 'status-cancelled'">
+								{{tblitemmaster.fldIsActive ? 'Active' : 'Inactive'}}
+							</span>
+						</td>
 						<td>
 							<div class="row-actions">
 								<a class="icon-btn edit" title="Edit"
@@ -123,10 +197,11 @@
 
 			</table>
 
-			<p class="grid-footnote" *ngIf="tblitemmasters.length === 0">
-				No records found.
+			<p class="grid-footnote" *ngIf="filteredItems.length === 0">
+				{{ tblitemmasters.length === 0 ? 'No records found.' : 'No records match the filters.' }}
 			</p>
 
+		</ng-container>
 		</ng-container>
 
 	</div>

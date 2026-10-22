@@ -36,12 +36,48 @@
 
           <thead>
             <tr>
-              <th class="stock-item-column">Vegetable</th>
-              <th>Available Stock</th>
-              <th>New Stock</th>
-              <th>Current Stock</th>
-              <th>Selling Rate (₹)</th>
-              <th>Available</th>
+              <th class="stock-item-column"><span class="column-heading">Vegetable<app-column-filter-icon></app-column-filter-icon></span></th>
+              <th><span class="column-heading">Available Stock<app-column-filter-icon></app-column-filter-icon></span></th>
+              <th><span class="column-heading">New Stock<app-column-filter-icon></app-column-filter-icon></span></th>
+              <th><span class="column-heading">Current Stock<app-column-filter-icon></app-column-filter-icon></span></th>
+              <th><span class="column-heading">Selling Rate (₹)<app-column-filter-icon></app-column-filter-icon></span></th>
+              <th><span class="column-heading">Available<app-column-filter-icon></app-column-filter-icon></span></th>
+              <th>Actions</th>
+            </tr>
+            <tr class="column-filter-row">
+              <th>
+                <input class="column-filter-input" type="text" placeholder="Vegetable"
+                  aria-label="Filter by vegetable" [(ngModel)]="columnFilters['fldItemName']" />
+              </th>
+              <th>
+                <input class="column-filter-input" type="text" placeholder="Available"
+                  aria-label="Filter by available stock" [(ngModel)]="columnFilters['fldAvailableStock']" />
+              </th>
+              <th>
+                <input class="column-filter-input" type="text" placeholder="New stock"
+                  aria-label="Filter by new stock" [(ngModel)]="columnFilters['fldNewStock']" />
+              </th>
+              <th>
+                <input class="column-filter-input" type="text" placeholder="Current"
+                  aria-label="Filter by current stock" [(ngModel)]="columnFilters['fldCurrentStock']" />
+              </th>
+              <th>
+                <input class="column-filter-input" type="text" placeholder="Rate"
+                  aria-label="Filter by selling rate" [(ngModel)]="columnFilters['fldSellingRate']" />
+              </th>
+              <th>
+                <select class="column-filter-input" aria-label="Filter by availability"
+                  [(ngModel)]="columnFilters['fldIsAvailable']">
+                  <option value="">All</option>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </th>
+              <th class="col-filter-empty">
+                <button type="button" class="column-filter-clear" (click)="columnFilters = {}">
+                  Clear
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody>

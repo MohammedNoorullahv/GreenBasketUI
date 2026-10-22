@@ -1,7 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CommonModule, AsyncPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { ColumnFilterIconComponent } from '../../../../shared/components/column-filter-icon/column-filter-icon.component';
+import { ColumnFilterPipe } from '../../../../shared/pipes/column-filter.pipe';
 
 import { TblOrderDetail } from '../models/tblOrderDetail.model';
 import { TblOrderDetailService } from '../services/tbl-order-detail';
@@ -9,7 +12,7 @@ import { TblOrderDetailService } from '../services/tbl-order-detail';
 
 @Component({
   selector: 'app-tbl-order-detail-list',
-  imports: [AsyncPipe, CommonModule, RouterLink],
+  imports: [AsyncPipe, CommonModule, FormsModule, RouterLink, ColumnFilterPipe, ColumnFilterIconComponent],
   templateUrl: './tbl-order-detail-list.html',
   styleUrl: './tbl-order-detail-list.css',
 })
@@ -18,6 +21,7 @@ export class TblOrderDetailListComponent implements OnInit {
   tblOrderDetail$?: Observable<TblOrderDetail[]>;
   actionType: string = '';
   submitAction: 'Load All' | 'Active Only' = 'Load All'; // default to Load All
+  filters: Record<string, string> = {};
 
   constructor(private tblOrderDetailService: TblOrderDetailService) {
   }

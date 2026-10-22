@@ -5,7 +5,10 @@
 		 ============================================ -->
 	<div class="page-header-bar">
 
-		<h1 class="page-caption">City / TownMastersList</h1>
+		<h1 class="page-caption page-caption-with-icon">
+			<i class="bi bi-geo-alt page-caption-icon"></i>
+			<span>City / Town Master</span>
+		</h1>
 
 		<div class="page-header-center">
 			<button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
@@ -26,7 +29,7 @@
 		<div class="page-header-right">
 			<a [routerLink]="['add']" class="btn-app btn-new">
 				<i class="bi bi-plus-lg"></i>
-				New Record
+				Add City / Town
 			</a>
 		</div>
 
@@ -51,7 +54,7 @@
 			<div class="page-header-right">
 				<ng-container *ngIf="tblCityorTownMaster$ | async as tblcityortownmasters">
 					<span class="pagination-info">
-						Showing {{ tblcityortownmasters.length }} of {{ tblcityortownmasters.length }} Records
+						Showing {{ (tblcityortownmasters | columnFilter:filters).length }} of {{ tblcityortownmasters.length }} Records
 					</span>
 				</ng-container>
 
@@ -66,23 +69,48 @@
 		</div>
 
 		<ng-container *ngIf="tblCityorTownMaster$ | async as tblcityortownmasters">
+		<ng-container *ngIf="tblcityortownmasters | columnFilter:filters as filteredCities">
 
             <div class="table-responsive">
 
 			<table class="data-table">
 				<thead>
 					<tr>
-						<th>Id</th>
-						<th>Cityor Town Name</th>
-						<th>Area Name</th>
-						<th>Pincode</th>
+						<th class="col-technical"><span class="column-heading">Id<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">City / Town Name<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Area Name<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">Pincode<app-column-filter-icon></app-column-filter-icon></span></th>
 						<th>Actions</th>
+					</tr>
+					<tr class="column-filter-row">
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Id" aria-label="Filter by Id"
+								[(ngModel)]="filters['fldId']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="City / Town"
+								aria-label="Filter by city or town name"
+								[(ngModel)]="filters['fldCityorTownName']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Area"
+								aria-label="Filter by area name" [(ngModel)]="filters['fldAreaName']" />
+						</th>
+						<th>
+							<input class="column-filter-input" type="text" placeholder="Pincode"
+								aria-label="Filter by pincode" [(ngModel)]="filters['fldPincode']" />
+						</th>
+						<th class="col-filter-empty">
+							<button type="button" class="column-filter-clear" (click)="filters = {}">
+								Clear
+							</button>
+						</th>
 					</tr>
 				</thead>
 
 				<tbody>
-					<tr *ngFor="let tblcityortownmaster of tblcityortownmasters">
-						<td class="cell-code">{{tblcityortownmaster.fldId}}</td>
+					<tr *ngFor="let tblcityortownmaster of filteredCities">
+						<td class="cell-code col-technical">{{tblcityortownmaster.fldId}}</td>
 						<td class="cell-primary">{{tblcityortownmaster.fldCityorTownName}}</td>
 						<td>{{tblcityortownmaster.fldAreaName}}</td>
 						<td class="cell-mono">{{tblcityortownmaster.fldPincode}}</td>
@@ -107,10 +135,11 @@
 
             </div>
             
-			<p class="grid-footnote" *ngIf="tblcityortownmasters.length === 0">
-				No records found.
+			<p class="grid-footnote" *ngIf="filteredCities.length === 0">
+				{{ tblcityortownmasters.length === 0 ? 'No records found.' : 'No records match the filters.' }}
 			</p>
 
+		</ng-container>
 		</ng-container>
 
 	</div>

@@ -7,11 +7,13 @@ import { TblDailyInventory } from '../models/tblDailyInventory.model';
 import { TblDailyInventoryService } from '../services/tbl-daily-inventory';
 import { ToastrService } from 'ngx-toastr';
 import { FormsModule } from '@angular/forms';
+import { ColumnFilterIconComponent } from '../../../../shared/components/column-filter-icon/column-filter-icon.component';
+import { ColumnFilterPipe } from '../../../../shared/pipes/column-filter.pipe';
 import { Console } from 'node:console';
 
 @Component({
   selector: 'app-tbl-daily-inventory-list',
-  imports: [AsyncPipe, CommonModule, RouterLink, FormsModule],
+  imports: [AsyncPipe, CommonModule, RouterLink, FormsModule, ColumnFilterPipe, ColumnFilterIconComponent],
   templateUrl: './tbl-daily-inventory-list.html',
   styleUrl: './tbl-daily-inventory-list.css',
 })
@@ -20,6 +22,7 @@ export class TblDailyInventoryListComponent implements OnInit {
   tblDailyInventory$?: Observable<TblDailyInventory[]>;
   actionType: string = '';
   submitAction: 'Load All' | 'Active Only' = 'Active Only'; // default to Load All
+  filters: Record<string, string> = {};
   isAdmin: boolean = false;
 
   removeMultipleItems: boolean = false;

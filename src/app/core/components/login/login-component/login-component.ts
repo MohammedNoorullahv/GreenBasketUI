@@ -13,6 +13,10 @@
 
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
+  afterNextRender,
+  DestroyRef,
+  ElementRef,
+  ViewChild,
   ChangeDetectorRef,
   Component,
   Inject,
@@ -69,7 +73,28 @@ export class LoginComponent {
   private readonly apiUrl =
     `${environment.apiBaseUrl}/api/Authenticate`;
 
-  showIntroVideo = true;
+  showIntroVideo = false;
+  private readonly introSessionKey = 'gb.introShown.v1';
+  private introWatchdog?: ReturnType<typeof setTimeout>;
+  private introElement?: HTMLVideoElement;
+  private introDestroyed = false;
+
+  @ViewChild('introVideo')
+  set introVideoRef(ref: ElementRef<HTMLVideoElement> | undefined) {
+    this.introElement = ref?.nativeElement;
+    if (!this.introElement || !this.showIntroVideo) return;
+    const video = this.introElement;
+    video.muted = true;
+    // Catch blocked autoplay as well as unsupported media.
+    void Promise.resolve().then(() => {
+      if (!this.introDestroyed && this.showIntroVideo && this.introElement === video) {
+        return video.play();
+      }
+
+      return undefined;
+    }).catch(() => this.finishIntro());
+  }
+
 
   introVideoCompleted = false;
 
@@ -79,34 +104,62 @@ export class LoginComponent {
     @Inject(PLATFORM_ID)
     private platformId: object,
     private cdr: ChangeDetectorRef,
-    private vendorNotifications: VendorNotificationService
-  ) { }
+    private vendorNotifications: VendorNotificationService,
+    private destroyRef: DestroyRef
+  ) {
+    this.destroyRef.onDestroy(() => {
+      this.introDestroyed = true;
+      clearTimeout(this.introWatchdog);
+      this.introElement?.pause();
+    });
+
+    // Runs only in the browser after hydration; no storage access during SSR.
+    afterNextRender(() => {
+      try {
+        if (sessionStorage.getItem(this.introSessionKey)) {
+          this.introVideoCompleted = true;
+          return;
+        }
+        // Record BEFORE playback: refreshing mid-video must still show login.
+        sessionStorage.setItem(this.introSessionKey, '1');
+      } catch {
+        // If storage is blocked, keep login accessible instead of replaying.
+        this.introVideoCompleted = true;
+        return;
+      }
+      this.showIntroVideo = true;
+      this.onIntroVideoProgress();
+      this.cdr.detectChanges();
+    });
+  }
+
+  skipIntro(): void {
+    this.finishIntro();
+  }
 
   onIntroVideoEnded(): void {
-
-    this.showIntroVideo = false;
-
-    this.introVideoCompleted = true;
-
-    this.cdr.detectChanges();
-
+    this.finishIntro();
   }
 
   onIntroVideoError(): void {
-
-    console.error(
-      'Unable to load Green Basket introduction video.'
-    );
-
-    // Allow login even if the video fails.
-    this.showIntroVideo = false;
-
-    this.introVideoCompleted = true;
-
-    this.cdr.detectChanges();
-
+    this.finishIntro();
   }
 
+  onIntroVideoProgress(): void {
+    if (this.introDestroyed || !this.showIntroVideo) return;
+    clearTimeout(this.introWatchdog);
+    // Loading or playback that makes no progress for 8 seconds cannot block login.
+    this.introWatchdog = setTimeout(() => this.finishIntro(), 8000);
+  }
+
+  private finishIntro(): void {
+    if (this.introDestroyed) return;
+    clearTimeout(this.introWatchdog);
+    this.introElement?.pause();
+    this.showIntroVideo = false;
+    this.introVideoCompleted = true;
+    this.cdr.detectChanges();
+  }
 
   sendOTP(): void {
 
@@ -299,7 +352,7 @@ export class LoginComponent {
 
           }
 
-          
+
 
           this.successMessage =
             'Login successful.';

@@ -1,4 +1,7 @@
 import { Routes } from '@angular/router';
+import { inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Router } from '@angular/router';
 import { Navbar } from './core/components/navbar/navbar';
 import { TblCityorTownMasterListComponent } from './features/mastertables/tblCityorTownMaster/tbl-cityor-town-master-list/tbl-cityor-town-master-list';
 import { TblCityorTownMasterAddComponent } from './features/mastertables/tblCityorTownMaster/tbl-cityor-town-master-add/tbl-cityor-town-master-add';
@@ -50,6 +53,13 @@ export const routes: Routes = [
     component: LoginComponent
   },
 
+  // Public registration has no application sidebar/layout.
+  {
+    path: 'register',
+    component: TblProfileAddComponent,
+    data: { publicRegistration: true }
+  },
+
   // Existing application layout
   {
     path: '',
@@ -87,6 +97,15 @@ export const routes: Routes = [
       {
         path: 'mastertables/tblProfile/add',
         component: TblProfileAddComponent,
+        canActivate: [() => {
+          const router = inject(Router);
+          const browser = isPlatformBrowser(inject(PLATFORM_ID));
+          if (!browser) return true;
+          try {
+            return sessionStorage.getItem('gbAccessToken')
+              ? true : router.parseUrl('/register');
+          } catch { return router.parseUrl('/register'); }
+        }],
       },
       {
         path: 'mastertables/tblProfile/Edit/:id',

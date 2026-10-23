@@ -49,6 +49,27 @@ export interface OrderShoppingRequest {
     fldUPITransactionReference?: string | null;
     fldDeliveryAddress?: string | null;
     fldHouseImagePath?: string | null;
+
+    fldvVendorName?: string;
+    fldvAllowAdvanceOrder?: boolean;
+    fldvADEndTime?: string;
+    fldvADCharges?: number;
+    fldvRegularDeliveryStartTime?: string;
+    fldvRDCharges?: number;
+    fldvAcceptingPriortyOrder?: boolean;
+    fldvPDDuration?: string;
+    fldvPDCharges?: number;
+    fldvCoveredRadius?: number;
+    fldvAdditionalChargesPerKm?: number;
+    fldvMaxCoveredRadius?: number;
+    fldvUPIId?: string | null;
+    fldvUPIPayeeName?: string | null;
+    fldvADMinBillValue?: number;
+    fldvADChargesWaiverValue?: number;
+    fldvRDMinBillValue?: number;
+    fldvRDChargesWaiverValue?: number;
+    fldvPDMinBillValue?: number;
+    fldvPDChargesWaiverValue?: number;
   };
   orderDetails: {
     fldFKItemId: number;

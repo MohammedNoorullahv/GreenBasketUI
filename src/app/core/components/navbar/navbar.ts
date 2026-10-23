@@ -16,6 +16,47 @@ type GreenBasketLanguage = "en" | "ta" | "ur";
   imports: [RouterLink, RouterOutlet, CommonModule, RouterLinkActive, TranslatePipe],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
+  styles: [`
+    /* Header and logout stay visible; only the menu scrolls. */
+    :host .sidebar {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      max-height: 100dvh;
+      min-height: 0;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    :host .sidebar > .sidebar-header { flex: 0 0 auto; }
+    :host .sidebar > .sidebar-menu {
+      flex: 1 1 0%;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior-y: contain;
+      scrollbar-width: thin;
+      padding-bottom: 12px;
+    }
+    :host .sidebar > .sidebar-menu > * { flex-shrink: 0; }
+    :host .sidebar .vendor-push-settings { overflow-wrap: anywhere; }
+    :host .sidebar > .sidebar-logout-footer {
+      flex: 0 0 auto;
+      padding: 12px 16px;
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+      border-top: 1px solid rgba(255, 255, 255, .18);
+      background: inherit;
+      box-sizing: border-box;
+    }
+    :host .sidebar .sidebar-logout-footer > .logout-btn {
+      display: block;
+      position: static;
+      width: 100%;
+      min-height: 44px;
+      margin: 0;
+      box-sizing: border-box;
+    }
+  `],
 })
 
 export class Navbar {
@@ -40,6 +81,8 @@ export class Navbar {
   activeMenu: string | null = null;
   isSidebarCollapsed: boolean = true;
   selectedLanguage: GreenBasketLanguage = "en";
+
+  hasSession = false;
 
   userType = '';
 
@@ -160,6 +203,7 @@ export class Navbar {
 
 
   toggleSidebar(): void {
+    if (!this.hasSession) return;
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
 
@@ -255,8 +299,9 @@ export class Navbar {
       return;
     }
 
-    const storedProfile =
-      sessionStorage.getItem('gbProfile');
+    const token = sessionStorage.getItem('gbAccessToken');
+    const storedProfile = token ? sessionStorage.getItem('gbProfile') : null;
+    this.hasSession = false;
 
     if (!storedProfile) {
 
@@ -282,6 +327,8 @@ export class Navbar {
 
       this.profileName =
         profile.fldFullName || '';
+      this.hasSession = this.profileId > 0 &&
+        ['Admin', 'Vendor', 'Customer'].includes(this.userType);
 
     }
     catch {

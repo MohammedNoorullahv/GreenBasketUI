@@ -1,3 +1,5 @@
+import { MenuCaptionPipe as GbMenuCaptionPipe } from '../../../../shared/pipes/menu-caption.pipe';
+import { TranslatePipe as GbPageTranslatePipe } from '@ngx-translate/core';
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CommonModule, AsyncPipe } from '@angular/common';
@@ -13,7 +15,7 @@ import { Console } from 'node:console';
 
 @Component({
   selector: 'app-tbl-daily-inventory-list',
-  imports: [AsyncPipe, CommonModule, RouterLink, FormsModule, ColumnFilterPipe, ColumnFilterIconComponent],
+  imports: [AsyncPipe, CommonModule, RouterLink, FormsModule, ColumnFilterPipe, ColumnFilterIconComponent, GbPageTranslatePipe, GbMenuCaptionPipe],
   templateUrl: './tbl-daily-inventory-list.html',
   styleUrl: './tbl-daily-inventory-list.css',
 })
@@ -34,6 +36,7 @@ export class TblDailyInventoryListComponent implements OnInit {
   }
 
   ngOnInit(): void {
+
     const storedProfile =
       sessionStorage.getItem('gbProfile');
 
@@ -50,6 +53,7 @@ export class TblDailyInventoryListComponent implements OnInit {
 
     this.actionType = 'Active Only';
     this.tblDailyInventory$ = this.tblDailyInventoryService.getActiveLeanTblDailyInventorys();
+    
   }
 
   OnFormSubmit(action: string): void {

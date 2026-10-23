@@ -8,9 +8,9 @@
 
     <span class="gb-orders-spinner" aria-hidden="true"></span>
 
-    <h2>Loading your orders</h2>
+    <h2>{{ 'OrderShopping.LOADING_YOUR_ORDERS' | translate }}</h2>
 
-    <p>Please wait while we fetch your latest orders.</p>
+    <p>{{ 'OrderShopping.PLEASE_WAIT_WHILE_WE_FETCH_YOUR_LATEST_ORDERS' | translate }}</p>
 
   </div>
 
@@ -19,26 +19,36 @@
      PENDING ORDER API ERROR
      ============================================== -->
 
-  <div *ngIf="pendingOrderLoadError" class="gb-orders-state gb-orders-state-error" role="alert">
+  <div *ngIf="!checkingPendingOrders && pendingOrderLoadError" class="gb-orders-state gb-orders-state-error" role="alert">
 
     <i class="bi bi-cloud-slash" aria-hidden="true"></i>
 
-    <h2>We couldn't load your orders</h2>
+    <h2>{{ 'OrderShopping.WE_COULDN_T_LOAD_YOUR_ORDERS' | translate }}</h2>
 
-    <p>Please check your connection and try again.</p>
+    <p>{{ ((pendingOrderErrorMessage | menuCaption:'OrderShopping') || ('OrderShopping.PLEASE_CHECK_YOUR_CONNECTION_AND_TRY_AGAIN' | translate)) }}</p>
 
     <button type="button" class="gb-btn gb-btn-primary" (click)="checkPendingOrders()">
       <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
-      Try again
-    </button>
+      {{ 'OrderShopping.TRY_AGAIN' | translate }}</button>
 
   </div>
+
+  <section *ngIf="pendingOrderChecked && !checkingPendingOrders && !pendingOrderLoadError && !shoppingStarted && pendingOrders.length === 0"
+    class="gb-orders-state" role="status" aria-live="polite">
+    <i class="bi bi-basket" aria-hidden="true"></i>
+    <h2>{{ 'OrderShopping.NO_PENDING_ORDERS' | translate }}</h2>
+    <p>{{ (isVendor ? ('OrderShopping.NEW_CUSTOMER_ORDERS_WILL_APPEAR_HERE_WHEN_THEY_ARE_PLACED' | translate) : ('OrderShopping.THERE_ARE_NO_PENDING_ORDERS_TO_DISPLAY' | translate)) }}</p>
+    <button type="button" class="gb-btn gb-btn-secondary" (click)="checkPendingOrders()">
+      <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> {{ 'OrderShopping.REFRESH_ORDERS' | translate }}</button>
+    <a [routerLink]="['/transactiontables/tblOrderList']" class="gb-btn gb-btn-secondary">{{ 'OrderShopping.ORDER_HISTORY' | translate }}</a>
+    <button *ngIf="isCustomer" type="button" class="gb-btn gb-btn-primary" (click)="startNewOrder()">{{ 'OrderShopping.NEW_ORDER' | translate }}</button>
+  </section>
 
   <!-- ==============================================
      CUSTOMER PENDING ORDER TRACKING
      ============================================== -->
 
-  <section *ngIf="showPendingOrders" class="gb-order-tracking" aria-labelledby="gbOrdersTitle">
+  <section *ngIf="!checkingPendingOrders && !pendingOrderLoadError && showPendingOrders" class="gb-order-tracking" aria-labelledby="gbOrdersTitle">
 
     <header class="gb-orders-header">
 
@@ -46,20 +56,13 @@
 
         <span class="gb-orders-eyebrow">
           <i class="bi bi-bag-check" aria-hidden="true"></i>
-          Green Basket
-        </span>
+          {{ 'OrderShopping.GREEN_BASKET' | translate }}</span>
 
         <h2 id="gbOrdersTitle">
-          {{ isVendor ? 'Customer Orders' : 'My Orders' }}
-        </h2>
+           {{ (isVendor ? ('OrderShopping.CUSTOMER_ORDERS' | translate) : ('OrderShopping.MY_ORDERS' | translate)) }} </h2>
 
         <p class="gb-orders-subtitle">
-          {{
-          isVendor
-          ? 'Review and update customer orders in one place.'
-          : 'Track every order from confirmation to delivery.'
-          }}
-        </p>
+           {{ (isVendor ? ('OrderShopping.REVIEW_AND_UPDATE_CUSTOMER_ORDERS_IN_ONE_PLACE' | translate) : ('OrderShopping.TRACK_EVERY_ORDER_FROM_CONFIRMATION_TO_DELIVERY' | translate)) }} </p>
 
       </div>
 
@@ -67,13 +70,11 @@
 
         <a [routerLink]="['/transactiontables/tblOrderList']" class="gb-btn gb-btn-secondary">
           <i class="bi bi-clock-history" aria-hidden="true"></i>
-          Order History
-        </a>
+          {{ 'OrderShopping.ORDER_HISTORY' | translate }}</a>
 
         <button *ngIf="isCustomer" type="button" class="gb-btn gb-btn-primary" (click)="startNewOrder()">
           <i class="bi bi-plus-lg" aria-hidden="true"></i>
-          New Order
-        </button>
+          {{ 'OrderShopping.NEW_ORDER' | translate }}</button>
 
       </div>
 
@@ -81,11 +82,11 @@
 
     <!-- ORDER SUMMARY -->
 
-    <div class="gb-orders-summary" role="group" aria-label="Order summary" aria-live="polite">
+    <div class="gb-orders-summary" role="group" [attr.aria-label]="'OrderShopping.ORDER_SUMMARY' | translate" aria-live="polite">
 
       <div class="gb-summary-item">
 
-        <span class="gb-summary-label">Total orders</span>
+        <span class="gb-summary-label">{{ 'OrderShopping.TOTAL_ORDERS' | translate }}</span>
 
         <strong class="gb-summary-value">{{ pendingOrders.length }}</strong>
 
@@ -93,22 +94,20 @@
 
       <div class="gb-summary-item">
 
-        <span class="gb-summary-label">Currently viewing</span>
+        <span class="gb-summary-label">{{ 'OrderShopping.CURRENTLY_VIEWING' | translate }}</span>
 
         <strong class="gb-summary-value">
-          {{ selectedOrderPosition }}
-          <span class="gb-summary-of">of {{ pendingOrders.length }}</span>
+           {{ selectedOrderPosition }} <span class="gb-summary-of">{{ ('OrderShopping.OF_VALUE' | translate:{p0: (pendingOrders.length)}) }}</span>
         </strong>
 
       </div>
 
       <div class="gb-summary-item" *ngIf="pendingOrders.length > 0">
 
-        <span class="gb-summary-label">Latest order</span>
+        <span class="gb-summary-label">{{ 'OrderShopping.LATEST_ORDER' | translate }}</span>
 
         <strong class="gb-summary-value gb-summary-order">
-          #{{ pendingOrders[0].fldOrderNumber }}
-        </strong>
+           #{{ pendingOrders[0].fldOrderNumber }} </strong>
 
       </div>
 
@@ -126,21 +125,19 @@
 
           <div class="gb-order-identity">
 
-            <span class="gb-order-label">Order</span>
+            <span class="gb-order-label">{{ 'OrderShopping.ORDER' | translate }}</span>
 
             <h3 class="gb-order-number" [id]="'gbOrderTitle-' + i">
-              #{{ order.fldOrderNumber }}
-            </h3>
+               #{{ order.fldOrderNumber }} </h3>
 
             <span class="gb-order-date">
               <i class="bi bi-calendar3" aria-hidden="true"></i>
-              {{ order.fldOrderDate | date:'dd MMM yyyy' }}
-            </span>
+               {{ order.fldOrderDate | date:'dd MMM yyyy' }} </span>
 
           </div>
 
           <span class="status-badge gb-order-status"
-            [attr.aria-label]="'Order status: ' + (order.fldOrderStatus || 'Pending')" [ngClass]="{
+            [attr.aria-label]="('OrderShopping.ORDER_STATUS_VALUE' | translate:{p0: ((order.fldOrderStatus || 'Pending'))})" [ngClass]="{
               'status-new': order.fldOrderStatus === 'Pending',
               'status-accepted': order.fldOrderStatus === 'Accepted',
               'status-packing': order.fldOrderStatus === 'Packing',
@@ -150,8 +147,7 @@
               'status-denied': order.fldOrderStatus === 'Denied'
             }">
             <span class="gb-status-dot" aria-hidden="true"></span>
-            {{ order.fldOrderStatus || 'Pending' }}
-          </span>
+             {{ ((order.fldOrderStatus | menuCaption:'OrderShopping') || ('OrderShopping.PENDING' | translate)) }} </span>
 
         </header>
 
@@ -161,15 +157,15 @@
 
             <i class="bi bi-shop" aria-hidden="true"></i>
 
-            <span class="gb-order-meta-label">Vendor</span>
+            <span class="gb-order-meta-label">{{ 'OrderShopping.VENDOR' | translate }}</span>
 
-            <strong>{{ order.fldVendorFullName || 'Not assigned' }}</strong>
+            <strong>{{ (order.fldVendorFullName || ('OrderShopping.NOT_ASSIGNED' | translate)) }}</strong>
 
           </div>
 
           <div class="gb-order-total">
 
-            <span class="gb-order-meta-label">Order total</span>
+            <span class="gb-order-meta-label">{{ 'OrderShopping.ORDER_TOTAL' | translate }}</span>
 
             <strong>₹{{ order.fldGrandTotal | number:'1.2-2' }}</strong>
 
@@ -187,16 +183,13 @@
           <div>
 
             <strong>
-              {{ order.fldOrderStatus === 'Cancelled' ? 'Order cancelled' : 'Order declined by vendor' }}
-            </strong>
+               {{ (order.fldOrderStatus === 'Cancelled' ? ('OrderShopping.ORDER_CANCELLED' | translate) : ('OrderShopping.ORDER_DECLINED_BY_VENDOR' | translate)) }} </strong>
 
             <small *ngIf="order.fldCancelledAt">
-              {{ order.fldCancelledAt | date:'dd MMM yyyy, hh:mm a' }}
-            </small>
+               {{ order.fldCancelledAt | date:'dd MMM yyyy, hh:mm a' }} </small>
 
             <small *ngIf="!order.fldCancelledAt">
-              This order will not be processed.
-            </small>
+              {{ 'OrderShopping.THIS_ORDER_WILL_NOT_BE_PROCESSED' | translate }}</small>
 
           </div>
 
@@ -204,7 +197,7 @@
 
         <div class="gb-order-progress"
           *ngIf="order.fldOrderStatus !== 'Cancelled' && order.fldOrderStatus !== 'Denied'" role="list"
-          aria-label="Order progress">
+          [attr.aria-label]="'OrderShopping.ORDER_PROGRESS' | translate">
 
           <!-- ORDER PLACED -->
 
@@ -218,15 +211,10 @@
 
             <div class="gb-stage-body">
 
-              <strong>Order placed</strong>
+              <strong>{{ 'OrderShopping.ORDER_PLACED' | translate }}</strong>
 
               <small>
-                {{
-                order.fldOrderGeneratedAt
-                ? (order.fldOrderGeneratedAt | date:'dd MMM, hh:mm a')
-                : 'Awaiting confirmation'
-                }}
-              </small>
+                 {{ (order.fldOrderGeneratedAt ? (order.fldOrderGeneratedAt | date:'dd MMM, hh:mm a') : ('OrderShopping.AWAITING_CONFIRMATION' | translate)) }} </small>
 
             </div>
 
@@ -244,15 +232,10 @@
 
             <div class="gb-stage-body">
 
-              <strong>Accepted</strong>
+              <strong>{{ 'OrderShopping.ACCEPTED' | translate }}</strong>
 
               <small>
-                {{
-                order.fldAcceptedAt
-                ? (order.fldAcceptedAt | date:'dd MMM, hh:mm a')
-                : 'Waiting for vendor'
-                }}
-              </small>
+                 {{ (order.fldAcceptedAt ? (order.fldAcceptedAt | date:'dd MMM, hh:mm a') : ('OrderShopping.WAITING_FOR_VENDOR' | translate)) }} </small>
 
             </div>
 
@@ -270,15 +253,10 @@
 
             <div class="gb-stage-body">
 
-              <strong>Packed</strong>
+              <strong>{{ 'OrderShopping.PACKED' | translate }}</strong>
 
               <small>
-                {{
-                order.fldPackedAt
-                ? (order.fldPackedAt | date:'dd MMM, hh:mm a')
-                : 'Not yet packed'
-                }}
-              </small>
+                 {{ (order.fldPackedAt ? (order.fldPackedAt | date:'dd MMM, hh:mm a') : ('OrderShopping.NOT_YET_PACKED' | translate)) }} </small>
 
             </div>
 
@@ -296,15 +274,10 @@
 
             <div class="gb-stage-body">
 
-              <strong>Out for delivery</strong>
+              <strong>{{ 'OrderShopping.OUT_FOR_DELIVERY' | translate }}</strong>
 
               <small>
-                {{
-                order.fldOutForDeliveryAt
-                ? (order.fldOutForDeliveryAt | date:'dd MMM, hh:mm a')
-                : 'Not yet dispatched'
-                }}
-              </small>
+                 {{ (order.fldOutForDeliveryAt ? (order.fldOutForDeliveryAt | date:'dd MMM, hh:mm a') : ('OrderShopping.NOT_YET_DISPATCHED' | translate)) }} </small>
 
             </div>
 
@@ -322,15 +295,10 @@
 
             <div class="gb-stage-body">
 
-              <strong>Delivered</strong>
+              <strong>{{ 'OrderShopping.DELIVERED' | translate }}</strong>
 
               <small>
-                {{
-                order.fldDeliveredAt
-                ? (order.fldDeliveredAt | date:'dd MMM, hh:mm a')
-                : 'Not yet delivered'
-                }}
-              </small>
+                 {{ (order.fldDeliveredAt ? (order.fldDeliveredAt | date:'dd MMM, hh:mm a') : ('OrderShopping.NOT_YET_DELIVERED' | translate)) }} </small>
 
             </div>
 
@@ -344,17 +312,14 @@
 
             <button type="button" class="gb-btn gb-btn-primary" (click)="viewPendingOrderDetails(order, i)">
               <i class="bi bi-receipt" aria-hidden="true"></i>
-              View details
-            </button>
+              {{ 'OrderShopping.VIEW_DETAILS' | translate }}</button>
 
             <!-- VENDOR: DENY PENDING ORDER -->
             <button *ngIf="isVendor && canDenyOrder(order)" type="button" class="gb-btn gb-btn-danger"
               [disabled]="updatingOrderId === order.fldId" (click)="canDenyOrder(order)">
 
               <i class="bi bi-x-lg" aria-hidden="true"></i>
-              Deny order
-
-            </button>
+              {{ 'OrderShopping.DENY_ORDER' | translate }}</button>
 
             <!-- VENDOR: NEXT STATUS -->
             <button *ngIf="isVendor && canUpdateOrderStatus(order)" type="button" class="gb-btn gb-btn-secondary"
@@ -362,13 +327,7 @@
 
               <i class="bi bi-arrow-right-circle" aria-hidden="true"></i>
 
-              {{
-              updatingOrderId === order.fldId
-              ? 'Updating...'
-              : getNextStatusButtonText(order)
-              }}
-
-            </button>
+               {{ (updatingOrderId === order.fldId ? ('OrderShopping.UPDATING' | translate) : (getNextStatusButtonText(order) | menuCaption:'OrderShopping')) }} </button>
 
           </div>
 
@@ -397,28 +356,20 @@
 
           <span class="gb-modal-eyebrow">
             <i class="bi bi-receipt" aria-hidden="true"></i>
-            Order details
-          </span>
+            {{ 'OrderShopping.ORDER_DETAILS' | translate }}</span>
 
           <h2 id="gbOrderDetailsTitle">
-            Order #{{ order.fldOrderNumber }}
-          </h2>
+            {{ ('OrderShopping.ORDER_VALUE' | translate:{p0: (order.fldOrderNumber)}) }}</h2>
 
           <p id="gbOrderDetailsMeta">
-            Placed
-            {{
-            order.fldOrderGeneratedAt
-            ? (order.fldOrderGeneratedAt | date:'dd MMM yyyy, hh:mm a')
-            : (order.fldOrderDate | date:'dd MMM yyyy')
-            }}
-          </p>
+            {{ ('OrderShopping.PLACED_VALUE' | translate:{p0: ((order.fldOrderGeneratedAt ? (order.fldOrderGeneratedAt | date:'dd MMM yyyy, hh:mm a') : (order.fldOrderDate | date:'dd MMM yyyy')))}) }}</p>
 
         </div>
 
         <div class="gb-modal-header-side">
 
           <span class="status-badge gb-order-status"
-            [attr.aria-label]="'Order status: ' + (order.fldOrderStatus || 'Pending')" [ngClass]="{
+            [attr.aria-label]="('OrderShopping.ORDER_STATUS_VALUE' | translate:{p0: ((order.fldOrderStatus || 'Pending'))})" [ngClass]="{
               'status-new': order.fldOrderStatus === 'Pending',
               'status-accepted': order.fldOrderStatus === 'Accepted',
               'status-packing': order.fldOrderStatus === 'Packing',
@@ -428,10 +379,9 @@
               'status-denied': order.fldOrderStatus === 'Denied'
             }">
             <span class="gb-status-dot" aria-hidden="true"></span>
-            {{ order.fldOrderStatus || 'Pending' }}
-          </span>
+             {{ ((order.fldOrderStatus | menuCaption:'OrderShopping') || ('OrderShopping.PENDING' | translate)) }} </span>
 
-          <button type="button" class="gb-order-modal-close" aria-label="Close order details"
+          <button type="button" class="gb-order-modal-close" [attr.aria-label]="'OrderShopping.CLOSE_ORDER_DETAILS' | translate"
             (click)="closePendingOrderDetails()">
             &times;
           </button>
@@ -445,35 +395,30 @@
 
         <!-- ORDER SUMMARY -->
 
-        <section class="gb-modal-meta" aria-label="Order information">
+        <section class="gb-modal-meta" [attr.aria-label]="'OrderShopping.ORDER_INFORMATION' | translate">
 
           <div class="gb-modal-meta-item">
 
-            <span class="gb-modal-meta-label">Vendor</span>
+            <span class="gb-modal-meta-label">{{ 'OrderShopping.VENDOR' | translate }}</span>
 
-            <strong>{{ order.fldVendorFullName || 'Not assigned' }}</strong>
+            <strong>{{ (order.fldVendorFullName || ('OrderShopping.NOT_ASSIGNED' | translate)) }}</strong>
 
           </div>
 
           <div class="gb-modal-meta-item">
 
-            <span class="gb-modal-meta-label">Order type</span>
+            <span class="gb-modal-meta-label">{{ 'OrderShopping.ORDER_TYPE' | translate }}</span>
 
-            <strong>{{ order.fldOrderType || order.fldOrderOption || 'Not specified' }}</strong>
+            <strong>{{ (((order.fldOrderType | menuCaption:'OrderShopping') || (order.fldOrderOption | menuCaption:'OrderShopping')) || ('OrderShopping.NOT_SPECIFIED' | translate)) }}</strong>
 
           </div>
 
           <div class="gb-modal-meta-item">
 
-            <span class="gb-modal-meta-label">Requested delivery</span>
+            <span class="gb-modal-meta-label">{{ 'OrderShopping.REQUESTED_DELIVERY' | translate }}</span>
 
             <strong>
-              {{
-              order.fldRequestedDeliveryDate
-              ? (order.fldRequestedDeliveryDate | date:'dd MMM yyyy')
-              : 'Not specified'
-              }}
-            </strong>
+               {{ (order.fldRequestedDeliveryDate ? (order.fldRequestedDeliveryDate | date:'dd MMM yyyy') : ('OrderShopping.NOT_SPECIFIED' | translate)) }} </strong>
 
           </div>
 
@@ -486,12 +431,10 @@
 
           <div class="gb-modal-section-head">
 
-            <h3 id="gbModalItemsTitle">Order items</h3>
+            <h3 id="gbModalItemsTitle">{{ 'OrderShopping.ORDER_ITEMS' | translate }}</h3>
 
             <span class="gb-item-count">
-              {{ order.pendingOrderdtls.length }}
-              {{ order.pendingOrderdtls.length === 1 ? 'item' : 'items' }}
-            </span>
+               {{ order.pendingOrderdtls.length }} {{ (order.pendingOrderdtls.length === 1 ? ('OrderShopping.ITEM' | translate) : ('OrderShopping.ITEMS' | translate)) }} </span>
 
           </div>
 
@@ -500,18 +443,15 @@
             <div class="gb-order-detail-row" *ngFor="let item of order.pendingOrderdtls">
 
               <img class="gb-order-detail-image" [src]="imageUrl(item.fldItemImagePath)"
-                [alt]="item.fldItemName || 'Vegetable'" (error)="onImageError($event)" />
+                [alt]="(item.fldItemName || ('OrderShopping.VEGETABLE' | translate))" (error)="onImageError($event)" />
 
               <div class="gb-order-detail-name">
 
-                <strong>{{ item.fldItemName || 'Item' }}</strong>
+                <strong>{{ (item.fldItemName || ('OrderShopping.ITEM_2' | translate)) }}</strong>
 
                 <small>
-                  {{ item.fldQuantity | number:'1.0-3' }}
-                  {{ item.fldUnit }}
-                  <span aria-hidden="true">·</span>
-                  ₹{{ item.fldRate | number:'1.2-2' }} / {{ item.fldUnit }}
-                </small>
+                   {{ item.fldQuantity | number:'1.0-3' }} {{ item.fldUnit }} <span aria-hidden="true">·</span>
+                   ₹{{ item.fldRate | number:'1.2-2' }} / {{ item.fldUnit }} </small>
 
               </div>
 
@@ -524,8 +464,7 @@
             </div>
 
             <p class="gb-modal-empty" *ngIf="!order.pendingOrderdtls.length">
-              No items were returned for this order.
-            </p>
+              {{ 'OrderShopping.NO_ITEMS_WERE_RETURNED_FOR_THIS_ORDER' | translate }}</p>
 
           </div>
 
@@ -536,11 +475,11 @@
 
         <section class="gb-order-modal-bill" aria-labelledby="gbModalBillTitle">
 
-          <h3 id="gbModalBillTitle">Bill summary</h3>
+          <h3 id="gbModalBillTitle">{{ 'OrderShopping.BILL_SUMMARY' | translate }}</h3>
 
           <div class="gb-bill-line">
 
-            <span>Item subtotal</span>
+            <span>{{ 'OrderShopping.ITEM_SUBTOTAL' | translate }}</span>
 
             <strong>₹{{ order.fldItemSubTotal | number:'1.2-2' }}</strong>
 
@@ -548,7 +487,7 @@
 
           <div class="gb-bill-line">
 
-            <span>Delivery charges</span>
+            <span>{{ 'OrderShopping.DELIVERY_CHARGES' | translate }}</span>
 
             <strong>₹{{ order.fldDeliveryCharges | number:'1.2-2' }}</strong>
 
@@ -556,7 +495,7 @@
 
           <div class="gb-order-modal-grand-total">
 
-            <span>Grand total</span>
+            <span>{{ 'OrderShopping.GRAND_TOTAL' | translate }}</span>
 
             <strong>₹{{ order.fldGrandTotal | number:'1.2-2' }}</strong>
 
@@ -573,8 +512,7 @@
 
         <button type="button" class="gb-btn gb-btn-primary" (click)="closePendingOrderDetails()">
           <i class="bi bi-check2" aria-hidden="true"></i>
-          Close
-        </button>
+          {{ 'OrderShopping.CLOSE' | translate }}</button>
 
       </footer>
 
@@ -587,17 +525,16 @@
       <div class="gb-brand">
         <img class="gb-brand-logo" src="/Images/Green%20Basket%20Light.jpg" alt="" />
         <div class="gb-brand-copy">
-          <span class="gb-brand-name">Green Basket</span>
-          <small>Fresh vegetables from local vendors</small>
+          <span class="gb-brand-name">{{ 'OrderShopping.GREEN_BASKET' | translate }}</span>
+          <small>{{ 'OrderShopping.FRESH_VEGETABLES_FROM_LOCAL_VENDORS' | translate }}</small>
         </div>
       </div>
       <div class="gb-header-actions">
         <span class="gb-header-user" *ngIf="profileName">
           <i class="bi bi-person-circle" aria-hidden="true"></i>
-          {{ profileName }}
-        </span>
+           {{ profileName }} </span>
         <div class="gb-cart-pill" role="status" aria-live="polite"
-          [attr.aria-label]="cart.length + ' items in cart'">
+          [attr.aria-label]="('OrderShopping.VALUE_ITEMS_IN_CART' | translate:{p0: (cart.length)})">
           <i class="bi bi-cart3" aria-hidden="true"></i>
           <span class="gb-cart-badge">{{ cart.length }}</span>
         </div>
@@ -608,77 +545,71 @@
       <div>
         <button type="button" class="gb-back-link" (click)="backToMyOrders()">
           <i class="bi bi-arrow-left" aria-hidden="true"></i>
-          Back to My Orders
-        </button>
+          {{ 'OrderShopping.BACK_TO_MY_ORDERS' | translate }}</button>
         <p class="gb-orders-eyebrow">
           <i class="bi bi-bag-plus" aria-hidden="true"></i>
-          New order
-        </p>
-        <h1 id="gbNewOrderTitle">Build your vegetable basket</h1>
-        <p>Select a vendor and delivery option, then add fresh produce to your cart.</p>
+          {{ 'OrderShopping.NEW_ORDER_2' | translate }}</p>
+        <h1 id="gbNewOrderTitle">{{ 'OrderShopping.BUILD_YOUR_VEGETABLE_BASKET' | translate }}</h1>
+        <p>{{ 'OrderShopping.SELECT_A_VENDOR_AND_DELIVERY_OPTION_THEN_ADD_FRESH_PRODUCE_TO_YOUR_CART' | translate }}</p>
       </div>
       <span class="gb-hero-badge">
         <i class="bi bi-shield-check" aria-hidden="true"></i>
-        Fresh from verified local vendors
-      </span>
+        {{ 'OrderShopping.FRESH_FROM_VERIFIED_LOCAL_VENDORS' | translate }}</span>
     </section>
 
     <section class="gb-order-settings" *ngIf="!showCheckout" aria-labelledby="gbOrderSettingsTitle">
       <div class="gb-settings-head">
         <div>
-          <h2 id="gbOrderSettingsTitle">Order settings</h2>
-          <p>Delivery charges and the minimum order value depend on these choices.</p>
+          <h2 id="gbOrderSettingsTitle">{{ 'OrderShopping.ORDER_SETTINGS' | translate }}</h2>
+          <p>{{ 'OrderShopping.DELIVERY_CHARGES_AND_THE_MINIMUM_ORDER_VALUE_DEPEND_ON_THESE_CHOICES' | translate }}</p>
         </div>
         <div class="gb-estimate" aria-live="polite">
           <i class="bi bi-clock-history" aria-hidden="true"></i>
-          <span>{{ deliveryEstimate || 'Choose a vendor to see the delivery estimate' }}</span>
+          <span>{{ ((deliveryEstimate | menuCaption:'OrderShopping') || ('OrderShopping.CHOOSE_A_VENDOR_TO_SEE_THE_DELIVERY_ESTIMATE' | translate)) }}</span>
         </div>
       </div>
 
       <div class="gb-settings-grid">
         <div class="gb-field gb-field-vendor">
-          <label for="gbVendor">Vendor</label>
+          <label for="gbVendor">{{ 'OrderShopping.VENDOR' | translate }}</label>
           <select id="gbVendor" class="gb-input" [ngModel]="vendorId" (ngModelChange)="changeVendor($event)">
-            <option [ngValue]="0">Select a vendor</option>
+            <option [ngValue]="0">{{ 'OrderShopping.SELECT_A_VENDOR' | translate }}</option>
             <option *ngFor="let vendor of vendorOptions" [ngValue]="vendor.fldId">
-              {{ vendor.fldDescription }}
-            </option>
+               {{ vendor.fldDescription }} </option>
           </select>
-          <small>Stock and prices load from the selected vendor.</small>
+          <small>{{ 'OrderShopping.STOCK_AND_PRICES_LOAD_FROM_THE_SELECTED_VENDOR' | translate }}</small>
         </div>
 
         <fieldset class="gb-field">
-          <legend>Order type</legend>
+          <legend>{{ 'OrderShopping.ORDER_TYPE' | translate }}</legend>
           <div class="gb-segmented">
             <label class="gb-segment">
               <input type="radio" name="orderOption" value="Current Day Order" [(ngModel)]="orderOption"
                 (ngModelChange)="onOrderOptionChange()" />
-              <span>Current day</span>
+              <span>{{ 'OrderShopping.CURRENT_DAY' | translate }}</span>
             </label>
             <label class="gb-segment">
               <input type="radio" name="orderOption" value="Advance Order" [(ngModel)]="orderOption"
                 [disabled]="vendorProfile?.fldvAllowAdvanceOrder !== true" (ngModelChange)="onOrderOptionChange()" />
-              <span>Advance</span>
+              <span>{{ 'OrderShopping.ADVANCE' | translate }}</span>
             </label>
           </div>
-          <small *ngIf="!vendorProfile">Select a vendor to check advance ordering availability.</small>
+          <small *ngIf="!vendorProfile">{{ 'OrderShopping.SELECT_A_VENDOR_TO_CHECK_ADVANCE_ORDERING_AVAILABILITY' | translate }}</small>
           <small *ngIf="vendorProfile && vendorProfile.fldvAllowAdvanceOrder !== true">
-            Advance ordering is not enabled for this vendor.
-          </small>
+            {{ 'OrderShopping.ADVANCE_ORDERING_IS_NOT_ENABLED_FOR_THIS_VENDOR' | translate }}</small>
         </fieldset>
 
         <fieldset class="gb-field gb-field-delivery">
-          <legend>Delivery option</legend>
+          <legend>{{ 'OrderShopping.DELIVERY_OPTION' | translate }}</legend>
           <div class="gb-choice-cards">
             <label class="gb-choice-card">
               <input type="radio" name="orderType" value="Self Pickup" [(ngModel)]="fldOrderType"
                 (ngModelChange)="onDeliveryTypeChange()" />
               <span class="gb-choice-card-content">
                 <span class="gb-choice-card-title">
-                  Self pickup
-                  <span class="gb-price-tag">Free</span>
+                  {{ 'OrderShopping.SELF_PICKUP' | translate }}<span class="gb-price-tag">{{ 'OrderShopping.FREE' | translate }}</span>
                 </span>
-                <small>Collect directly from the vendor</small>
+                <small>{{ 'OrderShopping.COLLECT_DIRECTLY_FROM_THE_VENDOR' | translate }}</small>
               </span>
             </label>
 
@@ -687,12 +618,10 @@
                 (ngModelChange)="onDeliveryTypeChange()" />
               <span class="gb-choice-card-content">
                 <span class="gb-choice-card-title">
-                  Regular delivery
-                  <span class="gb-price-tag" *ngIf="vendorProfile">
-                    {{ regularDeliveryPriceLabel }}
-                  </span>
+                  {{ 'OrderShopping.REGULAR_DELIVERY' | translate }}<span class="gb-price-tag" *ngIf="vendorProfile">
+                     {{ (regularDeliveryPriceLabel | menuCaption:'OrderShopping') }} </span>
                 </span>
-                <small>Delivered today</small>
+                <small>{{ 'OrderShopping.DELIVERED_TODAY' | translate }}</small>
               </span>
             </label>
 
@@ -702,12 +631,10 @@
                 (ngModelChange)="onDeliveryTypeChange()" />
               <span class="gb-choice-card-content">
                 <span class="gb-choice-card-title">
-                  Priority delivery
-                  <span class="gb-price-tag" *ngIf="vendorProfile">
-                    {{ priorityDeliveryPriceLabel }}
-                  </span>
+                  {{ 'OrderShopping.PRIORITY_DELIVERY' | translate }}<span class="gb-price-tag" *ngIf="vendorProfile">
+                     {{ (priorityDeliveryPriceLabel | menuCaption:'OrderShopping') }} </span>
                 </span>
-                <small>Faster delivery today</small>
+                <small>{{ 'OrderShopping.FASTER_DELIVERY_TODAY' | translate }}</small>
               </span>
             </label>
 
@@ -716,12 +643,10 @@
                 (ngModelChange)="onDeliveryTypeChange()" />
               <span class="gb-choice-card-content">
                 <span class="gb-choice-card-title">
-                  Advance delivery
-                  <span class="gb-price-tag" *ngIf="vendorProfile">
-                    {{ advanceDeliveryPriceLabel }}
-                  </span>
+                  {{ 'OrderShopping.ADVANCE_DELIVERY' | translate }}<span class="gb-price-tag" *ngIf="vendorProfile">
+                     {{ (advanceDeliveryPriceLabel | menuCaption:'OrderShopping') }} </span>
                 </span>
-                <small>Choose a future delivery date</small>
+                <small>{{ 'OrderShopping.CHOOSE_A_FUTURE_DELIVERY_DATE' | translate }}</small>
               </span>
             </label>
           </div>
@@ -730,22 +655,20 @@
 
       <div *ngIf="orderOption === 'Advance Order'" class="gb-advance-panel">
         <div class="gb-field">
-          <label for="requestedDeliveryDate">Requested delivery date</label>
+          <label for="requestedDeliveryDate">{{ 'OrderShopping.REQUESTED_DELIVERY_DATE' | translate }}</label>
           <input id="requestedDeliveryDate" type="date" class="gb-input" name="requestedDeliveryDate"
             [(ngModel)]="requestedDeliveryDate" [min]="getTomorrowDate()"
             (ngModelChange)="updateDeliveryEstimate()" />
-          <small>The earliest available date is tomorrow.</small>
+          <small>{{ 'OrderShopping.THE_EARLIEST_AVAILABLE_DATE_IS_TOMORROW' | translate }}</small>
         </div>
         <fieldset class="gb-field">
-          <legend>If prices change before delivery</legend>
+          <legend>{{ 'OrderShopping.IF_PRICES_CHANGE_BEFORE_DELIVERY' | translate }}</legend>
           <label class="gb-radio-row">
             <input type="radio" name="priceChoice" value="Auto Apply" [(ngModel)]="priceChangeOption" />
-            Auto-apply updated prices
-          </label>
+            {{ 'OrderShopping.AUTO_APPLY_UPDATED_PRICES' | translate }}</label>
           <label class="gb-radio-row">
             <input type="radio" name="priceChoice" value="Get Confirmation" [(ngModel)]="priceChangeOption" />
-            Ask me for confirmation first
-          </label>
+            {{ 'OrderShopping.ASK_ME_FOR_CONFIRMATION_FIRST' | translate }}</label>
         </fieldset>
       </div>
 
@@ -753,8 +676,8 @@
         <div class="gb-policy-empty" *ngIf="!vendorProfile">
           <i class="bi bi-info-circle" aria-hidden="true"></i>
           <div>
-            <strong>Select a vendor to continue</strong>
-            <p>Minimum order value and delivery conditions will appear here.</p>
+            <strong>{{ 'OrderShopping.SELECT_A_VENDOR_TO_CONTINUE' | translate }}</strong>
+            <p>{{ 'OrderShopping.MINIMUM_ORDER_VALUE_AND_DELIVERY_CONDITIONS_WILL_APPEAR_HERE' | translate }}</p>
           </div>
         </div>
 
@@ -765,45 +688,38 @@
             </span>
             <div class="gb-policy-copy">
               <strong *ngIf="minimumOrderValue > 0 && !minimumOrderMet">
-                Minimum order ₹{{ minimumOrderValue | number:'1.2-2' }}
-              </strong>
-              <strong *ngIf="minimumOrderValue > 0 && minimumOrderMet">Minimum order reached</strong>
-              <strong *ngIf="minimumOrderValue <= 0">No minimum order for this option</strong>
+                {{ ('OrderShopping.MINIMUM_ORDER_VALUE' | translate:{p0: (minimumOrderValue | number:'1.2-2')}) }}</strong>
+              <strong *ngIf="minimumOrderValue > 0 && minimumOrderMet">{{ 'OrderShopping.MINIMUM_ORDER_REACHED' | translate }}</strong>
+              <strong *ngIf="minimumOrderValue <= 0">{{ 'OrderShopping.NO_MINIMUM_ORDER_FOR_THIS_OPTION' | translate }}</strong>
 
               <p *ngIf="minimumOrderValue > 0 && !minimumOrderMet">
-                Add ₹{{ amountToMinimum | number:'1.2-2' }} more to continue to checkout.
-              </p>
-              <p *ngIf="minimumOrderValue > 0 && minimumOrderMet">You can continue to checkout.</p>
-              <p *ngIf="minimumOrderValue <= 0 && cart.length === 0">Add items to start your order.</p>
-              <p *ngIf="minimumOrderValue <= 0 && cart.length > 0">You can check out with any basket size.</p>
+                {{ ('OrderShopping.ADD_VALUE_MORE_TO_CONTINUE_TO_CHECKOUT' | translate:{p0: (amountToMinimum | number:'1.2-2')}) }}</p>
+              <p *ngIf="minimumOrderValue > 0 && minimumOrderMet">{{ 'OrderShopping.YOU_CAN_CONTINUE_TO_CHECKOUT' | translate }}</p>
+              <p *ngIf="minimumOrderValue <= 0 && cart.length === 0">{{ 'OrderShopping.ADD_ITEMS_TO_START_YOUR_ORDER' | translate }}</p>
+              <p *ngIf="minimumOrderValue <= 0 && cart.length > 0">{{ 'OrderShopping.YOU_CAN_CHECK_OUT_WITH_ANY_BASKET_SIZE' | translate }}</p>
             </div>
             <strong class="gb-policy-ratio" *ngIf="minimumOrderValue > 0">
-              ₹{{ subtotal | number:'1.0-0' }} / ₹{{ minimumOrderValue | number:'1.0-0' }}
-            </strong>
+               ₹{{ subtotal | number:'1.0-0' }} / ₹{{ minimumOrderValue | number:'1.0-0' }} </strong>
           </div>
 
           <div class="gb-policy-progress" *ngIf="minimumOrderValue > 0" role="progressbar"
             [attr.aria-valuemin]="0" [attr.aria-valuemax]="100" [attr.aria-valuenow]="minimumOrderProgress"
-            aria-label="Minimum order progress">
+            [attr.aria-label]="'OrderShopping.MINIMUM_ORDER_PROGRESS' | translate">
             <span [style.width.%]="minimumOrderProgress"></span>
           </div>
 
           <div class="gb-policy-meta">
             <span *ngIf="waiverOrderValue > 0 && originalDeliveryCharge > 0">
               <i class="bi bi-truck" aria-hidden="true"></i>
-              Free delivery from ₹{{ waiverOrderValue | number:'1.2-2' }}
-              <ng-container *ngIf="amountToWaiver > 0">
-                — add ₹{{ amountToWaiver | number:'1.2-2' }} more
-              </ng-container>
+              {{ ('OrderShopping.FREE_DELIVERY_FROM_VALUE' | translate:{p0: (waiverOrderValue | number:'1.2-2')}) }}<ng-container *ngIf="amountToWaiver > 0">
+                {{ ('OrderShopping.ADD_VALUE_MORE' | translate:{p0: (amountToWaiver | number:'1.2-2')}) }}</ng-container>
             </span>
             <span class="gb-policy-savings" *ngIf="deliverySavings > 0">
               <i class="bi bi-piggy-bank" aria-hidden="true"></i>
-              You save ₹{{ deliverySavings | number:'1.2-2' }} on delivery
-            </span>
+              {{ ('OrderShopping.YOU_SAVE_VALUE_ON_DELIVERY' | translate:{p0: (deliverySavings | number:'1.2-2')}) }}</span>
             <span class="gb-policy-savings" *ngIf="originalDeliveryCharge === 0">
               <i class="bi bi-check-circle" aria-hidden="true"></i>
-              No delivery charge for this option
-            </span>
+              {{ 'OrderShopping.NO_DELIVERY_CHARGE_FOR_THIS_OPTION' | translate }}</span>
           </div>
         </ng-container>
       </div>
@@ -811,43 +727,42 @@
 
     <ng-container *ngIf="!showCheckout; else checkout">
 
-      <section class="gb-catalog-toolbar" aria-label="Find vegetables">
+      <section class="gb-catalog-toolbar" [attr.aria-label]="'OrderShopping.FIND_VEGETABLES' | translate">
         <div class="gb-search">
           <i class="bi bi-search" aria-hidden="true"></i>
-          <input class="gb-input" type="search" placeholder="Search vegetables..." aria-label="Search vegetables"
+          <input class="gb-input" type="search" [placeholder]="'OrderShopping.SEARCH_VEGETABLES' | translate" [attr.aria-label]="'OrderShopping.SEARCH_VEGETABLES_2' | translate"
             [(ngModel)]="searchText" (ngModelChange)="clearHiddenQuantityErrors()" />
         </div>
-        <div class="gb-categories" role="group" aria-label="Filter by category">
+        <div class="gb-categories" role="group" [attr.aria-label]="'OrderShopping.FILTER_BY_CATEGORY' | translate">
           <button type="button" *ngFor="let c of categories" [class.active]="category === c"
             [attr.aria-pressed]="category === c" (click)="setCategory(c)">
-            {{ c }}
-          </button>
+             {{ (c | menuCaption:'OrderShopping') }} </button>
         </div>
       </section>
 
       <div class="gb-catalog-heading" *ngIf="vendorId">
         <div>
-          <h2>Available vegetables</h2>
-          <p>{{ visibleStock.length }} {{ visibleStock.length === 1 ? 'item' : 'items' }} available</p>
+          <h2>{{ 'OrderShopping.AVAILABLE_VEGETABLES' | translate }}</h2>
+          <p>{{ ('OrderShopping.VALUE_VALUE_AVAILABLE' | translate:{p0: (visibleStock.length), p1: ((visibleStock.length === 1 ? ('OrderShopping.ITEM' | translate) : ('OrderShopping.ITEMS' | translate)))}) }}</p>
         </div>
       </div>
 
       <div class="gb-message" *ngIf="!vendorId">
         <i class="bi bi-shop" aria-hidden="true"></i>
-        <p>Select a vendor to load available vegetables.</p>
+        <p>{{ 'OrderShopping.SELECT_A_VENDOR_TO_LOAD_AVAILABLE_VEGETABLES' | translate }}</p>
       </div>
 
       <div class="gb-message" *ngIf="loading">
         <span class="gb-orders-spinner" aria-hidden="true"></span>
-        <p>Loading available vegetables…</p>
+        <p>{{ 'OrderShopping.LOADING_AVAILABLE_VEGETABLES' | translate }}</p>
       </div>
 
       <div class="gb-message" *ngIf="vendorId && !loading && visibleStock.length === 0">
         <i class="bi bi-search" aria-hidden="true"></i>
-        <p>No available vegetables match your search.</p>
+        <p>{{ 'OrderShopping.NO_AVAILABLE_VEGETABLES_MATCH_YOUR_SEARCH' | translate }}</p>
       </div>
 
-      <section class="gb-products" *ngIf="visibleStock.length > 0" aria-label="Available vegetables">
+      <section class="gb-products" *ngIf="visibleStock.length > 0" [attr.aria-label]="'OrderShopping.AVAILABLE_VEGETABLES' | translate">
         <article class="gb-product" *ngFor="let item of visibleStock">
           <img class="gb-product-image" [src]="imageUrl(item.fldItemImagePath)" [alt]="item.fldItemName"
             loading="lazy" (error)="onImageError($event)" />
@@ -856,8 +771,7 @@
             <div class="gb-product-heading">
               <strong>{{ item.fldItemName }}</strong>
               <span class="gb-product-price">
-                ₹{{ item.fldSellingRate | number:'1.2-2' }}
-                <small>/ {{ item.fldBaseUnit }}</small>
+                 ₹{{ item.fldSellingRate | number:'1.2-2' }} <small>/ {{ item.fldBaseUnit }}</small>
               </span>
             </div>
 
@@ -866,58 +780,50 @@
             <div class="gb-product-chips">
               <span class="gb-chip">
                 <i class="bi bi-box-seam" aria-hidden="true"></i>
-                {{ item.fldAvailableStock | number:'1.0-3' }} {{ item.fldBaseUnit }} available
-              </span>
+                {{ ('OrderShopping.VALUE_VALUE_AVAILABLE' | translate:{p0: (item.fldAvailableStock | number:'1.0-3'), p1: (item.fldBaseUnit)}) }}</span>
               <span class="gb-chip gb-chip-selected" *ngIf="quantityFor(item.fldId) > 0">
                 <i class="bi bi-check-circle" aria-hidden="true"></i>
-                Selected ₹{{
-                flatValueFor(item.fldId) > 0
-                ? (flatValueFor(item.fldId) | number:'1.2-2')
-                : (quantityFor(item.fldId) * item.fldSellingRate | number:'1.2-2')
-                }}
-              </span>
+                {{ ('OrderShopping.SELECTED_VALUE' | translate:{p0: ((flatValueFor(item.fldId) > 0 ? (flatValueFor(item.fldId) | number:'1.2-2') : (quantityFor(item.fldId) * item.fldSellingRate | number:'1.2-2')))}) }}</span>
             </div>
           </div>
 
           <div class="gb-quantity-entry" *ngIf="!item.fldAllowFlatRupeeValueBooking">
-            <label class="gb-entry-label" [attr.for]="'gbQty-' + item.fldId">Quantity</label>
+            <label class="gb-entry-label" [attr.for]="'gbQty-' + item.fldId">{{ 'OrderShopping.QUANTITY' | translate }}</label>
             <div class="gb-quantity">
-              <button type="button" [attr.aria-label]="'Decrease ' + item.fldItemName" (click)="adjust(item, -1)"
+              <button type="button" [attr.aria-label]="('OrderShopping.DECREASE_VALUE' | translate:{p0: (item.fldItemName)})" (click)="adjust(item, -1)"
                 [disabled]="quantityFor(item.fldId) <= 0">−</button>
               <input [id]="'gbQty-' + item.fldId" type="number" inputmode="decimal" class="gb-quantity-input"
                 min="0" [class.gb-input-invalid]="hasQuantityError(item)"
                 [attr.aria-invalid]="hasQuantityError(item)"
                 [attr.aria-describedby]="hasQuantityError(item) ? 'gbQtyError-' + item.fldId : null"
                 [max]="item.fldAvailableStock" [step]="step(item)" [value]="quantityFor(item.fldId)"
-                [attr.aria-label]="'Quantity for ' + item.fldItemName"
+                [attr.aria-label]="('OrderShopping.QUANTITY_FOR_VALUE' | translate:{p0: (item.fldItemName)})"
                 (input)="onQuantityInput(item, $any($event.target).value)"
                 (change)="setQuantity(item, $any($event.target).value)" />
-              <button type="button" [attr.aria-label]="'Increase ' + item.fldItemName" (click)="adjust(item, 1)"
+              <button type="button" [attr.aria-label]="('OrderShopping.INCREASE_VALUE' | translate:{p0: (item.fldItemName)})" (click)="adjust(item, 1)"
                 [disabled]="quantityFor(item.fldId) + 1 > item.fldAvailableStock">+</button>
             </div>
             <p class="gb-field-error" [id]="'gbQtyError-' + item.fldId" role="alert"
               *ngIf="quantityErrorFor(item) as error">
               <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
-              {{ error }}
-            </p>
-            <small *ngIf="item.fldAllowFractionalQuantity">Step: {{ step(item) }}</small>
-            <small *ngIf="!item.fldAllowFractionalQuantity">Whole numbers only</small>
+               {{ (error | menuCaption:'OrderShopping') }} </p>
+            <small *ngIf="item.fldAllowFractionalQuantity">{{ ('OrderShopping.STEP_VALUE' | translate:{p0: (step(item))}) }}</small>
+            <small *ngIf="!item.fldAllowFractionalQuantity">{{ 'OrderShopping.WHOLE_NUMBERS_ONLY' | translate }}</small>
           </div>
 
           <div class="gb-flat-booking" *ngIf="item.fldAllowFlatRupeeValueBooking">
-            <label class="gb-entry-label" [attr.for]="'gbAmount-' + item.fldId">Enter amount (₹)</label>
+            <label class="gb-entry-label" [attr.for]="'gbAmount-' + item.fldId">{{ 'OrderShopping.ENTER_AMOUNT' | translate }}</label>
             <input [id]="'gbAmount-' + item.fldId" type="number" class="gb-input" min="0" step="0.01"
               [max]="item.fldAvailableStock * item.fldSellingRate" [value]="flatValueFor(item.fldId)"
               (change)="setFlatValue(item, $any($event.target).value)" />
             <small *ngIf="flatValueFor(item.fldId) > 0">
-              ≈ {{ quantityFor(item.fldId) | number:'1.0-3' }} {{ item.fldBaseUnit }}
-            </small>
-            <small>Maximum ₹{{ item.fldAvailableStock * item.fldSellingRate | number:'1.2-2' }}</small>
+               ≈ {{ quantityFor(item.fldId) | number:'1.0-3' }} {{ item.fldBaseUnit }} </small>
+            <small>{{ ('OrderShopping.MAXIMUM_VALUE' | translate:{p0: (item.fldAvailableStock * item.fldSellingRate | number:'1.2-2')}) }}</small>
           </div>
         </article>
       </section>
 
-      <footer class="gb-footer" aria-label="Cart summary">
+      <footer class="gb-footer" [attr.aria-label]="'OrderShopping.CART_SUMMARY' | translate">
         <div class="gb-footer-summary">
           <span class="gb-footer-cart-icon">
             <i class="bi bi-cart3" aria-hidden="true"></i>
@@ -925,14 +831,12 @@
           <div class="gb-footer-amount">
             <strong>₹{{ grandTotal | number:'1.2-2' }}</strong>
             <small>
-              {{ cart.length }} {{ cart.length === 1 ? 'item' : 'items' }}
-              · Item total ₹{{ subtotal | number:'1.2-2' }}
-            </small>
+              {{ ('OrderShopping.VALUE_VALUE_ITEM_TOTAL_VALUE' | translate:{p0: (cart.length), p1: ((cart.length === 1 ? ('OrderShopping.ITEM' | translate) : ('OrderShopping.ITEMS' | translate))), p2: (subtotal | number:'1.2-2')}) }}</small>
           </div>
 
           <div class="gb-footer-progress"
             *ngIf="vendorProfile && minimumOrderValue > 0 && cart.length > 0 && !minimumOrderMet">
-            <span>Add ₹{{ amountToMinimum | number:'1.2-2' }} more for the minimum order</span>
+            <span>{{ ('OrderShopping.ADD_VALUE_MORE_FOR_THE_MINIMUM_ORDER' | translate:{p0: (amountToMinimum | number:'1.2-2')}) }}</span>
             <span class="gb-footer-progress-track" aria-hidden="true">
               <span [style.width.%]="minimumOrderProgress"></span>
             </span>
@@ -941,15 +845,13 @@
 
         <button type="button" class="gb-footer-cta" (click)="previewOrder()"
           [disabled]="cart.length === 0 || hasBlockingQuantityErrors || !minimumOrderMet">
-          <span *ngIf="cart.length === 0">Cart is empty</span>
-          <span *ngIf="cart.length > 0 && hasBlockingQuantityErrors">Fix quantity errors</span>
-          <span *ngIf="cart.length > 0 && !hasBlockingQuantityErrors && !vendorProfile">Loading vendor settings…</span>
+          <span *ngIf="cart.length === 0">{{ 'OrderShopping.CART_IS_EMPTY' | translate }}</span>
+          <span *ngIf="cart.length > 0 && hasBlockingQuantityErrors">{{ 'OrderShopping.FIX_QUANTITY_ERRORS' | translate }}</span>
+          <span *ngIf="cart.length > 0 && !hasBlockingQuantityErrors && !vendorProfile">{{ 'OrderShopping.LOADING_VENDOR_SETTINGS' | translate }}</span>
           <span *ngIf="cart.length > 0 && !hasBlockingQuantityErrors && vendorProfile && !minimumOrderMet">
-            Add ₹{{ amountToMinimum | number:'1.2-2' }} more
-          </span>
+            {{ ('OrderShopping.ADD_VALUE_MORE_2' | translate:{p0: (amountToMinimum | number:'1.2-2')}) }}</span>
           <span *ngIf="minimumOrderMet && !hasBlockingQuantityErrors">
-            Review cart
-            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            {{ 'OrderShopping.REVIEW_CART' | translate }}<i class="bi bi-arrow-right" aria-hidden="true"></i>
           </span>
         </button>
       </footer>
@@ -961,25 +863,20 @@
           <div>
             <span class="gb-orders-eyebrow">
               <i class="bi bi-bag-check" aria-hidden="true"></i>
-              Checkout
-            </span>
-            <h2 id="gbCheckoutTitle">Review your order</h2>
+              {{ 'OrderShopping.CHECKOUT' | translate }}</span>
+            <h2 id="gbCheckoutTitle">{{ 'OrderShopping.REVIEW_YOUR_ORDER' | translate }}</h2>
             <p class="gb-checkout-subtitle">
-              {{ cart.length }} {{ cart.length === 1 ? 'item' : 'items' }}
-              from {{ vendorProfile?.fldFullName || 'your selected vendor' }}
-            </p>
+              {{ ('OrderShopping.VALUE_VALUE_FROM_VALUE' | translate:{p0: (cart.length), p1: ((cart.length === 1 ? ('OrderShopping.ITEM' | translate) : ('OrderShopping.ITEMS' | translate))), p2: ((vendorProfile?.fldFullName || ('OrderShopping.YOUR_SELECTED_VENDOR' | translate)))}) }}</p>
           </div>
           <div class="gb-checkout-title-actions">
             <button *ngIf="orderSaved" type="button" class="gb-btn gb-btn-primary"
               (click)="viewMyOrdersAfterOrder()">
               <i class="bi bi-bag-check" aria-hidden="true"></i>
-              View My Orders
-            </button>
+              {{ 'OrderShopping.VIEW_MY_ORDERS' | translate }}</button>
             <button *ngIf="!orderSaved" type="button" class="gb-btn gb-btn-secondary"
               (click)="showCheckout = false">
               <i class="bi bi-arrow-left" aria-hidden="true"></i>
-              Back to shopping
-            </button>
+              {{ 'OrderShopping.BACK_TO_SHOPPING' | translate }}</button>
           </div>
         </div>
 
@@ -987,10 +884,9 @@
           <div class="gb-checkout-main">
             <section class="gb-checkout-card" aria-labelledby="gbCheckoutItemsTitle">
               <div class="gb-checkout-card-head">
-                <h3 id="gbCheckoutItemsTitle">Your items</h3>
+                <h3 id="gbCheckoutItemsTitle">{{ 'OrderShopping.YOUR_ITEMS' | translate }}</h3>
                 <span class="gb-item-count">
-                  {{ cart.length }} {{ cart.length === 1 ? 'item' : 'items' }}
-                </span>
+                   {{ cart.length }} {{ (cart.length === 1 ? ('OrderShopping.ITEM' | translate) : ('OrderShopping.ITEMS' | translate)) }} </span>
               </div>
 
               <article class="gb-product gb-checkout-item" *ngFor="let line of cart">
@@ -1000,16 +896,14 @@
                 <div class="gb-product-info">
                   <strong>{{ line.stock.fldItemName }}</strong>
                   <small>
-                    ₹{{ line.stock.fldSellingRate | number:'1.2-2' }} / {{ line.stock.fldBaseUnit }}
-                  </small>
+                     ₹{{ line.stock.fldSellingRate | number:'1.2-2' }} / {{ line.stock.fldBaseUnit }} </small>
                   <small>
-                    Available: {{ line.stock.fldAvailableStock | number:'1.0-3' }} {{ line.stock.fldBaseUnit }}
-                  </small>
+                    {{ ('OrderShopping.AVAILABLE_VALUE_VALUE' | translate:{p0: (line.stock.fldAvailableStock | number:'1.0-3'), p1: (line.stock.fldBaseUnit)}) }}</small>
                 </div>
 
                 <div class="gb-cart-actions">
                   <div class="gb-quantity" *ngIf="!line.stock.fldAllowFlatRupeeValueBooking">
-                    <button type="button" [attr.aria-label]="'Decrease ' + line.stock.fldItemName"
+                    <button type="button" [attr.aria-label]="('OrderShopping.DECREASE_VALUE' | translate:{p0: (line.stock.fldItemName)})"
                       (click)="adjust(line.stock, -1)" [disabled]="line.quantity <= 0">−</button>
                     <input type="number" inputmode="decimal" class="gb-quantity-input" min="0"
                       [max]="line.stock.fldAvailableStock"
@@ -1017,10 +911,10 @@
                       [attr.aria-invalid]="hasQuantityError(line.stock)"
                       [attr.aria-describedby]="hasQuantityError(line.stock) ? 'gbQtyError-' + line.stock.fldId : null"
                       [step]="step(line.stock)" [value]="line.quantity"
-                      [attr.aria-label]="'Quantity for ' + line.stock.fldItemName"
+                      [attr.aria-label]="('OrderShopping.QUANTITY_FOR_VALUE' | translate:{p0: (line.stock.fldItemName)})"
                       (input)="onQuantityInput(line.stock, $any($event.target).value)"
                       (change)="setQuantity(line.stock, $any($event.target).value)" />
-                    <button type="button" [attr.aria-label]="'Increase ' + line.stock.fldItemName"
+                    <button type="button" [attr.aria-label]="('OrderShopping.INCREASE_VALUE' | translate:{p0: (line.stock.fldItemName)})"
                       (click)="adjust(line.stock, 1)"
                       [disabled]="line.quantity + 1 > line.stock.fldAvailableStock">+</button>
                   </div>
@@ -1028,166 +922,151 @@
                   <p class="gb-field-error" [id]="'gbQtyError-' + line.stock.fldId" role="alert"
                     *ngIf="quantityErrorFor(line.stock) as error">
                     <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
-                    {{ error }}
-                  </p>
+                     {{ (error | menuCaption:'OrderShopping') }} </p>
 
                   <div class="gb-flat-booking" *ngIf="line.stock.fldAllowFlatRupeeValueBooking">
-                    <label [attr.for]="'gbCheckoutAmount-' + line.stock.fldId">Amount (₹)</label>
+                    <label [attr.for]="'gbCheckoutAmount-' + line.stock.fldId">{{ 'OrderShopping.AMOUNT' | translate }}</label>
                     <input [id]="'gbCheckoutAmount-' + line.stock.fldId" type="number" class="gb-input" min="0"
                       step="0.01" [max]="line.stock.fldAvailableStock * line.stock.fldSellingRate"
                       [value]="line.flatRupeeBookingValue"
                       (change)="setFlatValue(line.stock, $any($event.target).value)" />
                     <small>
-                      Quantity: {{ line.quantity | number:'1.0-3' }} {{ line.stock.fldBaseUnit }}
-                    </small>
+                      {{ ('OrderShopping.QUANTITY_VALUE_VALUE' | translate:{p0: (line.quantity | number:'1.0-3'), p1: (line.stock.fldBaseUnit)}) }}</small>
                   </div>
 
                   <strong class="gb-cart-line-total">₹{{ lineTotal(line) | number:'1.2-2' }}</strong>
 
-                  <button type="button" class="gb-remove" [attr.aria-label]="'Remove ' + line.stock.fldItemName"
+                  <button type="button" class="gb-remove" [attr.aria-label]="('OrderShopping.REMOVE_VALUE' | translate:{p0: (line.stock.fldItemName)})"
                     (click)="remove(line.stock.fldId)">
                     <i class="bi bi-trash3" aria-hidden="true"></i>
-                    Remove
-                  </button>
+                    {{ 'OrderShopping.REMOVE' | translate }}</button>
                 </div>
               </article>
             </section>
 
-            <section class="gb-checkout-card" aria-label="Customer address">
-              <h3>{{ fldOrderType === 'Self Pickup' ? 'Customer contact / pickup' : 'Delivery address' }}</h3>
-              <p *ngIf="customerLoading">Loading registered customer details…</p>
+            <section class="gb-checkout-card" [attr.aria-label]="'OrderShopping.CUSTOMER_ADDRESS' | translate">
+              <h3>{{ (fldOrderType === 'Self Pickup' ? ('OrderShopping.CUSTOMER_CONTACT_PICKUP' | translate) : ('OrderShopping.DELIVERY_ADDRESS' | translate)) }}</h3>
+              <p *ngIf="customerLoading">{{ 'OrderShopping.LOADING_REGISTERED_CUSTOMER_DETAILS' | translate }}</p>
               <ng-container *ngIf="customerProfile as customer; else noCustomerProfile">
                 <p class="gb-address-name">
                   <strong>{{ customer.fldFullName }}</strong><br />
-                  {{ customer.fldContactNumber }}
-                  <ng-container *ngIf="customer.fldAlternateContactNumber">
-                    / {{ customer.fldAlternateContactNumber }}
-                  </ng-container>
+                   {{ customer.fldContactNumber }} <ng-container *ngIf="customer.fldAlternateContactNumber">
+                     / {{ customer.fldAlternateContactNumber }} </ng-container>
                 </p>
                 <p *ngIf="customerAddress">{{ customerAddress }}</p>
-                <p *ngIf="customer.fldGPSLocation">Location: {{ customer.fldGPSLocation }}</p>
+                <p *ngIf="customer.fldGPSLocation">{{ ('OrderShopping.LOCATION_VALUE' | translate:{p0: (customer.fldGPSLocation)}) }}</p>
                 <img *ngIf="customer.fldHouseImagePath" [src]="houseImageUrl(customer.fldHouseImagePath)"
-                  alt="Registered house photograph" class="gb-address-image" (error)="onImageError($event)" />
+                  [alt]="'OrderShopping.REGISTERED_HOUSE_PHOTOGRAPH' | translate" class="gb-address-image" (error)="onImageError($event)" />
                 <p class="gb-note" *ngIf="fldOrderType === 'Self Pickup'">
-                  Self pickup selected. This address is for contact only — confirm the vendor's shop address before
-                  collection.
-                </p>
+                  {{ 'OrderShopping.SELF_PICKUP_SELECTED_THIS_ADDRESS_IS_FOR_CONTACT_ONLY_CONFIRM_THE_VENDOR_S_SHOP_' | translate }}</p>
               </ng-container>
               <ng-template #noCustomerProfile>
                 <p *ngIf="!customerLoading">
-                  Registered customer address is unavailable. Please check the customer profile.
-                </p>
+                  {{ 'OrderShopping.REGISTERED_CUSTOMER_ADDRESS_IS_UNAVAILABLE_PLEASE_CHECK_THE_CUSTOMER_PROFILE' | translate }}</p>
               </ng-template>
             </section>
 
-            <section class="gb-checkout-card" aria-label="Payment method">
-              <h3>Payment method</h3>
+            <section class="gb-checkout-card" [attr.aria-label]="'OrderShopping.PAYMENT_METHOD' | translate">
+              <h3>{{ 'OrderShopping.PAYMENT_METHOD' | translate }}</h3>
               <div class="gb-payment-options">
                 <label class="gb-choice-card">
                   <input type="radio" name="paymentMethod" value="COD" [(ngModel)]="paymentMethod"
                     (ngModelChange)="onPaymentMethodChange()" />
                   <span class="gb-choice-card-content">
-                    <span class="gb-choice-card-title">Cash on delivery</span>
-                    <small>Pay when your order arrives</small>
+                    <span class="gb-choice-card-title">{{ 'OrderShopping.CASH_ON_DELIVERY' | translate }}</span>
+                    <small>{{ 'OrderShopping.PAY_WHEN_YOUR_ORDER_ARRIVES' | translate }}</small>
                   </span>
                 </label>
                 <label class="gb-choice-card">
                   <input type="radio" name="paymentMethod" value="UPI" [(ngModel)]="paymentMethod"
                     (ngModelChange)="onPaymentMethodChange()" />
                   <span class="gb-choice-card-content">
-                    <span class="gb-choice-card-title">UPI payment</span>
-                    <small>Pay now using the vendor's UPI QR</small>
+                    <span class="gb-choice-card-title">{{ 'OrderShopping.UPI_PAYMENT' | translate }}</span>
+                    <small>{{ 'OrderShopping.PAY_NOW_USING_THE_VENDOR_S_UPI_QR' | translate }}</small>
                   </span>
                 </label>
               </div>
             </section>
 
-            <section class="gb-checkout-card" *ngIf="paymentMethod === 'UPI'" aria-label="UPI payment details">
-              <h3>Pay vendor by UPI</h3>
-              <p><strong>Payee:</strong> {{ vendorUpiPayeeName || 'Not configured' }}</p>
-              <p><strong>UPI ID:</strong> {{ vendorUpiId || 'Not configured' }}</p>
-              <p><strong>Amount:</strong> ₹{{ grandTotal | number:'1.2-2' }}</p>
+            <section class="gb-checkout-card" *ngIf="paymentMethod === 'UPI'" [attr.aria-label]="'OrderShopping.UPI_PAYMENT_DETAILS' | translate">
+              <h3>{{ 'OrderShopping.PAY_VENDOR_BY_UPI' | translate }}</h3>
+              <p><strong>{{ 'OrderShopping.PAYEE' | translate }}</strong>  {{ (vendorUpiPayeeName || ('OrderShopping.NOT_CONFIGURED' | translate)) }}</p>
+              <p><strong>{{ 'OrderShopping.UPI_ID' | translate }}</strong>  {{ (vendorUpiId || ('OrderShopping.NOT_CONFIGURED' | translate)) }}</p>
+              <p><strong>{{ 'OrderShopping.AMOUNT_2' | translate }}</strong>  ₹{{ grandTotal | number:'1.2-2' }}</p>
               <div class="gb-minimum-alert" *ngIf="!vendorUpiId" role="status">
                 <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
                 <div>
-                  <strong>UPI is not configured for this vendor</strong>
-                  <p>Choose cash on delivery, or ask the vendor to add their UPI details.</p>
+                  <strong>{{ 'OrderShopping.UPI_IS_NOT_CONFIGURED_FOR_THIS_VENDOR' | translate }}</strong>
+                  <p>{{ 'OrderShopping.CHOOSE_CASH_ON_DELIVERY_OR_ASK_THE_VENDOR_TO_ADD_THEIR_UPI_DETAILS' | translate }}</p>
                 </div>
               </div>
-              <p *ngIf="upiQrLoading">Generating payment QR…</p>
-              <p class="gb-error-text" *ngIf="upiQrError">{{ upiQrError }}</p>
-              <img *ngIf="upiQrDataUrl" [src]="upiQrDataUrl" alt="UPI QR code for vendor and current grand total"
+              <p *ngIf="upiQrLoading">{{ 'OrderShopping.GENERATING_PAYMENT_QR' | translate }}</p>
+              <p class="gb-error-text" *ngIf="upiQrError">{{ (upiQrError | menuCaption:'OrderShopping') }}</p>
+              <img *ngIf="upiQrDataUrl" [src]="upiQrDataUrl" [alt]="'OrderShopping.UPI_QR_CODE_FOR_VENDOR_AND_CURRENT_GRAND_TOTAL' | translate"
                 class="gb-upi-qr" />
-              <label for="upiReference" class="gb-field-label">UPI transaction reference (optional)</label>
+              <label for="upiReference" class="gb-field-label">{{ 'OrderShopping.UPI_TRANSACTION_REFERENCE_OPTIONAL' | translate }}</label>
               <input id="upiReference" class="gb-input" type="text" maxlength="100"
-                [(ngModel)]="upiTransactionReference" placeholder="Enter reference after payment" />
+                [(ngModel)]="upiTransactionReference" [placeholder]="'OrderShopping.ENTER_REFERENCE_AFTER_PAYMENT' | translate" />
               <p class="gb-note">
-                Payment remains pending verification until the vendor confirms receipt.
-                A QR scan or entered reference is not proof of successful payment.
-              </p>
+                {{ 'OrderShopping.PAYMENT_REMAINS_PENDING_VERIFICATION_UNTIL_THE_VENDOR_CONFIRMS_RECEIPT_A_QR_SCAN' | translate }}</p>
             </section>
 
             <section class="gb-checkout-card" *ngIf="paymentMethod === 'COD'">
               <p class="gb-note">
                 <i class="bi bi-cash-coin" aria-hidden="true"></i>
-                Cash on delivery selected. Payment will be collected at delivery or pickup.
-              </p>
+                {{ 'OrderShopping.CASH_ON_DELIVERY_SELECTED_PAYMENT_WILL_BE_COLLECTED_AT_DELIVERY_OR_PICKUP' | translate }}</p>
             </section>
           </div>
 
           <aside class="gb-checkout-aside">
             <section class="gb-checkout-card gb-bill" aria-labelledby="gbBillSummaryTitle">
-              <h3 id="gbBillSummaryTitle">Bill summary</h3>
+              <h3 id="gbBillSummaryTitle">{{ 'OrderShopping.BILL_SUMMARY' | translate }}</h3>
 
               <div class="gb-bill-line">
-                <span>Item total</span>
+                <span>{{ 'OrderShopping.ITEM_TOTAL' | translate }}</span>
                 <strong>₹{{ subtotal | number:'1.2-2' }}</strong>
               </div>
 
               <div class="gb-bill-line" *ngIf="deliverySavings > 0">
-                <span>Original delivery charges</span>
+                <span>{{ 'OrderShopping.ORIGINAL_DELIVERY_CHARGES' | translate }}</span>
                 <strong>₹{{ originalDeliveryCharge | number:'1.2-2' }}</strong>
               </div>
               <div class="gb-bill-line gb-bill-savings" *ngIf="deliverySavings > 0">
-                <span>Delivery savings</span>
+                <span>{{ 'OrderShopping.DELIVERY_SAVINGS' | translate }}</span>
                 <strong>− ₹{{ deliverySavings | number:'1.2-2' }}</strong>
               </div>
               <div class="gb-bill-line">
-                <span>Delivery charges payable</span>
+                <span>{{ 'OrderShopping.DELIVERY_CHARGES_PAYABLE' | translate }}</span>
                 <strong>₹{{ charge | number:'1.2-2' }}</strong>
               </div>
 
               <div class="gb-grand">
-                <span>Grand total</span>
+                <span>{{ 'OrderShopping.GRAND_TOTAL' | translate }}</span>
                 <strong>₹{{ grandTotal | number:'1.2-2' }}</strong>
               </div>
 
               <p class="gb-note" *ngIf="orderOption === 'Advance Order'">
-                Advance order: prices may change. Preference: {{ priceChangeOption }}.
-              </p>
+                {{ ('OrderShopping.ADVANCE_ORDER_PRICES_MAY_CHANGE_PREFERENCE_VALUE' | translate:{p0: ((priceChangeOption | menuCaption:'OrderShopping'))}) }}</p>
               <p class="gb-note">
                 <i class="bi bi-clock-history" aria-hidden="true"></i>
-                {{ deliveryEstimate }}
-              </p>
+                 {{ (deliveryEstimate | menuCaption:'OrderShopping') }} </p>
 
               <div class="gb-minimum-alert" *ngIf="hasBlockingQuantityErrors" role="alert">
                 <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
                 <div>
-                  <strong>Quantity needs attention</strong>
-                  <p>Correct the highlighted quantities above before placing the order.</p>
+                  <strong>{{ 'OrderShopping.QUANTITY_NEEDS_ATTENTION' | translate }}</strong>
+                  <p>{{ 'OrderShopping.CORRECT_THE_HIGHLIGHTED_QUANTITIES_ABOVE_BEFORE_PLACING_THE_ORDER' | translate }}</p>
                 </div>
               </div>
 
               <div class="gb-minimum-alert" *ngIf="!minimumOrderMet" role="status">
                 <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
                 <div>
-                  <strong *ngIf="!vendorProfile">Vendor delivery settings must load before placing the order.</strong>
+                  <strong *ngIf="!vendorProfile">{{ 'OrderShopping.VENDOR_DELIVERY_SETTINGS_MUST_LOAD_BEFORE_PLACING_THE_ORDER' | translate }}</strong>
                   <ng-container *ngIf="vendorProfile">
-                    <strong>Minimum item value not reached</strong>
+                    <strong>{{ 'OrderShopping.MINIMUM_ITEM_VALUE_NOT_REACHED' | translate }}</strong>
                     <p>
-                      Add ₹{{ amountToMinimum | number:'1.2-2' }} more to place this order.
-                      Minimum is ₹{{ minimumOrderValue | number:'1.2-2' }}.
-                    </p>
+                      {{ ('OrderShopping.ADD_VALUE_MORE_TO_PLACE_THIS_ORDER_MINIMUM_IS_VALUE' | translate:{p0: (amountToMinimum | number:'1.2-2'), p1: (minimumOrderValue | number:'1.2-2')}) }}</p>
                   </ng-container>
                 </div>
               </div>
@@ -1202,14 +1081,7 @@
                   (paymentMethod === 'UPI' && !vendorUpiId)
                 ">
                   <i class="bi bi-bag-check" aria-hidden="true"></i>
-                  {{
-                  savingOrder
-                  ? 'Placing order…'
-                  : orderSaved
-                  ? 'Order placed successfully'
-                  : 'Place order'
-                  }}
-                </button>
+                   {{ (savingOrder ? ('OrderShopping.PLACING_ORDER' | translate) : (orderSaved ? ('OrderShopping.ORDER_PLACED_SUCCESSFULLY' | translate) : ('OrderShopping.PLACE_ORDER' | translate))) }} </button>
               </div>
             </section>
           </aside>

@@ -1,10 +1,12 @@
+import { MenuCaptionPipe as GbMenuCaptionPipe } from '../../../../shared/pipes/menu-caption.pipe';
+import { TranslatePipe as GbPageTranslatePipe } from '@ngx-translate/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectorRef, Component, HostListener, Input, OnChanges, OnDestroy,
   OnInit, SimpleChanges, PLATFORM_ID, Inject
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { Subscription, map, finalize, timeout } from 'rxjs';
 import * as QRCode from 'qrcode';
 import { ToastrService } from 'ngx-toastr';
 import { environment } from '../../../../../environments/environment';
@@ -29,7 +31,7 @@ type OrderDeliveryRequest = Omit<OrderShoppingRequest, 'orderHeader'> & {
 @Component({
   selector: 'app-tbl-order-shopping',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, GbPageTranslatePipe, GbMenuCaptionPipe],
   templateUrl: './tbl-order-shopping.html',
   styleUrl: './tbl-order-shopping.css'
 })
@@ -913,6 +915,7 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.orderViewDestroyed = true;
     this.request?.unsubscribe();
     this.profileRequest?.unsubscribe();
     this.customerRequest?.unsubscribe();
@@ -1246,7 +1249,7 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
 
           this.vendorOptions = vendors.map(vendor => ({
             fldId: vendor.fldId,
-            fldDescription: vendor.fldFullName
+            fldDescription: vendor.fldvVendorName?.trim() || 'Unnamed Vendor'
           }));
 
           console.log(
@@ -1417,94 +1420,82 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
   shoppingStarted = false;
 
   private pendingOrderRequest?: Subscription;
+  private orderViewDestroyed = false;
+  pendingOrderChecked = false;
+  pendingOrderErrorMessage = '';
+
+  private normalizePendingOrders(response: unknown): TblPendingOrderDto[] {
+    if (response == null) return [];
+    if (Array.isArray(response)) {
+      if (response.some(order => order == null || typeof order !== 'object')) {
+        throw new Error('The order service returned an invalid order list.');
+      }
+      return this.sortOrdersLatestFirst(response as TblPendingOrderDto[]);
+    }
+    if (typeof response === 'object' && 'message' in response) {
+      const message = String(response.message ?? '').trim().toLowerCase().replace(/[.!]+$/, '');
+      if (message === 'no records found' || message === 'no pending orders' || message === 'no orders found') return [];
+    }
+    throw new Error('The order service returned an unexpected response. Please try again.');
+  }
+
 
   checkPendingOrders(): void {
+    this.pendingOrderRequest?.unsubscribe();
+    if (this.orderViewDestroyed) return;
+    this.pendingOrderChecked = false;
+    this.pendingOrderErrorMessage = '';
+    this.pendingOrderLoadError = false;
+    this.pendingOrders = [];
+    this.selectedPendingOrder = null;
+    this.showPendingOrders = false;
+    this.shoppingStarted = false;
 
     if (this.profileId <= 0 || !this.userType) {
+      this.checkingPendingOrders = false;
+      this.pendingOrderLoadError = true;
+      this.pendingOrderErrorMessage = 'Your session could not be identified. Please log in again.';
+      this.cdr.detectChanges();
       return;
     }
 
-    this.pendingOrderRequest?.unsubscribe();
-
     this.checkingPendingOrders = true;
-
-    this.pendingOrderLoadError = false;
-
-    this.pendingOrders = [];
-
-    this.selectedPendingOrder = null;
-
-    this.pendingOrderRequest =
-      this.orderService
-        .getTblPendingOrderBys(
-          this.userType,
-          this.profileId
-        )
-        .subscribe({
-
-          next: (orders: TblPendingOrderDto[]) => {
-
-            // Show the latest order first.
-            this.pendingOrders =
-              this.sortOrdersLatestFirst(orders ?? []);
-
-            this.checkingPendingOrders = false;
-
-            this.pendingOrderLoadError = false;
-
-            this.selectedPendingOrderIndex = 0;
-
-            if (this.pendingOrders.length > 0) {
-
-              this.showPendingOrders = true;
-
-              this.shoppingStarted = false;
-
-            }
-            else {
-
-              this.showPendingOrders = false;
-
-              // Only Customer should automatically
-              // enter the shopping screen.
-              if (this.isCustomer) {
-
-                this.shoppingStarted = true;
-
-                this.loadVendors();
-
-              }
-              else {
-
-                this.shoppingStarted = false;
-
-              }
-            }
-
-            this.cdr.detectChanges();
-          },
-
-          error: (error) => {
-
-            console.error(
-              'Unable to load pending orders:',
-              error
-            );
-
-            this.checkingPendingOrders = false;
-
-            this.pendingOrderLoadError = true;
-
-            this.pendingOrders = [];
-
-            this.showPendingOrders = false;
-
-            this.shoppingStarted = false;
-
-            this.cdr.detectChanges();
-          }
-
-        });
+    this.pendingOrderRequest = this.orderService
+      .getTblPendingOrderBys(this.userType, this.profileId)
+      .pipe(
+        timeout({ first: 30000 }),
+        // Process inside the stream so response/processing errors reach error().
+        map((response: unknown) => this.normalizePendingOrders(response)),
+        finalize(() => {
+          this.checkingPendingOrders = false;
+          if (!this.orderViewDestroyed) this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (orders: TblPendingOrderDto[]) => {
+          this.pendingOrders = orders;
+          this.pendingOrderChecked = true;
+          this.pendingOrderLoadError = false;
+          this.selectedPendingOrderIndex = 0;
+          this.showPendingOrders = orders.length > 0;
+          this.shoppingStarted = orders.length === 0 && this.isCustomer;
+          if (this.shoppingStarted) this.loadVendors();
+        },
+        error: (error) => {
+          console.error('Unable to load pending orders:', error);
+          this.pendingOrderLoadError = true;
+          this.pendingOrders = [];
+          this.showPendingOrders = false;
+          this.shoppingStarted = false;
+          this.pendingOrderErrorMessage = error?.name === 'TimeoutError'
+            ? 'Loading orders took too long. Please check your connection and try again.'
+            : error?.status === 401
+              ? 'Your session has expired. Please log in again.'
+              : error?.status === 403
+                ? 'You do not have permission to view these orders.'
+                : 'Unable to load orders. Please check your connection and try again.';
+        }
+      });
   }
 
   // My Orders list must always display the most recent order first.

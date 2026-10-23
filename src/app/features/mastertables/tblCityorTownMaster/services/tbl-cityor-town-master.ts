@@ -13,6 +13,10 @@ import { environment } from '../../../../../environments/environment';
 export class TblCityorTownMasterService {
 constructor(private http: HttpClient) { }
 
+getRegistrationCities(): Observable<TblCityorTownMaster[]> {
+    return this.http.get<TblCityorTownMaster[]>(`${environment.apiBaseUrl}/api/TblCityorTownMaster/RegistrationCities`);
+  }
+
 //GET ALL
 getAllTblCityorTownMasters(): Observable<TblCityorTownMaster[]>{
 	return this.http.get<TblCityorTownMaster[]>(`${ environment.apiBaseUrl}/api/TblCityorTownMaster/GetAllTblCityorTownMasters`);

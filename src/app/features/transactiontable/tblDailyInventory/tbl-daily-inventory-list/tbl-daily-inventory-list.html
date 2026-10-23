@@ -7,23 +7,21 @@
 
 		<h1 class="page-caption page-caption-with-icon">
 			<i class="bi bi-basket page-caption-icon"></i>
-			<span>Today's Vegetables</span>
+			<span>{{ 'DailyInventoryList.TODAY_S_VEGETABLES' | translate }}</span>
 		</h1>
 
 		<div class="page-header-center" *ngIf="isAdmin">
 			<button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
 				(click)="OnFormSubmit('Load All')"
-				[attr.title]="actionType !== 'Load All' ? 'Loading All Records' : 'All Records'">
+				[attr.title]="(actionType !== 'Load All' ? ('DailyInventoryList.LOADING_ALL_RECORDS' | translate) : ('DailyInventoryList.ALL_RECORDS' | translate))">
 				<i class="bi bi-list-ul"></i>
-				All Records
-			</button>
+				{{ 'DailyInventoryList.ALL_RECORDS' | translate }}</button>
 
 			<button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Active Only'"
 				(click)="OnFormSubmit('Active Only')"
-				[attr.title]="actionType !== 'Active Only' ? 'Loading Active Records' : 'Active Records'">
+				[attr.title]="(actionType !== 'Active Only' ? ('DailyInventoryList.LOADING_ACTIVE_RECORDS' | translate) : ('DailyInventoryList.ACTIVE_RECORDS' | translate))">
 				<i class="bi bi-check-circle"></i>
-				Active Records
-			</button>
+				{{ 'DailyInventoryList.ACTIVE_RECORDS' | translate }}</button>
 
 			<!-- Need to include vendor Id as a drop down Item -->
 
@@ -35,11 +33,8 @@
 
 			<input type="checkbox" [(ngModel)]="removeMultipleItems" (ngModelChange)="onRemoveMultipleChange()" />
 
-			Remove Multiple Items
-
-			<span *ngIf="removeMultipleItems">
-				({{ selectedInventoryIds.length }} Selected)
-			</span>
+			{{ 'DailyInventoryList.REMOVE_MULTIPLE_ITEMS' | translate }}<span *ngIf="removeMultipleItems">
+				{{ ('DailyInventoryList.VALUE_SELECTED' | translate:{p0: (selectedInventoryIds.length)}) }}</span>
 
 		</label>
 
@@ -49,15 +44,12 @@
 
 			<i class="bi bi-trash3"></i>
 
-			Remove
-
-		</button>
+			{{ 'DailyInventoryList.REMOVE' | translate }}</button>
 
 		<div class="page-header-right">
 			<a [routerLink]="['add']" class="btn-app btn-new">
 				<i class="bi bi-plus-lg"></i>
-				Add / Update
-			</a>
+				{{ 'DailyInventoryList.ADD_UPDATE' | translate }}</a>
 		</div>
 
 	</div>
@@ -69,20 +61,17 @@
 			<div class="page-header-left">
 				<button type="button" class="btn-app btn-outline">
 					<i class="bi bi-funnel"></i>
-					Filter
-				</button>
+					{{ 'DailyInventoryList.FILTER' | translate }}</button>
 
 				<button type="button" class="btn-app btn-outline">
 					<i class="bi bi-download"></i>
-					Export CSV
-				</button>
+					{{ 'DailyInventoryList.EXPORT_CSV' | translate }}</button>
 			</div>
 
 			<div class="page-header-right">
 				<ng-container *ngIf="tblDailyInventory$ | async as tbldailyinventorys">
 					<span class="pagination-info">
-						Showing {{ (tbldailyinventorys | columnFilter:filters).length }} of {{ tbldailyinventorys.length }} Records
-					</span>
+						{{ ('DailyInventoryList.SHOWING_VALUE_OF_VALUE_RECORDS' | translate:{p0: ((tbldailyinventorys | columnFilter:filters).length), p1: (tbldailyinventorys.length)}) }}</span>
 				</ng-container>
 
 				<button type="button" class="pager-btn" disabled>
@@ -102,70 +91,68 @@
 				<thead>
 					<tr>
 						<th *ngIf="removeMultipleItems">
-							Select
-						</th>
-						<th class="col-technical"><span class="column-heading">Id<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th class="col-technical"><span class="column-heading">F K Vendor Id<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th class="col-technical"><span class="column-heading">F K Item Id<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">Vegetable<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">Unit<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">Date<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">Rate (₹)<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">Stock<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">Initial Stock<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">Available<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th>Actions</th>
+							{{ 'DailyInventoryList.SELECT' | translate }}</th>
+						<th class="col-technical"><span class="column-heading">{{ 'DailyInventoryList.ID' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th class="col-technical"><span class="column-heading">{{ 'DailyInventoryList.F_K_VENDOR_ID' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th class="col-technical"><span class="column-heading">{{ 'DailyInventoryList.F_K_ITEM_ID' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'DailyInventoryList.VEGETABLE' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'DailyInventoryList.UNIT' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'DailyInventoryList.DATE' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'DailyInventoryList.RATE' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'DailyInventoryList.STOCK' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'DailyInventoryList.INITIAL_STOCK' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'DailyInventoryList.AVAILABLE' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th>{{ 'DailyInventoryList.ACTIONS' | translate }}</th>
 					</tr>
 					<tr class="column-filter-row">
 						<th *ngIf="removeMultipleItems" class="col-filter-empty"></th>
 						<th>
-							<input class="column-filter-input" type="text" placeholder="Id" aria-label="Filter by Id"
+							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.ID' | translate" [attr.aria-label]="'DailyInventoryList.FILTER_BY_ID' | translate"
 								[(ngModel)]="filters['fldId']" />
 						</th>
 						<th>
-							<input class="column-filter-input" type="text" placeholder="Vendor Id"
-								aria-label="Filter by vendor Id" [(ngModel)]="filters['fldFKVendorId']" />
+							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.VENDOR_ID' | translate"
+								[attr.aria-label]="'DailyInventoryList.FILTER_BY_VENDOR_ID' | translate" [(ngModel)]="filters['fldFKVendorId']" />
 						</th>
 						<th>
-							<input class="column-filter-input" type="text" placeholder="Item Id"
-								aria-label="Filter by item Id" [(ngModel)]="filters['fldFKItemId']" />
+							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.ITEM_ID' | translate"
+								[attr.aria-label]="'DailyInventoryList.FILTER_BY_ITEM_ID' | translate" [(ngModel)]="filters['fldFKItemId']" />
 						</th>
 						<th>
-							<input class="column-filter-input" type="text" placeholder="Vegetable"
-								aria-label="Filter by vegetable" [(ngModel)]="filters['fldItemName']" />
+							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.VEGETABLE' | translate"
+								[attr.aria-label]="'DailyInventoryList.FILTER_BY_VEGETABLE' | translate" [(ngModel)]="filters['fldItemName']" />
 						</th>
 						<th>
-							<input class="column-filter-input" type="text" placeholder="Unit"
-								aria-label="Filter by unit" [(ngModel)]="filters['fldBaseUnit']" />
+							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.UNIT' | translate"
+								[attr.aria-label]="'DailyInventoryList.FILTER_BY_UNIT' | translate" [(ngModel)]="filters['fldBaseUnit']" />
 						</th>
 						<th>
-							<input class="column-filter-input" type="text" placeholder="Date"
-								aria-label="Filter by inventory date" [(ngModel)]="filters['fldInventoryDate']" />
+							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.DATE' | translate"
+								[attr.aria-label]="'DailyInventoryList.FILTER_BY_INVENTORY_DATE' | translate" [(ngModel)]="filters['fldInventoryDate']" />
 						</th>
 						<th>
-							<input class="column-filter-input" type="text" placeholder="Rate"
-								aria-label="Filter by selling rate" [(ngModel)]="filters['fldSellingRate']" />
+							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.RATE_2' | translate"
+								[attr.aria-label]="'DailyInventoryList.FILTER_BY_SELLING_RATE' | translate" [(ngModel)]="filters['fldSellingRate']" />
 						</th>
 						<th>
-							<input class="column-filter-input" type="text" placeholder="Stock"
-								aria-label="Filter by available stock" [(ngModel)]="filters['fldAvailableStock']" />
+							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.STOCK' | translate"
+								[attr.aria-label]="'DailyInventoryList.FILTER_BY_AVAILABLE_STOCK' | translate" [(ngModel)]="filters['fldAvailableStock']" />
 						</th>
 						<th>
-							<input class="column-filter-input" type="text" placeholder="Initial"
-								aria-label="Filter by initial stock" [(ngModel)]="filters['fldInitialStock']" />
+							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.INITIAL' | translate"
+								[attr.aria-label]="'DailyInventoryList.FILTER_BY_INITIAL_STOCK' | translate" [(ngModel)]="filters['fldInitialStock']" />
 						</th>
 						<th>
-							<select class="column-filter-input" aria-label="Filter by availability"
+							<select class="column-filter-input" [attr.aria-label]="'DailyInventoryList.FILTER_BY_AVAILABILITY' | translate"
 								[(ngModel)]="filters['fldIsAvailable']">
-								<option value="">All</option>
-								<option value="true">Yes</option>
-								<option value="false">No</option>
+								<option value="">{{ 'DailyInventoryList.ALL' | translate }}</option>
+								<option value="true">{{ 'DailyInventoryList.YES' | translate }}</option>
+								<option value="false">{{ 'DailyInventoryList.NO' | translate }}</option>
 							</select>
 						</th>
 						<th class="col-filter-empty">
 							<button type="button" class="column-filter-clear" (click)="filters = {}">
-								Clear
-							</button>
+								{{ 'DailyInventoryList.CLEAR' | translate }}</button>
 						</th>
 					</tr>
 				</thead>
@@ -183,29 +170,28 @@
 
 						</td>
 
-						<td class="cell-code col-technical">{{tbldailyinventory.fldId}}</td>
-						<td class="col-technical">{{tbldailyinventory.fldFKVendorId}}</td>
-						<td class="col-technical">{{tbldailyinventory.fldFKItemId}}</td>
-						<td class="cell-primary">{{tbldailyinventory.fldItemName}}</td>
-						<td>{{tbldailyinventory.fldBaseUnit}}</td>
-						<td>{{tbldailyinventory.fldInventoryDate}}</td>
-						<td class="cell-amount">₹{{tbldailyinventory.fldSellingRate}}</td>
-						<td>{{tbldailyinventory.fldAvailableStock}}</td>
-						<td>{{tbldailyinventory.fldInitialStock}}</td>
+						<td class="cell-code col-technical">{{ tbldailyinventory.fldId }}</td>
+						<td class="col-technical">{{ tbldailyinventory.fldFKVendorId }}</td>
+						<td class="col-technical">{{ tbldailyinventory.fldFKItemId }}</td>
+						<td class="cell-primary">{{ tbldailyinventory.fldItemName }}</td>
+						<td>{{ tbldailyinventory.fldBaseUnit }}</td>
+						<td>{{ tbldailyinventory.fldInventoryDate }}</td>
+						<td class="cell-amount">₹{{ tbldailyinventory.fldSellingRate }}</td>
+						<td>{{ tbldailyinventory.fldAvailableStock }}</td>
+						<td>{{ tbldailyinventory.fldInitialStock }}</td>
 						<td>
 							<span class="badge-pill"
 								[ngClass]="tbldailyinventory.fldIsAvailable ? 'badge-success' : 'badge-muted'">
-								{{tbldailyinventory.fldIsAvailable ? 'Yes' : 'No'}}
-							</span>
+								 {{ (tbldailyinventory.fldIsAvailable ? ('DailyInventoryList.YES' | translate) : ('DailyInventoryList.NO' | translate)) }} </span>
 						</td>
 						<td>
 							<div class="row-actions">
-								<a class="icon-btn edit" title="Edit"
+								<a class="icon-btn edit" [title]="'DailyInventoryList.EDIT' | translate"
 									[routerLink]="['/transactiontables/tblDailyInventory/Edit', tbldailyinventory.fldId]"
 									[queryParams]="{ action: 'Edit' }">
 									<i class="bi bi-pencil-square"></i>
 								</a>
-								<a class="icon-btn delete" title="Delete"
+								<a class="icon-btn delete" [title]="'DailyInventoryList.DELETE' | translate"
 									[routerLink]="['/transactiontables/tblDailyInventory/Edit', tbldailyinventory.fldId]"
 									[queryParams]="{ action: 'Delete' }">
 									<i class="bi bi-trash3"></i>
@@ -218,8 +204,7 @@
 			</table>
 
 			<p class="grid-footnote" *ngIf="filteredInventory.length === 0">
-				{{ tbldailyinventorys.length === 0 ? 'No records found.' : 'No records match the filters.' }}
-			</p>
+				 {{ (tbldailyinventorys.length === 0 ? ('DailyInventoryList.NO_RECORDS_FOUND' | translate) : ('DailyInventoryList.NO_RECORDS_MATCH_THE_FILTERS' | translate)) }} </p>
 
 		</ng-container>
 		</ng-container>

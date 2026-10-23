@@ -13,6 +13,17 @@ import { environment } from '../../../../../environments/environment';
 export class TblStreetMasterService {
   constructor(private http: HttpClient) { }
 
+getRegistrationStreets(): Observable<TblStreetMaster[]> {
+    return this.http.get<TblStreetMaster[]>(`${environment.apiBaseUrl}/api/TblStreetMaster/RegistrationStreets`);
+  }
+
+  addRegistrationStreet(model: TblStreetMasterAdd): Observable<TblStreetMaster> {
+    return this.http.post<TblStreetMaster>(
+      `${environment.apiBaseUrl}/api/TblStreetMaster/CreateRegistrationStreet`,
+      { fldFKCity: model.fldFKCity, fldStreetName: model.fldStreetName }
+    );
+  }
+
   //GET ALL
   getAllTblStreetMasters(): Observable<TblStreetMaster[]> {
     return this.http.get<TblStreetMaster[]>(`${environment.apiBaseUrl}/api/TblStreetMaster/GetAllTblStreetMasters`);

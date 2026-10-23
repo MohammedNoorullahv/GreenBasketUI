@@ -7,11 +7,13 @@
   *ngIf="showIntroVideo">
 
   <video
+    #introVideo
     class="intro-video"
     autoplay
     muted
     playsinline
     preload="auto"
+    (timeupdate)="onIntroVideoProgress()"
     (ended)="onIntroVideoEnded()"
     (error)="onIntroVideoError()">
 
@@ -20,6 +22,11 @@
       type="video/mp4">
 
   </video>
+
+  <button type="button" class="intro-skip-button" (click)="skipIntro()"
+    aria-label="Skip introduction and show login">
+    Skip Intro <span aria-hidden="true">→</span>
+  </button>
 
 </div>
 

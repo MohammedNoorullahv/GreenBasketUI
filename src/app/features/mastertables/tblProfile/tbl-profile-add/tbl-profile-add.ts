@@ -1,10 +1,12 @@
-import { Component, OnDestroy, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../../environments/environment';
+import { Component, OnDestroy, ViewChild, ChangeDetectorRef, HostBinding, HostListener } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
 
   inject,
@@ -34,6 +36,28 @@ import { TblStreetMasterAdd } from '../../tblStreetMaster/models/tblStreetMaster
   styleUrl: './tbl-profile-add.css',
 
   styles: [`
+    :host(.public-registration) { display: block; flex: 1 1 auto; min-height: 0; height: 100dvh; width: 100%; max-width: 100%; overflow: auto; overscroll-behavior: contain; }
+    :host(.public-registration) .grid-page-shell { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; margin: 0 auto; padding: 16px; }
+    :host(.public-registration) .profile-form, :host(.public-registration) .profile-field { min-width: 0; }
+    :host(.public-registration) input, :host(.public-registration) select { max-width: 100%; box-sizing: border-box; scroll-margin-block: 24px; }
+    :host(.public-registration) .page-actions-bar { position: static; flex-wrap: wrap; }
+    .registration-errors { padding: 16px; margin: 12px 0; border: 2px solid #b42318; border-radius: 8px; background: #fff4f2; color: #8a1c13; }
+    .registration-errors ul { margin: 8px 0 0; padding-inline-start: 20px; }
+    .registration-errors button { background: transparent; border: 0; padding: 6px 0; color: #8a1c13; text-align: start; text-decoration: underline; cursor: pointer; font: inherit; }
+    .registration-field-error { color: #b42318; font-size: 14px; font-weight: 600; margin: 6px 0; }
+    input.ng-invalid.ng-touched, select.ng-invalid.ng-touched { border: 2px solid #b42318; }
+    input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid #1473c9; outline-offset: 3px; }
+    .registration-location { border: 1px solid #b9d5c5; border-radius: 8px; padding: 12px; }
+    .registration-location button { min-height: 44px; }
+    .registration-location p { overflow-wrap: anywhere; }
+    :host .profile-map-modal { max-height: calc(100dvh - 24px); overflow: auto; max-width: calc(100vw - 24px); }
+    @media (max-width: 760px) {
+      :host(.public-registration) .profile-form { grid-template-columns: minmax(0, 1fr); }
+      :host(.public-registration) .vendor-delivery-grid { grid-template-columns: minmax(0, 1fr); }
+      :host(.public-registration) .vendor-delivery-cell:nth-child(odd) { border-right: 0; }
+      :host(.public-registration) .vendor-delivery-cell + .vendor-delivery-cell { border-top: 1px solid #cbdcf1; }
+    }
+
     .vendor-delivery-card { border: 1px solid #8ba6b6; border-radius: 10px; padding: 14px; margin: 8px 0 20px; min-width: 0; grid-column: 1 / -1; }
     .vendor-delivery-heading { margin: 0 0 12px; padding: 10px; border: 1px solid #cbdcf1; border-radius: 6px; background: #f0f7fc; color: #17384a; text-align: center; font-size: 17px; font-weight: 700; }
     .vendor-delivery-toggle { margin-bottom: 14px; }
@@ -55,6 +79,113 @@ import { TblStreetMasterAdd } from '../../tblStreetMaster/models/tblStreetMaster
 })
 
 export class TblProfileAddComponent implements OnDestroy {
+  private readonly route = inject(ActivatedRoute);
+  private readonly registrationHttp = inject(HttpClient);
+  readonly isRegistration = this.route.snapshot.data['publicRegistration'] === true;
+  @HostBinding('class.public-registration') get publicRegistrationClass(): boolean { return this.isRegistration; }
+  validationErrors: { field: string; message: string }[] = [];
+
+  @HostListener('focusin', ['$event'])
+  keepFocusedFieldVisible(event: FocusEvent): void {
+    if (this.isRegistration && isPlatformBrowser(this.platformId)) {
+      (event.target as HTMLElement | null)?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+    }
+  }
+
+  focusField(field: string): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    setTimeout(() => {
+      const target = document.getElementById(field) ||
+        document.querySelector<HTMLElement>(`[name="${field}"]`) ||
+        document.getElementById('registrationErrors');
+      target?.scrollIntoView({ block: 'center', inline: 'nearest' });
+      target?.focus({ preventScroll: true });
+    });
+  }
+
+  fieldError(field: string): string {
+    return this.validationErrors.find(x => x.field === field)?.message || '';
+  }
+
+  onMapKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.closeLocationMap();
+      this.focusField('deliveryLocationButton');
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const dialog = event.currentTarget as HTMLElement;
+    const controls = Array.from(dialog.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), [tabindex="0"]'
+    )).filter(element => element.getClientRects().length > 0);
+    const first = controls[0], last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+  }
+
+  private validateRegistration(form: NgForm): boolean {
+    form.control.markAllAsTouched();
+    const errors: { field: string; message: string }[] = [];
+    const add = (field: string, message: string) => {
+      if (!errors.some(x => x.field === field)) errors.push({ field, message });
+    };
+    const labels: Record<string, string> = {
+      fldUserType: 'User type', fldContactNumber: 'Phone number',
+      fldPasswordHash: 'MPIN', fldFullName: 'Full name', fldDoorNo: 'Door number',
+      fldEmailId: 'Email address', fldFKStreetId: 'Street', selectedCityorTownId: 'City / Town',
+      newStreetName: 'New street name', fldvVendorName: 'Vendor / shop name',
+      fldIsTermsAgreed: 'Terms & Conditions'
+    };
+    for (const [name, control] of Object.entries(form.controls)) {
+      if (control.invalid) {
+        const label = labels[name] || name.replace(/^fldv?/, '').replace(/([a-z])([A-Z])/g, '$1 $2');
+        const message = name === 'fldPasswordHash' ? 'MPIN must contain exactly six digits.'
+          : control.errors?.['required'] ? `${label} is required.`
+          : control.errors?.['email'] ? 'Enter a valid email address.'
+          : `${label}: check the entered value and permitted range.`;
+        add(name, message);
+      }
+    }
+    if (!/^[6-9][0-9]{9}$/.test(this.model.fldContactNumber || ''))
+      add('fldContactNumber', 'Enter a valid 10-digit mobile number starting with 6, 7, 8 or 9.');
+    if (this.manualStreetEntry) {
+      if (!this.selectedCityorTownId) add('selectedCityorTownId', 'Select City / Town.');
+      if (!this.newStreetName.trim()) add('newStreetName', 'Enter the new street name.');
+    } else if (!this.model.fldFKStreetId) add('fldFKStreetId', 'Select your street.');
+    // if (!this.model.fldGPSLocation?.trim())
+    //   add('deliveryLocationButton', 'Delivery location is required. Choose your location on the map and click Confirm Location.');
+    if (!this.model.fldIsTermsAgreed) add('fldIsTermsAgreed', 'Please accept the Terms & Conditions.');
+    this.validationErrors = errors;
+    if (errors.length) {
+      this.cdr.detectChanges();
+      this.focusField(errors[0].field);
+      return false;
+    }
+    return true;
+  }
+
+  private showSaveError(error: unknown): void {
+    const response = error as { error?: unknown };
+    const body = response?.error as { errors?: Record<string, string[]>; message?: string; detail?: string; title?: string; traceId?: string } | undefined;
+    this.validationErrors = [];
+    if (body && typeof body === 'object' && body.errors) {
+      for (const [key, messages] of Object.entries(body.errors)) {
+        const name = key.split('.').pop() || '';
+        const field = name ? name[0].toLowerCase() + name.slice(1) : 'registrationErrors';
+        for (const message of Array.isArray(messages) ? messages : [String(messages)])
+          this.validationErrors.push({ field, message });
+      }
+    }
+    if (!this.validationErrors.length) this.validationErrors = [{
+      field: 'registrationErrors',
+      message: (typeof body === 'object' && (body?.detail || body?.message || body?.title)) ||
+        'Unable to save registration. Please try again. If it continues, contact support.'
+    }];
+    this.cdr.detectChanges();
+    this.focusField(this.validationErrors[0].field);
+  }
+
   model: TblProfileAdd;
   modelsm: TblStreetMasterAdd;
   submitAction: 'SaveAndAddNew' | 'SaveAndClose' | 'exit' = 'exit'; // default to exit
@@ -150,15 +281,18 @@ export class TblProfileAddComponent implements OnDestroy {
 
 
     this.tblStreetMaster$ =
-      this.tblStreetMasterService
-        .getActiveLeanTblStreetMasters()
+      (this.isRegistration
+        ? this.tblStreetMasterService.getRegistrationStreets()
+        : this.tblStreetMasterService.getActiveLeanTblStreetMasters())
         .pipe(
           tap((streets) => {
             this.tblStreetMasterList = streets;
           })
         );
 
-    this.tblCityorTownMaster$ = this.tblCityorTownMasterService.getActiveLeanTblCityorTownMasters();
+    this.tblCityorTownMaster$ = this.isRegistration
+      ? this.tblCityorTownMasterService.getRegistrationCities()
+      : this.tblCityorTownMasterService.getActiveLeanTblCityorTownMasters();
 
     setTimeout(() => {
       if (this.form && this.form.controls['fldDescription']) {
@@ -173,7 +307,7 @@ export class TblProfileAddComponent implements OnDestroy {
       return;
     }
 
-    console.log("01. On FormSubmit", this.model);
+
     this.submitAction = action;
 
     if (form.invalid) {
@@ -234,9 +368,9 @@ export class TblProfileAddComponent implements OnDestroy {
       }
     }
 
-    if (!this.model.fldGPSLocation?.trim()) {
-      return;
-    }
+    // if (!this.model.fldGPSLocation?.trim()) {
+    //   return;
+    // }
 
     this.isSaving = true;
 
@@ -254,7 +388,9 @@ export class TblProfileAddComponent implements OnDestroy {
         this.modelsm.fldIsActive = true,
 
         this.addTblStreetMasterSubscription =
-        this.tblStreetMasterService.addTblStreetMaster(this.modelsm)
+        (this.isRegistration
+          ? this.tblStreetMasterService.addRegistrationStreet(this.modelsm)
+          : this.tblStreetMasterService.addTblStreetMaster(this.modelsm))
           .subscribe({
             next: (response) => {
 
@@ -272,9 +408,16 @@ export class TblProfileAddComponent implements OnDestroy {
 
               // NOW save Profile
               this.saveProfile();
+            },
+            error: (err) => {
+              this.isSaving = false;
+              this.showSaveError(err);
+              this.cdr.detectChanges();
             }
-
-          })
+          });
+    } else {
+      // Existing streets must also save the profile.
+      this.saveProfile();
     }
 
 
@@ -326,15 +469,13 @@ export class TblProfileAddComponent implements OnDestroy {
       this.model.fldFKStreetId
     );
 
-    console.log(
-      "8. BEFORE Profile API - Complete Model:",
-      JSON.stringify(this.model)
-    );
 
-    this.addTblProfileSubscription =
-      this.tblProfileService
-        .addTblProfile(this.model)
-        .subscribe({
+
+    const saveRequest: Observable<unknown> = this.isRegistration
+      ? this.registrationHttp.post(
+          `${environment.apiBaseUrl}/api/TblProfile/RegisterProfile`, this.model)
+      : this.tblProfileService.addTblProfile(this.model);
+    this.addTblProfileSubscription = saveRequest.subscribe({
 
           next: (response) => {
 
@@ -348,6 +489,10 @@ export class TblProfileAddComponent implements OnDestroy {
               }
             );
 
+            if (this.isRegistration) {
+              void this.router.navigateByUrl('/login');
+              return;
+            }
             if (this.submitAction === 'SaveAndAddNew') {
 
               this.resetForm();
@@ -365,24 +510,7 @@ export class TblProfileAddComponent implements OnDestroy {
 
             this.isSaving = false;
 
-            const errorMsg =
-              err?.error?.message ||
-              err?.error ||
-              'An unexpected error occurred';
-
-            this.toastr.error(
-              errorMsg,
-              'Error',
-              {
-                toastClass:
-                  'ngx-toastr custom-toast error-toast'
-              }
-            );
-
-            console.error(
-              'Profile Save Error:',
-              err
-            );
+            this.showSaveError(err);
           }
 
         });
@@ -421,7 +549,7 @@ export class TblProfileAddComponent implements OnDestroy {
   }
 
   backToHome(): void {
-    this.router.navigateByUrl('mastertables/tblProfile');
+    this.router.navigateByUrl(this.isRegistration ? '/login' : '/mastertables/tblProfile');
   }
 
   ngOnDestroy(): void {
@@ -529,6 +657,7 @@ export class TblProfileAddComponent implements OnDestroy {
     this.selectedMapAddress = '';
     const session = ++this.mapSession;
     this.cdr.detectChanges();
+    this.focusField('closeRegistrationMap');
     try {
       await this.initializeLocationMap(session);
     } catch (error) {
@@ -736,7 +865,9 @@ export class TblProfileAddComponent implements OnDestroy {
       `${this.selectedLatitude.toFixed(6)},` +
       `${this.selectedLongitude.toFixed(6)}`;
 
+    this.validationErrors = this.validationErrors.filter(x => x.field !== 'deliveryLocationButton');
     this.closeLocationMap();
+    this.focusField('deliveryLocationButton');
 
   }
 
@@ -760,52 +891,8 @@ export class TblProfileAddComponent implements OnDestroy {
   }
 
   registerProfile(form: NgForm): void {
-
-    if (
-      !this.model.fldGPSLocation ||
-      !this.model.fldGPSLocation.trim()
-    ) {
-
-      alert("Please select your delivery location.");
-
-      return;
-
-    }
-
-    if (!this.model.fldIsTermsAgreed) {
-
-      alert(
-        "Please agree to the Terms & Conditions."
-      );
-
-      return;
-
-    }
-
-    if (
-      this.manualStreetEntry &&
-      !this.newStreetName?.trim()
-    ) {
-
-      alert("Please enter your street name.");
-
-      return;
-
-    }
-
-    if (form.invalid) {
-
-      form.control.markAllAsTouched();
-
-      return;
-
-    }
-
-    this.OnFormSubmit(
-      form,
-      "SaveAndClose"
-    );
-
+    if (this.isSaving || !this.validateRegistration(form)) return;
+    this.OnFormSubmit(form, 'SaveAndClose');
   }
 
   onHouseImageSelected(event: Event): void {

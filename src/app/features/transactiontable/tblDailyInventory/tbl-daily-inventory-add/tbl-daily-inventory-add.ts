@@ -1,3 +1,5 @@
+import { MenuCaptionPipe as GbMenuCaptionPipe } from '../../../../shared/pipes/menu-caption.pipe';
+import { TranslatePipe as GbPageTranslatePipe } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -13,7 +15,7 @@ import { ColumnFilterIconComponent } from '../../../../shared/components/column-
 @Component({
   selector: 'app-tbl-daily-inventory-add',
   standalone: true,
-  imports: [CommonModule, FormsModule, ColumnFilterIconComponent],
+  imports: [CommonModule, FormsModule, ColumnFilterIconComponent, GbPageTranslatePipe, GbMenuCaptionPipe],
   templateUrl: './tbl-daily-inventory-add.html',
   styleUrl: './tbl-daily-inventory-add.css',
 })

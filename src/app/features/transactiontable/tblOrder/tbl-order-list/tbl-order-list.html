@@ -7,36 +7,18 @@
 
 		<h1 class="page-caption page-caption-with-icon">
 			<i class="bi bi-clock-history page-caption-icon"></i>
-			<span>Order History</span>
+			<span>{{ 'OrderList.ORDER_HISTORY' | translate }}</span>
 		</h1>
 
 		<div class="page-header-center">
-			<button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
-				(click)="OnFormSubmit('Load All')"
-				[attr.title]="actionType !== 'Load All' ? 'Loading All Records' : 'All Records'">
-				<i class="bi bi-list-ul"></i>
-				All Records
-			</button>
-
-			<button type="submit" class="btn-app btn-toggle" [disabled]="actionType === 'Active Only'"
-				(click)="OnFormSubmit('Active Only')"
-				[attr.title]="actionType !== 'Active Only' ? 'Loading Active Records' : 'Active Records'">
-				<i class="bi bi-check-circle"></i>
-				Active Records
-			</button>
+			
 
 			<a [routerLink]="['/transactiontables/tblOrder']" class="btn-app btn-outline">
 				<i class="bi bi-cart3"></i>
-				Order Shopping
-			</a>
+				{{ 'OrderList.ORDER_SHOPPING' | translate }}</a>
 		</div>
 
-		<div class="page-header-right">
-			<a [routerLink]="['add']" class="btn-app btn-new">
-				<i class="bi bi-plus-lg"></i>
-				New Order
-			</a>
-		</div>
+		
 
 	</div>
 
@@ -48,20 +30,17 @@
 			<div class="page-header-left">
 				<button type="button" class="btn-app btn-outline">
 					<i class="bi bi-funnel"></i>
-					Filter
-				</button>
+					{{ 'OrderList.FILTER' | translate }}</button>
 
 				<button type="button" class="btn-app btn-outline">
 					<i class="bi bi-download"></i>
-					Export CSV
-				</button>
+					{{ 'OrderList.EXPORT_CSV' | translate }}</button>
 			</div>
 
 			<div class="page-header-right">
 				<ng-container *ngIf="tblOrder$ | async as tblorders">
 					<span class="pagination-info">
-						Showing {{ (tblorders | columnFilter:filters).length }} of {{ tblorders.length }} Records
-					</span>
+						{{ ('OrderList.SHOWING_VALUE_OF_VALUE_RECORDS' | translate:{p0: ((tblorders | columnFilter:filters).length), p1: (tblorders.length)}) }}</span>
 				</ng-container>
 
 				<button type="button" class="pager-btn" disabled>
@@ -81,51 +60,50 @@
 				<thead>
 					<tr>
 						
-						<th><span class="column-heading">Customer Name<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">Delivery Street Name<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">Vendor Name<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">Order Number<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">Order Date<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">Grand Total<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">Order Status<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th>Actions</th>
+						<th><span class="column-heading">{{ 'OrderList.CUSTOMER_NAME' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'OrderList.DELIVERY_STREET_NAME' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'OrderList.VENDOR_NAME' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'OrderList.ORDER_NUMBER' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'OrderList.ORDER_DATE' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'OrderList.GRAND_TOTAL' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'OrderList.ORDER_STATUS' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th>{{ 'OrderList.ACTIONS' | translate }}</th>
 					</tr>
 					<tr class="column-filter-row">
 						<th>
-							<input class="column-filter-input" type="text" placeholder="Name"
-								aria-label="Filter by customer name"
+							<input class="column-filter-input" type="text" [placeholder]="'OrderList.NAME' | translate"
+								[attr.aria-label]="'OrderList.FILTER_BY_CUSTOMER_NAME' | translate"
 								[(ngModel)]="filters['tblProfileCustomerId.fldFullName']" />
 						</th>
 						<th>
-							<input class="column-filter-input" type="text" placeholder="Street"
-								aria-label="Filter by delivery street name"
+							<input class="column-filter-input" type="text" [placeholder]="'OrderList.STREET' | translate"
+								[attr.aria-label]="'OrderList.FILTER_BY_DELIVERY_STREET_NAME' | translate"
 								[(ngModel)]="filters['tblProfileCustomerId.fldStreetName']" />
 						</th>
 						<th>
-							<input class="column-filter-input" type="text" placeholder="Vendor"
-								aria-label="Filter by vendor name"
+							<input class="column-filter-input" type="text" [placeholder]="'OrderList.VENDOR' | translate"
+								[attr.aria-label]="'OrderList.FILTER_BY_VENDOR_NAME' | translate"
 								[(ngModel)]="filters['tblProfileVendorId.fldFullName']" />
 						</th>
 						<th>
-							<input class="column-filter-input" type="text" placeholder="Order no."
-								aria-label="Filter by order number" [(ngModel)]="filters['fldOrderNumber']" />
+							<input class="column-filter-input" type="text" [placeholder]="'OrderList.ORDER_NO' | translate"
+								[attr.aria-label]="'OrderList.FILTER_BY_ORDER_NUMBER' | translate" [(ngModel)]="filters['fldOrderNumber']" />
 						</th>
 						<th>
-							<input class="column-filter-input" type="text" placeholder="Date"
-								aria-label="Filter by order date" [(ngModel)]="filters['fldOrderDate']" />
+							<input class="column-filter-input" type="text" [placeholder]="'OrderList.DATE' | translate"
+								[attr.aria-label]="'OrderList.FILTER_BY_ORDER_DATE' | translate" [(ngModel)]="filters['fldOrderDate']" />
 						</th>
 						<th>
-							<input class="column-filter-input" type="text" placeholder="Total"
-								aria-label="Filter by grand total" [(ngModel)]="filters['fldGrandTotal']" />
+							<input class="column-filter-input" type="text" [placeholder]="'OrderList.TOTAL' | translate"
+								[attr.aria-label]="'OrderList.FILTER_BY_GRAND_TOTAL' | translate" [(ngModel)]="filters['fldGrandTotal']" />
 						</th>
 						<th>
-							<input class="column-filter-input" type="text" placeholder="Status"
-								aria-label="Filter by order status" [(ngModel)]="filters['fldOrderStatus']" />
+							<input class="column-filter-input" type="text" [placeholder]="'OrderList.STATUS' | translate"
+								[attr.aria-label]="'OrderList.FILTER_BY_ORDER_STATUS' | translate" [(ngModel)]="filters['fldOrderStatus']" />
 						</th>
 						<th class="col-filter-empty">
 							<button type="button" class="column-filter-clear" (click)="filters = {}">
-								Clear
-							</button>
+								{{ 'OrderList.CLEAR' | translate }}</button>
 						</th>
 					</tr>
 				</thead>
@@ -133,12 +111,12 @@
 				<tbody>
 					<tr *ngFor="let tblorder of filteredOrders">
 						<!-- <td class="cell-code">{{tblorder.fldId}}</td> -->
-						<td>{{tblorder.tblProfileCustomerId.fldFullName}}</td>
-						<td>{{tblorder.tblProfileCustomerId.fldStreetName}}</td>
-						<td>{{tblorder.tblProfileVendorId.fldFullName}}</td>
-						<td class="cell-primary">{{tblorder.fldOrderNumber}}</td>
-						<td>{{tblorder.fldOrderDate | date:'dd-MMM-yy' }}</td>
-						<td class="cell-amount">₹{{tblorder.fldGrandTotal}}</td>
+						<td>{{ tblorder.tblProfileCustomerId.fldFullName }}</td>
+						<td>{{ tblorder.tblProfileCustomerId.fldStreetName }}</td>
+						<td>{{ tblorder.tblProfileVendorId.fldFullName }}</td>
+						<td class="cell-primary">{{ tblorder.fldOrderNumber }}</td>
+						<td>{{ tblorder.fldOrderDate | date:'dd-MMM-yy' }}</td>
+						<td class="cell-amount">₹{{ tblorder.fldGrandTotal }}</td>
 						<td>
 							<span class="status-badge" [ngClass]="{
 								'status-new': tblorder.fldOrderStatus === 'Pending',
@@ -148,12 +126,12 @@
 								'status-delivered': tblorder.fldOrderStatus === 'Delivered',
 								'status-cancelled': tblorder.fldOrderStatus === 'Cancelled',
 								'status-denied': tblorder.fldOrderStatus === 'Denied'
-							}">{{tblorder.fldOrderStatus}}</span>
+							}">{{ (tblorder.fldOrderStatus | menuCaption:'OrderList') }}</span>
 						</td>
 						
 						<td>
 							<div class="row-actions">
-								<a class="icon-btn edit" title="Edit"
+								<!-- <a class="icon-btn edit" title="Edit"
 									[routerLink]="['/transactiontables/tblOrder/Edit', tblorder.fldId]"
 									[queryParams]="{ action: 'Edit' }">
 									<i class="bi bi-pencil-square"></i>
@@ -162,9 +140,9 @@
 									[routerLink]="['/transactiontables/tblOrder/Edit', tblorder.fldId]"
 									[queryParams]="{ action: 'Delete' }">
 									<i class="bi bi-trash3"></i>
-								</a>
-                                <button type="button" class="icon-btn receipt-print" style="color:#087d64;cursor:pointer;opacity:1;pointer-events:auto;background:transparent;border:0" title="Print Receipt"
-                                    aria-label="Print receipt" [attr.aria-busy]="printingOrderId === tblorder.fldId"
+								</a> -->
+                                <button type="button" class="icon-btn receipt-print" style="color:#087d64;cursor:pointer;opacity:1;pointer-events:auto;background:transparent;border:0" [title]="'OrderList.PRINT_RECEIPT' | translate"
+                                    [attr.aria-label]="'OrderList.PRINT_RECEIPT_2' | translate" [attr.aria-busy]="printingOrderId === tblorder.fldId"
                                     (click)="printReceipt(tblorder)">
                                     <i class="bi bi-printer"></i>
                                 </button>
@@ -176,8 +154,7 @@
 			</table>
 
 			<p class="grid-footnote" *ngIf="filteredOrders.length === 0">
-				{{ tblorders.length === 0 ? 'No records found.' : 'No records match the filters.' }}
-			</p>
+				 {{ (tblorders.length === 0 ? ('OrderList.NO_RECORDS_FOUND' | translate) : ('OrderList.NO_RECORDS_MATCH_THE_FILTERS' | translate)) }} </p>
 
 		</ng-container>
 		</ng-container>

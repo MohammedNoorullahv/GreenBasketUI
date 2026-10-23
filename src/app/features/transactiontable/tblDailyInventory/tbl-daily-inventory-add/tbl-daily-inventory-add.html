@@ -1,11 +1,11 @@
 <div class="container grid-page-shell stock-page">
   <div class="page-header-bar stock-header">
     <div>
-      <h1 class="page-caption">Today's Vegetables — Stock Entry</h1>
-      <div class="stock-subtitle">Enter new stock and selling rate for each item</div>
+      <h1 class="page-caption">{{ 'DailyInventoryAdd.TODAY_S_VEGETABLES_STOCK_ENTRY' | translate }}</h1>
+      <div class="stock-subtitle">{{ 'DailyInventoryAdd.ENTER_NEW_STOCK_AND_SELLING_RATE_FOR_EACH_ITEM' | translate }}</div>
     </div>
     <div class="stock-date">
-      <label for="inventoryDate" class="form-label">Inventory Date</label>
+      <label for="inventoryDate" class="form-label">{{ 'DailyInventoryAdd.INVENTORY_DATE' | translate }}</label>
       <input id="inventoryDate" type="date" class="form-control" name="inventoryDate" [(ngModel)]="inventoryDate"
         (change)="onDateChange()" [disabled]="loading || isSaving" />
     </div>
@@ -13,19 +13,18 @@
 
   <div class="page-card stock-card">
     <div class="stock-toolbar">
-      <input class="form-control stock-search" type="search" name="stockSearch" placeholder="Search vegetables..."
+      <input class="form-control stock-search" type="search" name="stockSearch" [placeholder]="'DailyInventoryAdd.SEARCH_VEGETABLES' | translate"
         [(ngModel)]="searchText" />
       <label class="stock-changed-filter">
         <input type="checkbox" [(ngModel)]="showOnlyChanged" name="showOnlyChanged" />
-        Changed only ({{ changedCount }})
-      </label>
+        {{ ('DailyInventoryAdd.CHANGED_ONLY_VALUE' | translate:{p0: (changedCount)}) }}</label>
       <button type="button" class="btn-app btn-outline" (click)="loadStock()"
         [disabled]="loading || isSaving || changedCount > 0"
-        title="Reload is disabled while there are unsaved changes">Refresh</button>
+        [title]="'DailyInventoryAdd.RELOAD_IS_DISABLED_WHILE_THERE_ARE_UNSAVED_CHANGES' | translate">{{ 'DailyInventoryAdd.REFRESH' | translate }}</button>
     </div>
 
-    <div *ngIf="loading" class="stock-message">Loading today's vegetables...</div>
-    <div *ngIf="!loading && rows.length === 0" class="stock-message">No active items found.</div>
+    <div *ngIf="loading" class="stock-message">{{ 'DailyInventoryAdd.LOADING_TODAY_S_VEGETABLES' | translate }}</div>
+    <div *ngIf="!loading && rows.length === 0" class="stock-message">{{ 'DailyInventoryAdd.NO_ACTIVE_ITEMS_FOUND' | translate }}</div>
 
     <div class="stock-grid-scroll">
 
@@ -36,47 +35,46 @@
 
           <thead>
             <tr>
-              <th class="stock-item-column"><span class="column-heading">Vegetable<app-column-filter-icon></app-column-filter-icon></span></th>
-              <th><span class="column-heading">Available Stock<app-column-filter-icon></app-column-filter-icon></span></th>
-              <th><span class="column-heading">New Stock<app-column-filter-icon></app-column-filter-icon></span></th>
-              <th><span class="column-heading">Current Stock<app-column-filter-icon></app-column-filter-icon></span></th>
-              <th><span class="column-heading">Selling Rate (₹)<app-column-filter-icon></app-column-filter-icon></span></th>
-              <th><span class="column-heading">Available<app-column-filter-icon></app-column-filter-icon></span></th>
-              <th>Actions</th>
+              <th class="stock-item-column"><span class="column-heading">{{ 'DailyInventoryAdd.VEGETABLE' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+              <th><span class="column-heading">{{ 'DailyInventoryAdd.AVAILABLE_STOCK' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+              <th><span class="column-heading">{{ 'DailyInventoryAdd.NEW_STOCK' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+              <th><span class="column-heading">{{ 'DailyInventoryAdd.CURRENT_STOCK' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+              <th><span class="column-heading">{{ 'DailyInventoryAdd.SELLING_RATE' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+              <th><span class="column-heading">{{ 'DailyInventoryAdd.AVAILABLE' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+              <th>{{ 'DailyInventoryAdd.ACTIONS' | translate }}</th>
             </tr>
             <tr class="column-filter-row">
               <th>
-                <input class="column-filter-input" type="text" placeholder="Vegetable"
-                  aria-label="Filter by vegetable" [(ngModel)]="columnFilters['fldItemName']" />
+                <input class="column-filter-input" type="text" [placeholder]="'DailyInventoryAdd.VEGETABLE' | translate"
+                  [attr.aria-label]="'DailyInventoryAdd.FILTER_BY_VEGETABLE' | translate" [(ngModel)]="columnFilters['fldItemName']" />
               </th>
               <th>
-                <input class="column-filter-input" type="text" placeholder="Available"
-                  aria-label="Filter by available stock" [(ngModel)]="columnFilters['fldAvailableStock']" />
+                <input class="column-filter-input" type="text" [placeholder]="'DailyInventoryAdd.AVAILABLE' | translate"
+                  [attr.aria-label]="'DailyInventoryAdd.FILTER_BY_AVAILABLE_STOCK' | translate" [(ngModel)]="columnFilters['fldAvailableStock']" />
               </th>
               <th>
-                <input class="column-filter-input" type="text" placeholder="New stock"
-                  aria-label="Filter by new stock" [(ngModel)]="columnFilters['fldNewStock']" />
+                <input class="column-filter-input" type="text" [placeholder]="'DailyInventoryAdd.NEW_STOCK_2' | translate"
+                  [attr.aria-label]="'DailyInventoryAdd.FILTER_BY_NEW_STOCK' | translate" [(ngModel)]="columnFilters['fldNewStock']" />
               </th>
               <th>
-                <input class="column-filter-input" type="text" placeholder="Current"
-                  aria-label="Filter by current stock" [(ngModel)]="columnFilters['fldCurrentStock']" />
+                <input class="column-filter-input" type="text" [placeholder]="'DailyInventoryAdd.CURRENT' | translate"
+                  [attr.aria-label]="'DailyInventoryAdd.FILTER_BY_CURRENT_STOCK' | translate" [(ngModel)]="columnFilters['fldCurrentStock']" />
               </th>
               <th>
-                <input class="column-filter-input" type="text" placeholder="Rate"
-                  aria-label="Filter by selling rate" [(ngModel)]="columnFilters['fldSellingRate']" />
+                <input class="column-filter-input" type="text" [placeholder]="'DailyInventoryAdd.RATE' | translate"
+                  [attr.aria-label]="'DailyInventoryAdd.FILTER_BY_SELLING_RATE' | translate" [(ngModel)]="columnFilters['fldSellingRate']" />
               </th>
               <th>
-                <select class="column-filter-input" aria-label="Filter by availability"
+                <select class="column-filter-input" [attr.aria-label]="'DailyInventoryAdd.FILTER_BY_AVAILABILITY' | translate"
                   [(ngModel)]="columnFilters['fldIsAvailable']">
-                  <option value="">All</option>
-                  <option value="true">Yes</option>
-                  <option value="false">No</option>
+                  <option value="">{{ 'DailyInventoryAdd.ALL' | translate }}</option>
+                  <option value="true">{{ 'DailyInventoryAdd.YES' | translate }}</option>
+                  <option value="false">{{ 'DailyInventoryAdd.NO' | translate }}</option>
                 </select>
               </th>
               <th class="col-filter-empty">
                 <button type="button" class="column-filter-clear" (click)="columnFilters = {}">
-                  Clear
-                </button>
+                  {{ 'DailyInventoryAdd.CLEAR' | translate }}</button>
               </th>
             </tr>
           </thead>
@@ -98,16 +96,16 @@
               <td>
                 <input type="number" class="form-control stock-number-input" [name]="'qty-' + row.fldFKItemId"
                   [(ngModel)]="row.fldNewStock" (ngModelChange)="quantityChanged(row)" [step]="stockStep(row)" min="0"
-                  inputmode="decimal" [attr.aria-label]="'New stock for ' + row.fldItemName" />
+                  inputmode="decimal" [attr.aria-label]="('DailyInventoryAdd.NEW_STOCK_FOR_VALUE' | translate:{p0: (row.fldItemName)})" />
               </td>
               <td class="stock-number stock-current">{{ row.fldCurrentStock | number:'1.0-2' }}</td>
               <td>
                 <input type="number" class="form-control stock-number-input" [name]="'rate-' + row.fldFKItemId"
                   [(ngModel)]="row.fldSellingRate" (ngModelChange)="rateChanged(row)" min="0.01" step="0.01"
-                  inputmode="decimal" placeholder="Rate" [attr.aria-label]="'Selling rate for ' + row.fldItemName" />
+                  inputmode="decimal" [placeholder]="'DailyInventoryAdd.RATE' | translate" [attr.aria-label]="('DailyInventoryAdd.SELLING_RATE_FOR_VALUE' | translate:{p0: (row.fldItemName)})" />
               </td>
               <td>
-                <label class="stock-switch" [attr.aria-label]="'Available: ' + row.fldItemName">
+                <label class="stock-switch" [attr.aria-label]="('DailyInventoryAdd.AVAILABLE_VALUE' | translate:{p0: (row.fldItemName)})">
                   <input type="checkbox" [name]="'available-' + row.fldFKItemId" [(ngModel)]="row.fldIsAvailable"
                     (ngModelChange)="availabilityChanged(row)" />
                   <span class="stock-switch-slider"></span>
@@ -115,7 +113,7 @@
               </td>
               <td>
                 <button *ngIf="row.fldIsAddMore" type="button" class="stock-add-more-btn"
-                  title="Add another row with a different rate" (click)="addMoreStockRow(row)">
+                  [title]="'DailyInventoryAdd.ADD_ANOTHER_ROW_WITH_A_DIFFERENT_RATE' | translate" (click)="addMoreStockRow(row)">
                   +
                 </button>
               </td>
@@ -124,7 +122,7 @@
 
         </table>
 
-        <div *ngIf="visibleRows.length === 0" class="stock-message">No items match the filter.</div>
+        <div *ngIf="visibleRows.length === 0" class="stock-message">{{ 'DailyInventoryAdd.NO_ITEMS_MATCH_THE_FILTER' | translate }}</div>
 
       </div>
 
@@ -136,7 +134,7 @@
   </div>
 
   <div class="page-actions-bar stock-actions">
-    <span class="stock-save-count">{{ changedCount }} changed item(s)</span>
+    <span class="stock-save-count">{{ ('DailyInventoryAdd.VALUE_CHANGED_ITEM_S' | translate:{p0: (changedCount)}) }}</span>
     <!-- <button type="button" class="btn-app btn-save" (click)="save(false)"
       [disabled]="loading || isSaving || changedCount === 0">
       <i class="bi bi-floppy"></i> Save &amp; Continue
@@ -151,12 +149,10 @@
     </button> -->
 
     <button type="button" class="btn-app btn-save" [disabled]="isSaving || changedCount === 0" (click)="save(true)">
-      {{ isSaving ? 'Saving...' : 'Save' }}
-    </button>
+       {{ (isSaving ? ('DailyInventoryAdd.SAVING' | translate) : ('DailyInventoryAdd.SAVE' | translate)) }} </button>
 
 
     <button type="button" class="btn-app btn-dark" (click)="backToHome()" [disabled]="isSaving">
-      <i class="bi bi-arrow-left"></i> Back
-    </button>
+      <i class="bi bi-arrow-left"></i> {{ 'DailyInventoryAdd.BACK' | translate }}</button>
   </div>
 </div>

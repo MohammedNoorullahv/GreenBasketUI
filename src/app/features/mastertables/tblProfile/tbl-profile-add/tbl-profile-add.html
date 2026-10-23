@@ -9,7 +9,7 @@
 
             <i class="bi bi-person-plus page-caption-icon"></i>
 
-            <span>Add Profile</span>
+            <span>{{ isRegistration ? 'Register with Green Basket' : 'Add Profile' }}</span>
 
         </h1>
 
@@ -19,6 +19,14 @@
     <!-- =====================================================
          PROFILE FORM
          ===================================================== -->
+    <section id="registrationErrors" class="registration-errors" *ngIf="validationErrors.length"
+        role="alert" aria-live="assertive" tabindex="-1">
+        <strong>Please correct the following:</strong>
+        <ul><li *ngFor="let error of validationErrors">
+            <button type="button" (click)="focusField(error.field)">{{ error.message }}</button>
+        </li></ul>
+    </section>
+
     <form #form="ngForm" novalidate>
 
         <div class="page-card profile-page-card">
@@ -87,8 +95,9 @@
                         </span>
 
                         <input type="tel" id="fldContactNumber" class="form-control" name="fldContactNumber"
-                            [(ngModel)]="model.fldContactNumber" maxlength="15" placeholder="Enter phone number"
+                            [(ngModel)]="model.fldContactNumber" inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10" placeholder="Enter phone number"
                             required />
+                    <p class="registration-field-error" *ngIf="fieldError('fldContactNumber')">{{ fieldError('fldContactNumber') }}</p>
 
                     </div>
 
@@ -150,7 +159,8 @@
                     </label>
 
                     <input type="email" id="fldEmailId" class="form-control" name="fldEmailId"
-                        [(ngModel)]="model.fldEmailId" maxlength="150" placeholder="Enter email address" />
+                        [(ngModel)]="model.fldEmailId" email maxlength="150" placeholder="Enter email address" />
+                    <p class="registration-field-error" *ngIf="fieldError('fldEmailId')">{{ fieldError('fldEmailId') }}</p>
 
                 </div>
 
@@ -174,6 +184,7 @@
                             name="fldPasswordHash" [(ngModel)]="model.fldPasswordHash"
                             (ngModelChange)="onMPINChange($event)" inputmode="numeric" minlength="6" maxlength="6"
                             pattern="[0-9]{6}" placeholder="Enter 6-digit MPIN" #mpinField="ngModel" required />
+                    <p class="registration-field-error" *ngIf="fieldError('fldPasswordHash')">{{ fieldError('fldPasswordHash') }}</p>
 
                         <div *ngIf="mpinField.invalid && (mpinField.touched || mpinField.dirty)" class="text-danger">
                             MPIN must contain exactly 6 digits.
@@ -204,6 +215,7 @@
 
                     <input type="text" id="fldFullName" class="form-control" name="fldFullName"
                         [(ngModel)]="model.fldFullName" maxlength="150" placeholder="Enter full name" required />
+                    <p class="registration-field-error" *ngIf="fieldError('fldFullName')">{{ fieldError('fldFullName') }}</p>
 
                     <div class="text-danger profile-validation" *ngIf="
                             form.controls['fldFullName']?.touched &&
@@ -253,6 +265,7 @@
 
                     <input type="text" id="fldDoorNo" class="form-control" name="fldDoorNo"
                         [(ngModel)]="model.fldDoorNo" maxlength="20" placeholder="Enter door number" required />
+                    <p class="registration-field-error" *ngIf="fieldError('fldDoorNo')">{{ fieldError('fldDoorNo') }}</p>
 
                     <div class="text-danger profile-validation" *ngIf="
                             form.controls['fldDoorNo']?.touched &&
@@ -295,6 +308,7 @@
                         </option>
 
                     </select>
+                    <p class="registration-field-error" *ngIf="fieldError('fldFKStreetId')">{{ fieldError('fldFKStreetId') }}</p>
 
 
                     <!-- =============================================
@@ -326,6 +340,7 @@
                                 </option>
 
                             </select>
+                    <p class="registration-field-error" *ngIf="fieldError('selectedCityorTownId')">{{ fieldError('selectedCityorTownId') }}</p>
 
                         </div>
 
@@ -343,6 +358,7 @@
                             <input type="text" id="newStreetName" name="newStreetName" class="form-control"
                                 [(ngModel)]="newStreetName" maxlength="100" placeholder="Enter new street name"
                                 required />
+                    <p class="registration-field-error" *ngIf="fieldError('newStreetName')">{{ fieldError('newStreetName') }}</p>
 
                         </div>
 
@@ -362,76 +378,19 @@
                 </div>
 
 
-                <!-- =================================================
-                     LOCATION
-                     ================================================= -->
-                <div class="profile-field">
-
-                    <label class="form-label">
-
-                        <!-- Location
-                        <span class="required">*</span> -->
-
-                    </label>
-
-
-                    <div class="profile-location-selector">
-
-                        <!-- <i class="bi bi-geo-alt-fill"></i>
-
-
-                        <div class="profile-location-text">
-
-                            <strong>
-
-                                {{
-                                model.fldGPSLocation
-                                ? 'Delivery Location Selected'
-                                : 'Select Delivery Location'
-                                }}
-
-                            </strong>
-
-                            <small>
-
-                                {{
-                                model.fldGPSLocation
-                                || 'Choose your location using the map'
-                                }}
-
-                            </small>
-
-                        </div>
-
-
-                        <button type="button" class="profile-map-button" (click)="openLocationMap()">
-
-                            <i class="bi bi-map"></i>
-
-                        </button> -->
-
-                        <!-- <a *ngIf="selectedLatitude !== null && selectedLongitude !== null" [href]="'https://www.google.com/maps/search/?api=1&query='
-                             + selectedLatitude + ',' + selectedLongitude" target="_blank" rel="noopener noreferrer">
-                            Open in Google Maps
-                        </a> -->
-
-                    </div>
-
-
-                    <!-- <button type="button" class="profile-text-button" (click)="openLocationMap()">
-
-                        <i class="bi bi-pin-map"></i>
-
-                        {{
-                        model.fldGPSLocation
-                        ? 'Change Location'
-                        : 'Choose Location on Map'
-                        }}
-
-                    </button> -->
-
-                </div>
-
+                <!-- <div class="profile-field registration-location">
+                    <label class="form-label" for="deliveryLocationButton">Delivery Location <span class="required">*</span></label>
+                    <p>{{ model.fldGPSLocation ? 'Selected location: ' + model.fldGPSLocation : 'Choose your delivery location on the map.' }}</p>
+                    <button type="button" id="deliveryLocationButton" class="btn-app btn-outline"
+                        [attr.aria-describedby]="fieldError('deliveryLocationButton') ? 'deliveryLocationError' : null"
+                        (click)="openLocationMap()">
+                        <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
+                        {{ model.fldGPSLocation ? 'Change Location' : 'Choose Location on Map' }}
+                    </button>
+                    <p id="deliveryLocationError" class="registration-field-error" *ngIf="fieldError('deliveryLocationButton')">
+                        {{ fieldError('deliveryLocationButton') }}
+                    </p>
+                </div> -->
 
                 <!-- =================================================
                      HOUSE IMAGE
@@ -527,6 +486,7 @@
                             <input type="text" id="fldvVendorName" class="form-control" name="fldvVendorName"
                                 [(ngModel)]="model.fldvVendorName" maxlength="150"
                                 placeholder="Enter vendor / shop name" required />
+                    <p class="registration-field-error" *ngIf="fieldError('fldvVendorName')">{{ fieldError('fldvVendorName') }}</p>
 
 
                             <div class="text-danger profile-validation" *ngIf="
@@ -789,6 +749,7 @@
 
                     <input type="checkbox" id="fldIsTermsAgreed" name="fldIsTermsAgreed"
                         [(ngModel)]="model.fldIsTermsAgreed" required />
+                    <p class="registration-field-error" *ngIf="fieldError('fldIsTermsAgreed')">{{ fieldError('fldIsTermsAgreed') }}</p>
 
 
                     <label for="fldIsTermsAgreed">
@@ -818,7 +779,7 @@
 
                 <i class="bi bi-check-circle"></i>
 
-                {{ isSaving ? 'Saving...' : 'Register' }}
+                {{ isSaving ? 'Saving...' : (isRegistration ? 'Register' : 'Save') }}
 
             </button>
 
@@ -845,7 +806,7 @@
 
 <div *ngIf="showLocationMap" class="profile-map-overlay">
 
-    <div class="profile-map-modal" role="dialog" aria-modal="true" aria-label="Select delivery location">
+    <div class="profile-map-modal" role="dialog" (keydown)="onMapKeydown($event)" aria-modal="true" aria-label="Select delivery location">
 
 
         <!-- =====================================================
@@ -862,7 +823,7 @@
             </h3>
 
 
-            <button type="button" class="profile-map-close" aria-label="Close map" (click)="closeLocationMap()">
+            <button type="button" id="closeRegistrationMap" class="profile-map-close" aria-label="Close map" (click)="closeLocationMap(); focusField('deliveryLocationButton')">
 
                 <i class="bi bi-x-lg"></i>
 

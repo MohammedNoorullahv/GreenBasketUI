@@ -619,3 +619,22 @@
     padding: 26px 32px 30px;
   }
 }
+
+/* Always accessible above the intro, including mobile safe areas. */
+.intro-skip-button {
+  position: absolute;
+  z-index: 1;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  background: #075c34;
+  color: #ffffff;
+  font: 600 15px/1.4 Inter, 'Segoe UI', Arial, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 3px 14px #00000040;
+}
+.intro-skip-button:hover { background: #034526; }
+.intro-skip-button:focus-visible { outline: 3px solid #fbbf24; outline-offset: 3px; }

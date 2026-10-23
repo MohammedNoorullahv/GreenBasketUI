@@ -768,3 +768,49 @@
   }
 
 }
+/* Sidebar fits the routed workspace below branding and above the app footer.
+   More specific selectors also override the earlier inline 100dvh rule. */
+:host .app-layout > .sidebar {
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+:host .app-layout > .sidebar > .sidebar-header {
+  flex: 0 0 auto;
+}
+:host .app-layout > .sidebar > .sidebar-menu {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+}
+:host .app-layout > .sidebar > .sidebar-menu > * {
+  flex-shrink: 0;
+}
+:host .app-layout > .sidebar > .sidebar-logout-footer {
+  flex: 0 0 auto;
+  padding: 12px 16px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(255, 255, 255, .18);
+  box-sizing: border-box;
+}
+:host .app-layout > .sidebar > .sidebar-logout-footer > .logout-btn {
+  display: block;
+  position: static;
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  box-sizing: border-box;
+}
+/* The mobile drawer is fixed to the viewport rather than the workspace. */
+@media (max-width: 991px) {
+  :host .app-layout > .sidebar {
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+}

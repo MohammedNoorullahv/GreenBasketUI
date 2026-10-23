@@ -1,3 +1,5 @@
+import { MenuCaptionPipe as GbMenuCaptionPipe } from '../../../../shared/pipes/menu-caption.pipe';
+import { TranslatePipe as GbPageTranslatePipe } from '@ngx-translate/core';
 import { renderOrderReceipt } from './order-receipt';
 import { Component, OnInit, Inject, PLATFORM_ID, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Observable, Subscription, timeout, finalize } from 'rxjs';
@@ -13,7 +15,7 @@ import { TblOrderService } from '../services/tbl-order';
 
 @Component({
   selector: 'app-tbl-order-list',
-  imports: [AsyncPipe, CommonModule, FormsModule, RouterLink, ColumnFilterPipe, ColumnFilterIconComponent],
+  imports: [AsyncPipe, CommonModule, FormsModule, RouterLink, ColumnFilterPipe, ColumnFilterIconComponent, GbPageTranslatePipe, GbMenuCaptionPipe],
   templateUrl: './tbl-order-list.html',
   styleUrl: './tbl-order-list.css',
 })

@@ -112,11 +112,11 @@
 									[queryParams]="{ action: 'Edit' }">
 									<i class="bi bi-pencil-square"></i>
 								</a>
-								<a class="icon-btn delete" title="Delete"
-									[routerLink]="['/mastertables/tblStreetMaster/Edit', tblstreetmaster.fldId]"
-									[queryParams]="{ action: 'Delete' }">
-									<i class="bi bi-trash3"></i>
-								</a>
+								<button type="button" class="icon-btn delete" title="Delete"
+									[attr.aria-label]="'Delete ' + tblstreetmaster.fldStreetName"
+									(click)="askDelete(tblstreetmaster)">
+									<i class="bi bi-trash3" aria-hidden="true"></i>
+								</button>
 							</div>
 						</td>
 					</tr>
@@ -132,5 +132,12 @@
 		</ng-container>
 
 	</div>
+	<app-confirm-dialog #deleteDialog
+		[title]="'Delete ' + (deleteTargetLabel || 'this street') + '?'"
+		message="This street will be permanently removed from the master list. Other records that reference it may be affected."
+		confirmLabel="Delete Street"
+		(confirmed)="confirmDelete()"
+		(cancelled)="cancelDelete()">
+	</app-confirm-dialog>
 
 </div>

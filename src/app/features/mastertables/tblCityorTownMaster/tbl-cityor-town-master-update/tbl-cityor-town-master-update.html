@@ -55,7 +55,7 @@
 					<i class="bi bi-floppy"></i>
 					Save
 				</button>
-				<button type="button" (click)="submitAction = 'Delete'; OnFormSubmit(form)" class="btn-app btn-delete" [disabled]="actionType !== 'Delete'">
+				<button type="button" (click)="openDeleteDialog()" class="btn-app btn-delete" [disabled]="!tblCityorTownMaster">
 					<i class="bi bi-trash3"></i>
 					Delete
 				</button>
@@ -76,5 +76,12 @@
 			</div>
 		</div>
 	</ng-template>
+	<app-confirm-dialog #deleteDialog
+		title="Delete this city / town?"
+		message="The selected city or town record will be permanently removed from the master list."
+		confirmLabel="Delete Record"
+		(confirmed)="confirmDelete()"
+		(cancelled)="cancelDelete()">
+	</app-confirm-dialog>
 
 </div>

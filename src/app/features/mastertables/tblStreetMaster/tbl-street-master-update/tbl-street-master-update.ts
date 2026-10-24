@@ -12,10 +12,11 @@ import { TblStreetMasterUpdate } from '../models/tblStreetMaster-Update.model';
 
 import { TblCityorTownMaster } from '../../tblCityorTownMaster/models/tblCityorTownMaster.model';
 import { TblCityorTownMasterService } from '../../tblCityorTownMaster/services/tbl-cityor-town-master';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-tbl-street-master-update',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmDialogComponent],
   templateUrl: './tbl-street-master-update.html',
   styleUrl: './tbl-street-master-update.css',
 })
@@ -30,6 +31,9 @@ export class TblStreetMasterUpdateComponent implements OnInit, OnDestroy {
   submitAction: 'Edit' | 'Delete' = 'Edit'; // default to Edit
 
   @ViewChild('form') form!: NgForm;
+  @ViewChild('deleteDialog') deleteDialog!: ConfirmDialogComponent;
+
+  private pendingDeleteRequest?: TblStreetMasterUpdate;
 
   tblCityorTownMaster$?: Observable<TblCityorTownMaster[]>
 
@@ -85,8 +89,36 @@ export class TblStreetMasterUpdateComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const TblStreetMasterUpdateRequest: TblStreetMasterUpdate = {
-      fldId: this.tblStreetMaster?.fldId ?? 0,
+    const TblStreetMasterUpdateRequest: TblStreetMasterUpdate = this.buildUpdateRequest();
+
+    if (!this.id) {
+      return;
+    }
+
+    this.editTblStreetMasterSubscription = this.tblStreetMasterService.updateTblStreetMaster(TblStreetMasterUpdateRequest)
+      .subscribe({
+        next: (response) => {
+          this.toastr.success('Record updated successfully!', 'Success', {
+            toastClass: 'ngx-toastr custom-toast'
+          });
+
+          this.router.navigateByUrl('mastertables/tblStreetMaster');
+        },
+        error: (err) => {
+          const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
+
+          this.toastr.error(errorMsg, 'Error', {
+            toastClass: 'ngx-toastr custom-toast error-toast'
+          });
+
+          console.error('API Error:', err);
+        }
+      });
+  }
+
+  private buildUpdateRequest(): TblStreetMasterUpdate {
+    return {
+      fldId: this.tblStreetMaster?.fldId ?? this.id ?? 0,
       fldFKCity: this.tblStreetMaster?.fldFKCity ?? 0,
       fldStreetName: this.tblStreetMaster?.fldStreetName ?? '',
       fldIsActive: this.tblStreetMaster?.fldIsActive ?? true,
@@ -95,57 +127,59 @@ export class TblStreetMasterUpdateComponent implements OnInit, OnDestroy {
       fldModifiedBy: this.tblStreetMaster?.fldModifiedBy ?? 0,
       fldModifiedDt: this.tblStreetMaster?.fldModifiedDt ?? new Date(),
     };
+  }
 
-    if (this.id) {
-      if (this.submitAction === 'Edit') {
-        this.editTblStreetMasterSubscription = this.tblStreetMasterService.updateTblStreetMaster(TblStreetMasterUpdateRequest)
-          .subscribe({
-            next: (response) => {
-              this.toastr.success('Record updated successfully!', 'Success', {
-                toastClass: 'ngx-toastr custom-toast'
-              });
-
-              this.router.navigateByUrl('mastertables/tblStreetMaster');
-            },
-            error: (err) => {
-              const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
-
-              this.toastr.error(errorMsg, 'Error', {
-                toastClass: 'ngx-toastr custom-toast error-toast'
-              });
-
-              console.error('API Error:', err);
-            }
-          });
-      } else {
-
-        const proceed = confirm('R U Sure, U Want to Delete the selected Record?');
-
-        if (proceed) {
-          this.deleteTblStreetMasterSubscription = this.tblStreetMasterService.deleteTblStreetMaster(TblStreetMasterUpdateRequest)
-            .subscribe({
-              next: (response) => {
-                if (response.status === 200) {
-                  this.toastr.success('Record deleted successfully!', 'Success', {
-                    toastClass: 'ngx-toastr custom-toast'
-                  });
-
-                  this.router.navigateByUrl('mastertables/tblStreetMaster');
-                }
-              },
-              error: (err) => {
-                const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
-
-                this.toastr.error(errorMsg, 'Error', {
-                  toastClass: 'ngx-toastr custom-toast error-toast'
-                });
-
-                console.error('API Error:', err);
-              }
-            });
-        }
-      }
+  /** Opens the confirmation dialog from the delete icon only. */
+  openDeleteDialog(): void {
+    if (!this.id) {
+      return;
     }
+
+    this.submitAction = 'Delete';
+    this.pendingDeleteRequest = this.buildUpdateRequest();
+    this.deleteDialog.show();
+  }
+
+  confirmDelete(): void {
+    if (!this.pendingDeleteRequest) {
+      this.deleteDialog.close();
+      return;
+    }
+
+    this.deleteDialog.busy = true;
+
+    this.deleteTblStreetMasterSubscription = this.tblStreetMasterService.deleteTblStreetMaster(this.pendingDeleteRequest)
+      .subscribe({
+        next: (response) => {
+          this.deleteDialog.busy = false;
+          this.deleteDialog.close();
+          this.pendingDeleteRequest = undefined;
+
+          if (response.status === 200) {
+            this.toastr.success('Record deleted successfully!', 'Success', {
+              toastClass: 'ngx-toastr custom-toast'
+            });
+
+            this.router.navigateByUrl('mastertables/tblStreetMaster');
+          }
+        },
+        error: (err) => {
+          this.deleteDialog.busy = false;
+
+          const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
+
+          this.toastr.error(errorMsg, 'Error', {
+            toastClass: 'ngx-toastr custom-toast error-toast'
+          });
+
+          console.error('API Error:', err);
+        }
+      });
+  }
+
+  cancelDelete(): void {
+    this.pendingDeleteRequest = undefined;
+    this.submitAction = 'Edit';
   }
 
   backToHome(): void {

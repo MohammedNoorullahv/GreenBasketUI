@@ -191,11 +191,11 @@
 									[queryParams]="{ action: 'Edit' }">
 									<i class="bi bi-pencil-square"></i>
 								</a>
-								<a class="icon-btn delete" [title]="'DailyInventoryList.DELETE' | translate"
-									[routerLink]="['/transactiontables/tblDailyInventory/Edit', tbldailyinventory.fldId]"
-									[queryParams]="{ action: 'Delete' }">
-									<i class="bi bi-trash3"></i>
-								</a>
+								<button type="button" class="icon-btn delete" [title]="'DailyInventoryList.DELETE' | translate"
+									[attr.aria-label]="'Delete ' + tbldailyinventory.fldItemName"
+									(click)="askDelete(tbldailyinventory)">
+									<i class="bi bi-trash3" aria-hidden="true"></i>
+								</button>
 							</div>
 						</td>
 					</tr>
@@ -210,5 +210,12 @@
 		</ng-container>
 
 	</div>
+	<app-confirm-dialog #deleteDialog
+		[title]="'Delete ' + (deleteTargetLabel || 'this inventory record') + '?'"
+		message="This daily inventory record will be permanently removed. Orders that reference it may be affected."
+		confirmLabel="Delete Record"
+		(confirmed)="confirmDelete()"
+		(cancelled)="cancelDelete()">
+	</app-confirm-dialog>
 
 </div>

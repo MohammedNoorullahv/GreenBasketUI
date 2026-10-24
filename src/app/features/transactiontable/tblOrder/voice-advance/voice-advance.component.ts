@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Subscription, firstValueFrom, timeout } from 'rxjs';
 import { OrderStockItem } from '../models/tbl-order-shopping.model';
 import { AdvanceRequest, CatalogItem, RequestLine, VoiceAdvanceService } from './voice-advance.service';
+import { rankStock } from './voice-item-match';
 import { VoiceLine, canonicalUnit, convertQuantity, normaliseName, parseVoiceLine, validQuantity } from './voice-order-parser';
 interface ReviewLine extends VoiceLine { catalog?: CatalogItem; choices: OrderStockItem[]; search: string; results: CatalogItem[]; }
 interface QuoteLine { id:number; decision:string; itemId:number|null; quantity:number; rate:number; reason:string; inventoryId:number; search:string; results:CatalogItem[]; }
@@ -23,6 +24,9 @@ export class VoiceAdvanceComponent implements OnInit, OnChanges, OnDestroy {
  @Input() advanceAllowed=false;
  @Output() reviewedStock = new EventEmitter<{item:OrderStockItem;quantity:number}[]>();
  @Output() orderPlaced = new EventEmitter<void>();
+ liveTranscript='';
+ private silenceTimer?:ReturnType<typeof setTimeout>;
+ private captureTimer?:ReturnType<typeof setTimeout>;
  language='en-IN'; text=''; lines:ReviewLine[]=[]; message=''; busy=false; listening=false; microphoneAvailable=false;
  advance=false; date=''; requests:AdvanceRequest[]=[]; selected:AdvanceRequest|null=null;
  quotes:QuoteLine[]=[]; arranged:OrderStockItem[]=[]; loadingRequests=false;
@@ -40,7 +44,7 @@ export class VoiceAdvanceComponent implements OnInit, OnChanges, OnDestroy {
  }
  ngOnChanges(){
   if(this.previousVendor!==this.vendorId){
-   this.generation++;this.stopVoice(true);this.lines=[];this.text='';this.requestId='';this.advance=false;this.previousVendor=this.vendorId;
+   this.generation++;this.stopVoice(true);this.liveTranscript='';this.lines=[];this.text='';this.requestId='';this.advance=false;this.previousVendor=this.vendorId;
   }
  }
  ngOnDestroy(){this.destroyed=true;this.generation++;this.stopVoice(true);if(this.polling)clearInterval(this.polling);this.requestSub?.unsubscribe();}
@@ -60,43 +64,57 @@ export class VoiceAdvanceComponent implements OnInit, OnChanges, OnDestroy {
   this.requestSub=this.api.mine().subscribe({next:r=>{this.requests=r;this.loadingRequests=false;this.update();},
    error:e=>{this.loadingRequests=false;this.message=this.error(e);this.update();}});
  }
+ private clearVoiceTimers(){
+  if(this.silenceTimer)clearTimeout(this.silenceTimer);
+  if(this.captureTimer)clearTimeout(this.captureTimer);
+ }
+ private appendTranscript(value:string){const t=value.trim();if(t)this.text+=(this.text?'\n':'')+t;}
  startVoice(){
   if(this.busy||this.listening||!this.customer||!this.vendorId)return;
+  this.stopVoice(true);this.liveTranscript='';
   const w=window as unknown as {SpeechRecognition?:new()=>Recognition;webkitSpeechRecognition?:new()=>Recognition};
-  const ctor=w.SpeechRecognition||w.webkitSpeechRecognition;if(!ctor){this.message='Voice recognition is unavailable. Type the list below.';return;}
-  const epoch=this.generation;const r=new ctor();this.recognition=r;
-  r.lang=this.language;r.continuous=false;r.interimResults=false;r.maxAlternatives=1;
+  const ctor=w.SpeechRecognition||w.webkitSpeechRecognition;
+  if(!ctor){this.message='Speech recognition is unavailable. Type the list below.';return;}
+  const epoch=this.generation,r=new ctor();this.recognition=r;
+  const current=()=>epoch===this.generation&&!this.destroyed&&this.recognition===r;
+  r.lang=this.language;r.continuous=false;r.interimResults=true;r.maxAlternatives=1;
   r.onresult=e=>this.zone.run(()=>{
-   if(epoch!==this.generation||this.destroyed)return;
-   const transcript=Array.from({length:e.results.length},(_,i)=>e.results[i].isFinal?e.results[i][0].transcript:'').filter(Boolean).join(' ');
-   if(transcript)this.text+=(this.text?'\n':'')+transcript;this.update();
+   if(!current())return;
+   const results=Array.from({length:e.results.length},(_,i)=>e.results[i]);
+   this.liveTranscript=results.map(x=>x[0].transcript).join(' ').trim();
+   if(this.silenceTimer)clearTimeout(this.silenceTimer);
+   if(results.length&&results.every(x=>x.isFinal)){
+    this.appendTranscript(this.liveTranscript);this.liveTranscript='';this.stopVoice(true);
+    this.message='Speech captured. Record the next item or click Review list.';
+   }else this.silenceTimer=setTimeout(()=>this.zone.run(()=>{if(current())this.stopVoice();}),2200);
+   this.update();
   });
-  r.onerror=e=>this.zone.run(()=>{this.listening=false;this.message=e.error==='not-allowed'?'Microphone permission was denied. Allow microphone access in site settings, or type the list.':`Voice recognition stopped (${e.error}). You can type or retry.`;this.update();});
-  r.onend=()=>this.zone.run(()=>{this.listening=false;this.recognition=null;this.update();});
-  try{r.start();this.listening=true;this.message='Say one item and quantity, then pause. Tap the microphone again for the next item.';}catch{this.listening=false;this.message='Microphone could not start. Try again or type your list.';}
+  r.onerror=e=>this.zone.run(()=>{
+   if(!current())return;this.stopVoice(true);
+   this.message=e.error==='not-allowed'?'Microphone permission denied. Allow microphone access or type the list.':
+    `Recognition stopped (${e.error}). You can use the draft below, retry or type.`;this.update();
+  });
+  r.onend=()=>this.zone.run(()=>{
+   if(!current())return;this.clearVoiceTimers();this.listening=false;this.recognition=null;
+   this.message=this.liveTranscript?'Recognition ended. Review the draft and click Use captured text, or retry.':'No speech result received. Check microphone and selected speech language, or type the item.';this.update();
+  });
+  try{r.start();this.listening=true;this.message='Listening: say one item, quantity and unit.';
+   this.captureTimer=setTimeout(()=>this.zone.run(()=>{
+    if(current()){this.stopVoice(true);this.message='Recognition timed out. Use any captured draft below, retry or type.';this.update();}
+   }),18000);
+  }catch{this.stopVoice(true);this.message='Microphone could not start. Retry or type the list.';}
  }
- stopVoice(cancel = false): void {
-  const recognition = this.recognition;
-
-  if (!recognition) {
-    this.listening = false;
-    return;
-  }
-
-  if (cancel) {
-    recognition.onresult = null;
-    recognition.onerror = null;
-    recognition.onend = null;
-    recognition.abort();
-
-    this.recognition = null;
-    this.listening = false;
-    return;
-  }
-
-  // Finish listening and allow the final recognised text to arrive.
-  recognition.stop();
-}
+ stopVoice(cancel=false):void {
+  if(!this.recognition){this.listening=false;return;}
+  if(cancel){
+   const r=this.recognition;this.recognition=null;this.clearVoiceTimers();
+   r.onresult=null;r.onerror=null;r.onend=null;r.abort();this.listening=false;
+  }else{try{this.recognition.stop();this.message='Finishing recognition… You may use the captured draft below.';}catch{this.stopVoice(true);}}
+ }
+ useCapturedText():void {
+  const t=this.liveTranscript;this.stopVoice(true);this.appendTranscript(t);this.liveTranscript='';
+  this.message='Draft added for review. Correct the item, quantity and unit before adding to cart.';
+ }
  review(){
   const parts=this.text.split(/[\n;,،]+/).map(x=>x.trim()).filter(Boolean);
   if(parts.length>50){this.message='Use at most 50 request lines. Nothing was removed; shorten the text and review again.';return;}
@@ -106,12 +124,13 @@ export class VoiceAdvanceComponent implements OnInit, OnChanges, OnDestroy {
  }
  match(l:ReviewLine){
   l.stockId=undefined;l.itemId=undefined;l.catalog=undefined;
-  l.choices=this.stock.filter(x=>[x.fldItemName,x.fldItemNameTamil,(x as OrderStockItem & {fldItemNameUrdu?:string}).fldItemNameUrdu]
-   .some(n=>!!n&&normaliseName(n)===normaliseName(l.name)));
-  if(l.choices.length===1)this.chooseStock(l,l.choices[0].fldId);
+  l.choices=rankStock(l.name,this.stock);
+  // Suggestions are never selected automatically; the customer chooses item and price.
+
  }
  chooseStock(l:ReviewLine,id:number|string){
-  const s=this.stock.find(x=>x.fldId===Number(id));if(!s)return;
+  const s=this.stock.find(x=>x.fldId===Number(id));
+  if(!s){l.stockId=undefined;l.itemId=undefined;l.catalog=undefined;return;}
   const converted=l.quantity!==null&&l.unit?convertQuantity(l.quantity,l.unit,s.fldBaseUnit):null;
   if(converted!==null)l.quantity=converted;
   // Missing or incompatible units are deliberately not guessed.
@@ -120,9 +139,10 @@ export class VoiceAdvanceComponent implements OnInit, OnChanges, OnDestroy {
   if(compatible)l.unit=s.fldBaseUnit;
   l.catalog={id:s.fldFKItemId,name:s.fldItemName,unit:s.fldBaseUnit,fractional:s.fldAllowFractionalQuantity,step:Number(s.fldMinOrderQuantityStep)||1};
  }
+ urduName(s:OrderStockItem):string{return (s as OrderStockItem & {fldItemNameUrdu?:string|null}).fldItemNameUrdu??'';}
  availability(l:ReviewLine):string{
   const s=this.stock.find(x=>x.fldId===l.stockId);
-  if(!s)return l.choices.length>1?'Choose a price / stock row':'Not matched to available stock';
+  if(!s)return l.choices.length?'Select a suggested item and price':'No similar stock found. Edit the name or request advance delivery';
   if(canonicalUnit(l.unit)!==canonicalUnit(s.fldBaseUnit))return 'Unit does not match the item';
   if(!validQuantity(l.quantity,s.fldAllowFractionalQuantity,Number(s.fldMinOrderQuantityStep)||1))return 'Correct the quantity / quantity step';
   if(l.quantity!>s.fldAvailableStock)return `Only ${s.fldAvailableStock} ${s.fldBaseUnit} available`;
@@ -147,7 +167,7 @@ export class VoiceAdvanceComponent implements OnInit, OnChanges, OnDestroy {
   if(!l.unit||n!==null||canonicalUnit(l.unit)===canonicalUnit(item.unit))l.unit=item.unit;
   l.stockId=undefined;l.results=[];
  }
- clearMatch(l:ReviewLine){l.stockId=undefined;l.itemId=undefined;l.catalog=undefined;l.choices=[];}
+ clearMatch(l:ReviewLine){this.match(l);}
  submitRequest(){
   if(!this.advanceAllowed||!this.advance||!this.vendorId||!this.lines.length)return;
   for(const l of this.lines){

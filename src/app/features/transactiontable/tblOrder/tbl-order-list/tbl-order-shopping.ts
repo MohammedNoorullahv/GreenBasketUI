@@ -1,3 +1,4 @@
+import { rankStock } from '../voice-advance/voice-item-match';
 import { VoiceAdvanceComponent } from '../voice-advance/voice-advance.component';
 import { MenuCaptionPipe as GbMenuCaptionPipe } from '../../../../shared/pipes/menu-caption.pipe';
 import { TranslatePipe as GbPageTranslatePipe } from '@ngx-translate/core';
@@ -334,11 +335,9 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   get visibleStock(): OrderStockItem[] {
-    const q = this.searchText.trim().toLowerCase();
-    return this.stock.filter(x =>
-      (this.category === 'All' || (x.fldCategoryName || 'Other') === this.category) &&
-      (!q || [x.fldItemName, x.fldItemNameTamil || '', x.fldCategoryName || ''].some(s => s.toLowerCase().includes(q)))
-    );
+    const eligible = this.stock.filter(x =>
+      this.category === 'All' || (x.fldCategoryName || 'Other') === this.category);
+    return this.searchText.trim() ? rankStock(this.searchText, eligible, eligible.length) : eligible;
   }
 
   readonly imageFallbackUrl = 'data:image/svg+xml,' + encodeURIComponent(

@@ -12,18 +12,24 @@
     <button type="button" (click)="startVoice()" [disabled]="!microphoneAvailable || listening || busy">{{ listening ? 'Listening…' : '🎙 Speak one item' }}</button>
     <button type="button" (click)="stopVoice()" *ngIf="listening">Stop</button>
    </div>
+   <div class="live-draft" *ngIf="liveTranscript" aria-live="polite">
+    <strong>Heard so far:</strong> {{liveTranscript}}
+    <button type="button" (click)="useCapturedText()" [disabled]="busy">Use captured text</button>
+    <small>This is a draft. Check the item, quantity and unit before ordering.</small>
+   </div>
    <small>Browser speech recognition may send audio to its speech provider and needs internet access. Language support varies. You can always type or correct the text.</small>
    <label class="block">Shopping list
-    <textarea [(ngModel)]="text" [disabled]="busy" rows="3" maxlength="10000" placeholder="Tomato 1 kg&#10;Onion 500 g"></textarea>
+    <textarea [(ngModel)]="text" [disabled]="busy || listening" rows="3" maxlength="10000" placeholder="Tomato 1 kg&#10;Onion 500 g"></textarea>
    </label>
-   <button type="button" (click)="review()" [disabled]="busy || !text.trim()">Review list</button>
+   <button type="button" (click)="review()" [disabled]="busy || listening || !text.trim()">Review list</button>
    <div *ngIf="lines.length">
-    <div class="scroll"><table><thead><tr><th>Requested item</th><th>Quantity</th><th>Unit</th><th>Available price row / result</th><th></th></tr></thead>
+    <p>Similar names are suggestions. Select the correct product and price row for every line. Quantities and units remain editable.</p>
+    <div class="scroll"><table><thead><tr><th>Requested item</th><th>Quantity</th><th>Unit</th><th>Similar stocked items / price</th><th></th></tr></thead>
      <tbody><tr *ngFor="let l of lines;let i=index">
-      <td><input [(ngModel)]="l.name" (ngModelChange)="clearMatch(l)" [disabled]="busy" maxlength="200" aria-label="Item name"><button type="button" (click)="match(l)" [disabled]="busy">Match stocked item</button></td>
+      <td><input [(ngModel)]="l.name" (ngModelChange)="clearMatch(l)" [disabled]="busy" maxlength="200" aria-label="Item name"><button type="button" (click)="match(l)" [disabled]="busy">Find similar items</button></td>
       <td><input type="number" [(ngModel)]="l.quantity" min="0.01" step="0.01" [disabled]="busy" aria-label="Quantity"></td>
       <td><input [(ngModel)]="l.unit" maxlength="20" [disabled]="busy" aria-label="Unit"></td>
-      <td><select *ngIf="l.choices.length" [ngModel]="l.stockId || 0" (ngModelChange)="chooseStock(l,$event)" [disabled]="busy" aria-label="Choose stock and price"><option [ngValue]="0">Choose price row</option><option *ngFor="let s of l.choices" [ngValue]="s.fldId">{{s.fldItemName}} — ₹{{s.fldSellingRate}} / {{s.fldBaseUnit}} ({{s.fldAvailableStock}} available)</option></select><span [class.ok]="availability(l)==='Available'">{{ availability(l) }}</span></td>
+      <td><select *ngIf="l.choices.length" [ngModel]="l.stockId || 0" (ngModelChange)="chooseStock(l,$event)" [disabled]="busy" aria-label="Choose stock and price"><option [ngValue]="0">Select an item and price</option><option *ngFor="let s of l.choices" [ngValue]="s.fldId">{{s.fldItemName}} · {{s.fldItemNameTamil || ''}} · {{urduName(s)}} — ₹{{s.fldSellingRate}} / {{s.fldBaseUnit}} ({{s.fldAvailableStock}} available)</option></select><span [class.ok]="availability(l)==='Available'">{{ availability(l) }}</span></td>
       <td><button type="button" (click)="lines.splice(i,1)" [disabled]="busy" aria-label="Remove item">Remove</button></td>
      </tr></tbody></table></div>
     <button type="button" (click)="addToCart()" [disabled]="busy || !allAvailable">Add reviewed quantities to cart</button>

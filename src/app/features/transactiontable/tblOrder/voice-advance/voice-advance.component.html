@@ -1,0 +1,95 @@
+<section class="va" *ngIf="customer || vendor" aria-label="Voice ordering and advance requests">
+ <details [open]="vendor">
+  <summary><span>🎙</span> {{ customer ? 'Voice list & advance requests' : 'Advance requests awaiting review' }}</summary>
+  <p class="notice" role="status" *ngIf="message">{{ message }}</p>
+  <div *ngIf="customer && vendorId > 0" class="capture">
+   <h3>Speak your shopping list</h3>
+   <p>Say one item, quantity and unit per recording. Example: “Tomato one kilogram”. Repeat for the next item, or type one item per line. Review the result before adding it.</p>
+   <div class="tools">
+    <label>Speech language
+     <select [(ngModel)]="language" [disabled]="listening || busy"><option value="en-IN">English</option><option value="ta-IN">தமிழ் — Tamil</option><option value="ur-IN">اردو — Urdu</option></select>
+    </label>
+    <button type="button" (click)="startVoice()" [disabled]="!microphoneAvailable || listening || busy">{{ listening ? 'Listening…' : '🎙 Speak one item' }}</button>
+    <button type="button" (click)="stopVoice()" *ngIf="listening">Stop</button>
+   </div>
+   <small>Browser speech recognition may send audio to its speech provider and needs internet access. Language support varies. You can always type or correct the text.</small>
+   <label class="block">Shopping list
+    <textarea [(ngModel)]="text" [disabled]="busy" rows="3" maxlength="10000" placeholder="Tomato 1 kg&#10;Onion 500 g"></textarea>
+   </label>
+   <button type="button" (click)="review()" [disabled]="busy || !text.trim()">Review list</button>
+   <div *ngIf="lines.length">
+    <div class="scroll"><table><thead><tr><th>Requested item</th><th>Quantity</th><th>Unit</th><th>Available price row / result</th><th></th></tr></thead>
+     <tbody><tr *ngFor="let l of lines;let i=index">
+      <td><input [(ngModel)]="l.name" (ngModelChange)="clearMatch(l)" [disabled]="busy" maxlength="200" aria-label="Item name"><button type="button" (click)="match(l)" [disabled]="busy">Match stocked item</button></td>
+      <td><input type="number" [(ngModel)]="l.quantity" min="0.01" step="0.01" [disabled]="busy" aria-label="Quantity"></td>
+      <td><input [(ngModel)]="l.unit" maxlength="20" [disabled]="busy" aria-label="Unit"></td>
+      <td><select *ngIf="l.choices.length" [ngModel]="l.stockId || 0" (ngModelChange)="chooseStock(l,$event)" [disabled]="busy" aria-label="Choose stock and price"><option [ngValue]="0">Choose price row</option><option *ngFor="let s of l.choices" [ngValue]="s.fldId">{{s.fldItemName}} — ₹{{s.fldSellingRate}} / {{s.fldBaseUnit}} ({{s.fldAvailableStock}} available)</option></select><span [class.ok]="availability(l)==='Available'">{{ availability(l) }}</span></td>
+      <td><button type="button" (click)="lines.splice(i,1)" [disabled]="busy" aria-label="Remove item">Remove</button></td>
+     </tr></tbody></table></div>
+    <button type="button" (click)="addToCart()" [disabled]="busy || !allAvailable">Add reviewed quantities to cart</button>
+    <p>Regular / Priority delivery uses available stock only. Choose the delivery type in the existing checkout. Adding a list does not place an order.</p>
+    <button type="button" (click)="beginAdvance()" [disabled]="busy || !advanceAllowed">Request advance delivery instead</button>
+    <small *ngIf="!advanceAllowed">This vendor has not enabled advance ordering.</small>
+   </div>
+   <div class="advance" *ngIf="advance && lines.length">
+    <h3>Advance request — awaiting vendor quotation</h3>
+    <p>The entire reviewed list is sent as an advance request. No stock is reserved and no payment is due. The vendor can quote a partial quantity or explain unavailable items.</p>
+    <label>Requested delivery date <input type="date" [(ngModel)]="date" [min]="tomorrow" [disabled]="busy"></label>
+    <div class="lookup" *ngFor="let l of lines">
+     <strong>{{l.name}}</strong> <span>{{l.quantity}} {{l.unit}}</span>
+     <small>{{l.itemId ? 'Linked to Item Master' : 'Unmatched name — vendor must resolve or decline'}}</small>
+     <div class="tools"><input [(ngModel)]="l.search" [disabled]="busy" placeholder="Search Item Master" aria-label="Search Item Master"><button type="button" (click)="search(l)" [disabled]="busy || l.search.trim().length<2">Search</button></div>
+     <button type="button" class="result" *ngFor="let item of l.results" (click)="chooseMaster(l,item)" [disabled]="busy">{{item.name}} / {{item.unit}} <span>{{item.tamil}} {{item.urdu}}</span></button>
+    </div>
+    <button type="button" (click)="submitRequest()" [disabled]="busy || listening">Submit advance request for vendor review</button>
+   </div>
+  </div>
+  <h3>{{vendor ? 'Customer advance requests' : 'Your advance requests'}}</h3>
+  <p>Updates appear here. Refresh manually or keep this page open for checks every 30 seconds. Advance-request updates do not yet send background push messages.</p>
+  <button type="button" (click)="refresh()" [disabled]="loadingRequests || busy">Refresh requests</button>
+  <p *ngIf="!requests.length && !loadingRequests">No advance requests.</p>
+  <div class="request-list"><button type="button" *ngFor="let r of requests" (click)="open(r)" [disabled]="busy">
+   <strong>Request {{r.header.fldId.slice(0,8)}}</strong> · {{r.header.fldStatus}} · {{r.header.fldRequestedDeliveryDate | date:'dd MMM yyyy'}}
+   <span>{{vendor ? 'Customer #' + r.header.fldFKCustomerId : 'Vendor #' + r.header.fldFKVendorId}}</span>
+  </button></div>
+  <article *ngIf="selected as r">
+   <h3>Request {{r.header.fldId.slice(0,8)}} · {{r.header.fldStatus}}</h3>
+   <p class="warning" *ngIf="r.header.fldCancellationReason">Cancellation reason: {{r.header.fldCancellationReason}}</p>
+   <p *ngIf="r.header.fldStatus==='Requested'">Prices and total: awaiting vendor quotation.</p>
+   <div class="scroll"><table><thead><tr><th>Customer requested</th><th>Vendor response</th><th>Offered quantity</th><th>Rate per unit</th><th>Reason / clarification</th></tr></thead>
+    <tbody><tr *ngFor="let l of r.lines;let i=index">
+     <td>{{l.fldRequestedName}}<br>{{l.fldRequestedQuantity}} {{l.fldUnit}}</td>
+     <ng-container *ngIf="vendor && (r.header.fldStatus==='Requested' || r.header.fldStatus==='Quoted'); else readLine">
+      <td><select [(ngModel)]="quotes[i].decision" [disabled]="busy" aria-label="Supply decision"><option value="CanSupply">Can supply</option><option value="CannotSupply">Cannot supply</option></select>
+       <ng-container *ngIf="quotes[i].decision==='CanSupply' && !l.fldFKItemId"><input [(ngModel)]="quotes[i].search" [disabled]="busy" aria-label="Resolve unknown item"><button type="button" (click)="searchQuote(quotes[i])" [disabled]="busy">Find item</button><button type="button" *ngFor="let c of quotes[i].results" (click)="quotes[i].itemId=c.id;quotes[i].search=c.name;quotes[i].results=[]" [disabled]="busy">{{c.name}} / {{c.unit}}</button><small>Resolved item ID: {{quotes[i].itemId || 'Choose Item Master item'}}</small></ng-container>
+      </td>
+      <td><input type="number" [(ngModel)]="quotes[i].quantity" min="0.01" step="0.01" [max]="l.fldRequestedQuantity" [disabled]="busy || quotes[i].decision==='CannotSupply'" aria-label="Offered quantity"></td>
+      <td><input type="number" [(ngModel)]="quotes[i].rate" min="0.01" step="0.01" [disabled]="busy || quotes[i].decision==='CannotSupply'" aria-label="Offered rate"></td>
+      <td><input [(ngModel)]="quotes[i].reason" maxlength="300" [disabled]="busy" aria-label="Reason for partial quantity or unavailable item"></td>
+     </ng-container>
+     <ng-template #readLine><td>{{l.fldDecision==='CannotSupply' ? 'Cannot supply' : l.fldDecision==='CanSupply' ? 'Can supply: ' + l.fldOfferedName : 'Awaiting vendor'}}</td><td>{{l.fldOfferedQuantity ?? '—'}} {{l.fldUnit}}</td><td>{{l.fldRate === null ? 'Awaiting quotation' : ('₹' + (l.fldRate | number:'1.2-2'))}}</td><td>{{l.fldReason || '—'}}</td></ng-template>
+    </tr></tbody></table></div>
+   <div class="totals" *ngIf="r.header.fldItemSubTotal !== null">
+    <p>Quoted item value <strong>₹{{r.header.fldItemSubTotal | number:'1.2-2'}}</strong></p>
+    <p>Delivery <strong>₹{{r.header.fldDeliveryCharges | number:'1.2-2'}}</strong></p>
+    <p class="savings" *ngIf="r.header.fldDeliverySavings">Delivery savings ₹{{r.header.fldDeliverySavings | number:'1.2-2'}}</p>
+    <p>Total for supply items <strong>₹{{r.header.fldGrandTotal | number:'1.2-2'}}</strong></p>
+    <p *ngIf="(r.header.fldItemSubTotal ?? 0)<(r.header.fldMinimumValue ?? 0)" class="warning">Below vendor minimum ₹{{r.header.fldMinimumValue}}. Vendor must revise, or cancel this request.</p>
+   </div>
+   <button type="button" *ngIf="vendor && (r.header.fldStatus==='Requested' || r.header.fldStatus==='Quoted')" (click)="quote()" [disabled]="busy">Send quote / item availability to customer</button>
+   <button type="button" *ngIf="customer && r.header.fldStatus==='Quoted'" (click)="accept()" [disabled]="busy">Accept displayed items, quantities and prices</button>
+   <section *ngIf="vendor && (r.header.fldStatus==='Accepted' || r.header.fldStatus==='Ready')">
+    <p>Enter arranged stock in Daily Inventory at the agreed rate, then allocate it below. This does not dispatch the order.</p>
+    <button type="button" (click)="loadArranged()" [disabled]="busy">Refresh arranged stock</button>
+    <div *ngFor="let q of quotes"><label *ngIf="q.decision==='CanSupply'">Line {{q.id}} · {{q.quantity}} at ₹{{q.rate}}
+     <select [(ngModel)]="q.inventoryId" [disabled]="busy"><option [ngValue]="0">Choose arranged stock</option><option *ngFor="let s of eligible(q)" [ngValue]="s.fldId">{{s.fldItemName}} · ₹{{s.fldSellingRate}} · {{s.fldAvailableStock}} {{s.fldBaseUnit}}</option></select>
+    </label></div>
+    <button type="button" (click)="ready()" [disabled]="busy">Mark ready for customer checkout</button>
+   </section>
+   <button type="button" *ngIf="customer && r.header.fldStatus==='Ready'" (click)="place()" [disabled]="busy">Place agreed advance order · Cash on delivery</button>
+   <p *ngIf="r.header.fldStatus==='Accepted'">Customer accepted. Vendor is arranging stock.</p>
+   <p *ngIf="r.header.fldStatus==='Ordered'">Order #{{r.header.fldFKOrderId}} created. Continue in the existing order list for acceptance, packing, dispatch and the bill. Unavailable items remain recorded in this request.</p>
+   <button type="button" class="secondary" *ngIf="r.header.fldStatus!=='Ordered' && r.header.fldStatus!=='Cancelled'" (click)="cancel()" [disabled]="busy">Cancel request</button>
+  </article>
+ </details>
+</section>

@@ -1,3 +1,10 @@
+<app-voice-advance
+  [vendorId]="vendorId" [customerId]="customerId" [userType]="userType"
+  [stock]="stock" [advanceAllowed]="vendorProfile?.fldvAllowAdvanceOrder === true"
+  (reviewedStock)="addReviewedVoiceStock($event)"
+  (orderPlaced)="checkPendingOrders()">
+</app-voice-advance>
+
 <div class="gb-page">
 
   <!-- ==============================================

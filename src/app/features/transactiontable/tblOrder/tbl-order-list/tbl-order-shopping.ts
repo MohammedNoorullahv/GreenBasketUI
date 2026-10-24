@@ -1,3 +1,4 @@
+import { VoiceAdvanceComponent } from '../voice-advance/voice-advance.component';
 import { MenuCaptionPipe as GbMenuCaptionPipe } from '../../../../shared/pipes/menu-caption.pipe';
 import { TranslatePipe as GbPageTranslatePipe } from '@ngx-translate/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -31,7 +32,7 @@ type OrderDeliveryRequest = Omit<OrderShoppingRequest, 'orderHeader'> & {
 @Component({
   selector: 'app-tbl-order-shopping',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, GbPageTranslatePipe, GbMenuCaptionPipe],
+  imports: [CommonModule, FormsModule, RouterLink, GbPageTranslatePipe, GbMenuCaptionPipe, VoiceAdvanceComponent],
   templateUrl: './tbl-order-shopping.html',
   styleUrl: './tbl-order-shopping.css'
 })
@@ -100,6 +101,29 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
     private toastr: ToastrService, private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID)
     private platformId: object) { }
+
+  addReviewedVoiceStock(rows: { item: OrderStockItem; quantity: number }[]): void {
+    // Validate the entire batch, including the existing cart, before changing any line.
+    const totals = new Map<number, { item: OrderStockItem; quantity: number }>();
+    for (const row of rows) {
+      const current = this.stock.find(x => x.fldId === row.item.fldId);
+      if (!current) { this.toastr.warning('Stock changed. Refresh the list.'); return; }
+      const existing = this.cart.find(x => x.stock.fldId === current.fldId);
+      if (existing && existing.flatRupeeBookingValue > 0) {
+        this.toastr.warning('This item uses amount booking in the cart. Review it manually before adding voice quantities.'); return;
+      }
+      const quantity = (totals.get(current.fldId)?.quantity ?? existing?.quantity ?? 0) + row.quantity;
+      const step = this.step(current);
+      if (!Number.isFinite(quantity) || quantity <= 0 || quantity > current.fldAvailableStock ||
+          (!current.fldAllowFractionalQuantity && !Number.isInteger(quantity)) ||
+          Math.abs(quantity / step - Math.round(quantity / step)) > 1e-7) {
+        this.toastr.warning('Combined cart quantity exceeds stock or does not match the item quantity step.'); return;
+      }
+      totals.set(current.fldId, { item: current, quantity });
+    }
+    for (const row of totals.values()) this.setQuantity(row.item, row.quantity);
+    this.toastr.info('Voice quantities added. Review the cart and select delivery before saving.');
+  }
 
   ngOnInit(): void {
 

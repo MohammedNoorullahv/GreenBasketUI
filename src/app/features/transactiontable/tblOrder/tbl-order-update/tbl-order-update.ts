@@ -9,11 +9,12 @@ import { TblProfile } from '../../../mastertables/tblProfile/models/tblProfile.m
 import { TblOrderService } from '../services/tbl-order';
 import { TblProfileService } from '../../../mastertables/tblProfile/services/tbl-profile';
 import { TblOrderUpdate } from '../models/tblOrder-Update.model';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 
 @Component({
   selector: 'app-tbl-order-update',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmDialogComponent],
   templateUrl: './tbl-order-update.html',
   styleUrl: './tbl-order-update.css',
 })
@@ -28,6 +29,9 @@ export class TblOrderUpdateComponent implements OnInit, OnDestroy {
   submitAction: 'Edit' | 'Delete' = 'Edit'; // default to Edit
 
   @ViewChild('form') form!: NgForm;
+  @ViewChild('deleteDialog') deleteDialog!: ConfirmDialogComponent;
+
+  private pendingDeleteRequest?: TblOrderUpdate;
 
   tblCustomerProfile$?: Observable<TblProfile[]>
   tblVendorProfile$?: Observable<TblProfile[]>
@@ -110,8 +114,36 @@ export class TblOrderUpdateComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const TblOrderUpdateRequest: TblOrderUpdate = {
-      fldId: this.tblOrder?.fldId ?? 0,
+    const TblOrderUpdateRequest: TblOrderUpdate = this.buildUpdateRequest();
+
+    if (!this.id) {
+      return;
+    }
+
+    this.editTblOrderSubscription = this.tblOrderService.updateTblOrder(TblOrderUpdateRequest)
+      .subscribe({
+        next: (response) => {
+          this.toastr.success('Record updated successfully!', 'Success', {
+            toastClass: 'ngx-toastr custom-toast'
+          });
+
+          this.router.navigateByUrl('transactiontables/tblOrder');
+        },
+        error: (err) => {
+          const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
+
+          this.toastr.error(errorMsg, 'Error', {
+            toastClass: 'ngx-toastr custom-toast error-toast'
+          });
+
+          console.error('API Error:', err);
+        }
+      });
+  }
+
+  private buildUpdateRequest(): TblOrderUpdate {
+    return {
+      fldId: this.tblOrder?.fldId ?? this.id ?? 0,
       fldFKCustomerId: this.tblOrder?.fldFKCustomerId ?? 0,
       fldFKVendorId: this.tblOrder?.fldFKVendorId ?? 0,
       fldOrderNumber: this.tblOrder?.fldOrderNumber ?? '',
@@ -127,57 +159,59 @@ export class TblOrderUpdateComponent implements OnInit, OnDestroy {
       fldModifiedBy: this.tblOrder?.fldModifiedBy ?? 0,
       fldModifiedDt: this.tblOrder?.fldModifiedDt ?? new Date(),
     };
+  }
 
-    if (this.id) {
-      if (this.submitAction === 'Edit') {
-        this.editTblOrderSubscription = this.tblOrderService.updateTblOrder(TblOrderUpdateRequest)
-          .subscribe({
-            next: (response) => {
-              this.toastr.success('Record updated successfully!', 'Success', {
-                toastClass: 'ngx-toastr custom-toast'
-              });
-
-              this.router.navigateByUrl('transactiontables/tblOrder');
-            },
-            error: (err) => {
-              const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
-
-              this.toastr.error(errorMsg, 'Error', {
-                toastClass: 'ngx-toastr custom-toast error-toast'
-              });
-
-              console.error('API Error:', err);
-            }
-          });
-      } else {
-
-        const proceed = confirm('R U Sure, U Want to Delete the selected Record?');
-
-        if (proceed) {
-          this.deleteTblOrderSubscription = this.tblOrderService.deleteTblOrder(TblOrderUpdateRequest)
-            .subscribe({
-              next: (response) => {
-                if (response.status === 200) {
-                  this.toastr.success('Record deleted successfully!', 'Success', {
-                    toastClass: 'ngx-toastr custom-toast'
-                  });
-
-                  this.router.navigateByUrl('transactiontables/tblOrder');
-                }
-              },
-              error: (err) => {
-                const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
-
-                this.toastr.error(errorMsg, 'Error', {
-                  toastClass: 'ngx-toastr custom-toast error-toast'
-                });
-
-                console.error('API Error:', err);
-              }
-            });
-        }
-      }
+  /** Opens the confirmation dialog from the delete icon only. */
+  openDeleteDialog(): void {
+    if (!this.id) {
+      return;
     }
+
+    this.submitAction = 'Delete';
+    this.pendingDeleteRequest = this.buildUpdateRequest();
+    this.deleteDialog.show();
+  }
+
+  confirmDelete(): void {
+    if (!this.pendingDeleteRequest) {
+      this.deleteDialog.close();
+      return;
+    }
+
+    this.deleteDialog.busy = true;
+
+    this.deleteTblOrderSubscription = this.tblOrderService.deleteTblOrder(this.pendingDeleteRequest)
+      .subscribe({
+        next: (response) => {
+          this.deleteDialog.busy = false;
+          this.deleteDialog.close();
+          this.pendingDeleteRequest = undefined;
+
+          if (response.status === 200) {
+            this.toastr.success('Record deleted successfully!', 'Success', {
+              toastClass: 'ngx-toastr custom-toast'
+            });
+
+            this.router.navigateByUrl('transactiontables/tblOrder');
+          }
+        },
+        error: (err) => {
+          this.deleteDialog.busy = false;
+
+          const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
+
+          this.toastr.error(errorMsg, 'Error', {
+            toastClass: 'ngx-toastr custom-toast error-toast'
+          });
+
+          console.error('API Error:', err);
+        }
+      });
+  }
+
+  cancelDelete(): void {
+    this.pendingDeleteRequest = undefined;
+    this.submitAction = 'Edit';
   }
 
   backToHome(): void {

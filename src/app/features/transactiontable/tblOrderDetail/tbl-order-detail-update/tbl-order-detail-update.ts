@@ -13,11 +13,12 @@ import { TblOrderDetailService } from '../services/tbl-order-detail';
 import { TblOrderService } from '../../tblOrder/services/tbl-order';
 import { TblItemMasterService } from '../../../mastertables/tblItemMaster/services/tbl-item-master';
 import { TblDailyInventoryService } from '../../tblDailyInventory/services/tbl-daily-inventory';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 
 @Component({
   selector: 'app-tbl-order-detail-update',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmDialogComponent],
   templateUrl: './tbl-order-detail-update.html',
   styleUrl: './tbl-order-detail-update.css',
 })
@@ -32,6 +33,9 @@ export class TblOrderDetailUpdateComponent implements OnInit, OnDestroy {
   submitAction: 'Edit' | 'Delete' = 'Edit'; // default to Edit
 
   @ViewChild('form') form!: NgForm;
+  @ViewChild('deleteDialog') deleteDialog!: ConfirmDialogComponent;
+
+  private pendingDeleteRequest?: TblOrderDetailUpdate;
 
   tblOrder$?: Observable<TblOrder[]>
   tblItemMaster$?: Observable<TblItemMaster[]>
@@ -105,8 +109,36 @@ export class TblOrderDetailUpdateComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const TblOrderDetailUpdateRequest: TblOrderDetailUpdate = {
-      fldId: this.tblOrderDetail?.fldId ?? 0,
+    const TblOrderDetailUpdateRequest: TblOrderDetailUpdate = this.buildUpdateRequest();
+
+    if (!this.id) {
+      return;
+    }
+
+    this.editTblOrderDetailSubscription = this.tblOrderDetailService.updateTblOrderDetail(TblOrderDetailUpdateRequest)
+      .subscribe({
+        next: (response) => {
+          this.toastr.success('Record updated successfully!', 'Success', {
+            toastClass: 'ngx-toastr custom-toast'
+          });
+
+          this.router.navigateByUrl('transactiontables/tblOrderDetail');
+        },
+        error: (err) => {
+          const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
+
+          this.toastr.error(errorMsg, 'Error', {
+            toastClass: 'ngx-toastr custom-toast error-toast'
+          });
+
+          console.error('API Error:', err);
+        }
+      });
+  }
+
+  private buildUpdateRequest(): TblOrderDetailUpdate {
+    return {
+      fldId: this.tblOrderDetail?.fldId ?? this.id ?? 0,
       fldFKOrderHeaderId: this.tblOrderDetail?.fldFKOrderHeaderId ?? 0,
       fldFKItemId: this.tblOrderDetail?.fldFKItemId ?? 0,
       fldFKDailyInventoryId: this.tblOrderDetail?.fldFKDailyInventoryId ?? 0,
@@ -116,57 +148,59 @@ export class TblOrderDetailUpdateComponent implements OnInit, OnDestroy {
       fldFlatRupeeBookingValue: this.tblOrderDetail?.fldFlatRupeeBookingValue ?? 0,
       value: this.tblOrderDetail?.value ?? 0,
     };
+  }
 
-    if (this.id) {
-      if (this.submitAction === 'Edit') {
-        this.editTblOrderDetailSubscription = this.tblOrderDetailService.updateTblOrderDetail(TblOrderDetailUpdateRequest)
-          .subscribe({
-            next: (response) => {
-              this.toastr.success('Record updated successfully!', 'Success', {
-                toastClass: 'ngx-toastr custom-toast'
-              });
-
-              this.router.navigateByUrl('transactiontables/tblOrderDetail');
-            },
-            error: (err) => {
-              const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
-
-              this.toastr.error(errorMsg, 'Error', {
-                toastClass: 'ngx-toastr custom-toast error-toast'
-              });
-
-              console.error('API Error:', err);
-            }
-          });
-      } else {
-
-        const proceed = confirm('R U Sure, U Want to Delete the selected Record?');
-
-        if (proceed) {
-          this.deleteTblOrderDetailSubscription = this.tblOrderDetailService.deleteTblOrderDetail(TblOrderDetailUpdateRequest)
-            .subscribe({
-              next: (response) => {
-                if (response.status === 200) {
-                  this.toastr.success('Record deleted successfully!', 'Success', {
-                    toastClass: 'ngx-toastr custom-toast'
-                  });
-
-                  this.router.navigateByUrl('transactiontables/tblOrderDetail');
-                }
-              },
-              error: (err) => {
-                const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
-
-                this.toastr.error(errorMsg, 'Error', {
-                  toastClass: 'ngx-toastr custom-toast error-toast'
-                });
-
-                console.error('API Error:', err);
-              }
-            });
-        }
-      }
+  /** Opens the confirmation dialog from the delete icon only. */
+  openDeleteDialog(): void {
+    if (!this.id) {
+      return;
     }
+
+    this.submitAction = 'Delete';
+    this.pendingDeleteRequest = this.buildUpdateRequest();
+    this.deleteDialog.show();
+  }
+
+  confirmDelete(): void {
+    if (!this.pendingDeleteRequest) {
+      this.deleteDialog.close();
+      return;
+    }
+
+    this.deleteDialog.busy = true;
+
+    this.deleteTblOrderDetailSubscription = this.tblOrderDetailService.deleteTblOrderDetail(this.pendingDeleteRequest)
+      .subscribe({
+        next: (response) => {
+          this.deleteDialog.busy = false;
+          this.deleteDialog.close();
+          this.pendingDeleteRequest = undefined;
+
+          if (response.status === 200) {
+            this.toastr.success('Record deleted successfully!', 'Success', {
+              toastClass: 'ngx-toastr custom-toast'
+            });
+
+            this.router.navigateByUrl('transactiontables/tblOrderDetail');
+          }
+        },
+        error: (err) => {
+          this.deleteDialog.busy = false;
+
+          const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
+
+          this.toastr.error(errorMsg, 'Error', {
+            toastClass: 'ngx-toastr custom-toast error-toast'
+          });
+
+          console.error('API Error:', err);
+        }
+      });
+  }
+
+  cancelDelete(): void {
+    this.pendingDeleteRequest = undefined;
+    this.submitAction = 'Edit';
   }
 
   backToHome(): void {

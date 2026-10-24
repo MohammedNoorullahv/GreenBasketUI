@@ -185,11 +185,11 @@
 									[queryParams]="{ action: 'Edit' }">
 									<i class="bi bi-pencil-square"></i>
 								</a>
-								<a class="icon-btn delete" title="Delete"
-									[routerLink]="['/mastertables/tblItemMaster/Edit', tblitemmaster.fldId]"
-									[queryParams]="{ action: 'Delete' }">
-									<i class="bi bi-trash3"></i>
-								</a>
+								<button type="button" class="icon-btn delete" title="Delete"
+									[attr.aria-label]="'Delete ' + tblitemmaster.fldItemName"
+									(click)="askDelete(tblitemmaster)">
+									<i class="bi bi-trash3" aria-hidden="true"></i>
+								</button>
 							</div>
 						</td>
 					</tr>
@@ -205,6 +205,13 @@
 		</ng-container>
 
 	</div>
+	<app-confirm-dialog #deleteDialog
+		[title]="'Delete ' + (deleteTargetLabel || 'this item') + '?'"
+		message="This item will be permanently removed from the item master. Existing orders that reference it may be affected."
+		confirmLabel="Delete Item"
+		(confirmed)="confirmDelete()"
+		(cancelled)="cancelDelete()">
+	</app-confirm-dialog>
 
 </div>
 

@@ -1,19 +1,22 @@
 import { renderOrderReceipt } from './order-receipt';
-import { Component, OnInit, Inject, PLATFORM_ID, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID, OnDestroy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { Observable, Subscription, timeout, finalize } from 'rxjs';
 import { CommonModule, AsyncPipe, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 import { ColumnFilterIconComponent } from '../../../../shared/components/column-filter-icon/column-filter-icon.component';
 import { ColumnFilterPipe } from '../../../../shared/pipes/column-filter.pipe';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { TblOrder } from '../models/tblOrder.model';
+import { TblOrderUpdate } from '../models/tblOrder-Update.model';
 import { TblOrderService } from '../services/tbl-order';
 
 
 
 @Component({
   selector: 'app-tbl-order-list',
-  imports: [AsyncPipe, CommonModule, FormsModule, RouterLink, ColumnFilterPipe, ColumnFilterIconComponent],
+  imports: [AsyncPipe, CommonModule, FormsModule, RouterLink, ColumnFilterPipe, ColumnFilterIconComponent, ConfirmDialogComponent],
   templateUrl: './tbl-order-list.html',
   styleUrl: './tbl-order-list.css',
 })
@@ -24,7 +27,12 @@ actionType: string = '';
 submitAction: 'Load All' | 'Active Only' = 'Load All'; // default to Load All
 filters: Record<string, string> = {};
 
-constructor(private tblOrderService: TblOrderService, @Inject(PLATFORM_ID) private platformId: object, private cdr: ChangeDetectorRef) {
+@ViewChild('deleteDialog') deleteDialog!: ConfirmDialogComponent;
+
+deleteTargetLabel = '';
+private pendingDeleteRequest?: TblOrderUpdate;
+
+constructor(private tblOrderService: TblOrderService, private toastr: ToastrService, @Inject(PLATFORM_ID) private platformId: object, private cdr: ChangeDetectorRef) {
 }
 ngOnInit(): void {
 	this.actionType = 'Load All';
@@ -98,6 +106,69 @@ OnFormSubmit(action: string): void {
         this.receiptError = 'Unable to load receipt details within 15 seconds. Check the order API and try again.';
       }
     });
+  }
+
+  /** Opens the delete confirmation dialog from the row delete icon only. */
+  askDelete(order: TblOrder): void {
+    this.deleteTargetLabel = order.fldOrderNumber ? `order ${order.fldOrderNumber}` : `order #${order.fldId}`;
+    this.pendingDeleteRequest = {
+      fldId: order.fldId,
+      fldFKCustomerId: order.fldFKCustomerId ?? 0,
+      fldFKVendorId: order.fldFKVendorId ?? 0,
+      fldOrderNumber: order.fldOrderNumber ?? '',
+      fldOrderDate: order.fldOrderDate ?? new Date(),
+      fldItemSubTotal: order.fldItemSubTotal ?? 0,
+      fldDeliveryCharges: order.fldDeliveryCharges ?? 0,
+      fldGrandTotal: order.fldGrandTotal ?? 0,
+      fldOrderStatus: order.fldOrderStatus ?? '',
+      fldDeliveryGPSLocation: order.fldDeliveryGPSLocation ?? '',
+      fldIsActive: order.fldIsActive ?? true,
+      fldCreatedBy: order.fldCreatedBy ?? 0,
+      fldCreatedDt: order.fldCreatedDt ?? new Date(),
+      fldModifiedBy: order.fldModifiedBy ?? 0,
+      fldModifiedDt: order.fldModifiedDt ?? new Date(),
+    };
+    this.deleteDialog.show();
+  }
+
+  confirmDelete(): void {
+    if (!this.pendingDeleteRequest) {
+      this.deleteDialog.close();
+      return;
+    }
+
+    this.deleteDialog.busy = true;
+
+    this.tblOrderService.deleteTblOrder(this.pendingDeleteRequest).subscribe({
+      next: (response) => {
+        this.deleteDialog.busy = false;
+        this.deleteDialog.close();
+        this.pendingDeleteRequest = undefined;
+
+        if (response.status === 200) {
+          this.toastr.success('Record deleted successfully!', 'Success', {
+            toastClass: 'ngx-toastr custom-toast'
+          });
+
+          this.OnFormSubmit(this.actionType);
+        }
+      },
+      error: (err) => {
+        this.deleteDialog.busy = false;
+
+        const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
+
+        this.toastr.error(errorMsg, 'Error', {
+          toastClass: 'ngx-toastr custom-toast error-toast'
+        });
+
+        console.error('Delete Error:', err);
+      }
+    });
+  }
+
+  cancelDelete(): void {
+    this.pendingDeleteRequest = undefined;
   }
 
   ngOnDestroy(): void {

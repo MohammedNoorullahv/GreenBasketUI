@@ -1,19 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CommonModule, AsyncPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 import { TblDailyInventory } from '../models/tblDailyInventory.model';
+import { TblDailyInventoryUpdate } from '../models/tblDailyInventory-Update.model';
 import { TblDailyInventoryService } from '../services/tbl-daily-inventory';
 import { ToastrService } from 'ngx-toastr';
 import { FormsModule } from '@angular/forms';
 import { ColumnFilterIconComponent } from '../../../../shared/components/column-filter-icon/column-filter-icon.component';
 import { ColumnFilterPipe } from '../../../../shared/pipes/column-filter.pipe';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { Console } from 'node:console';
 
 @Component({
   selector: 'app-tbl-daily-inventory-list',
-  imports: [AsyncPipe, CommonModule, RouterLink, FormsModule, ColumnFilterPipe, ColumnFilterIconComponent],
+  imports: [AsyncPipe, CommonModule, RouterLink, FormsModule, ColumnFilterPipe, ColumnFilterIconComponent, ConfirmDialogComponent],
   templateUrl: './tbl-daily-inventory-list.html',
   styleUrl: './tbl-daily-inventory-list.css',
 })
@@ -28,6 +30,11 @@ export class TblDailyInventoryListComponent implements OnInit {
   removeMultipleItems: boolean = false;
 
   selectedInventoryIds: number[] = [];
+
+  @ViewChild('deleteDialog') deleteDialog!: ConfirmDialogComponent;
+
+  deleteTargetLabel = '';
+  private pendingDeleteRequest?: TblDailyInventoryUpdate;
 
   constructor(private tblDailyInventoryService: TblDailyInventoryService,
     private toastr: ToastrService) {
@@ -153,6 +160,69 @@ export class TblDailyInventoryListComponent implements OnInit {
         }
 
       });
+  }
+
+  /** Opens the delete confirmation dialog from the row delete icon only. */
+  askDelete(inventory: TblDailyInventory): void {
+    this.deleteTargetLabel = inventory.fldItemName || `record #${inventory.fldId}`;
+    this.pendingDeleteRequest = {
+      fldId: inventory.fldId,
+      fldFKVendorId: inventory.fldFKVendorId ?? 0,
+      fldFKItemId: inventory.fldFKItemId ?? 0,
+      fldItemName: inventory.fldItemName ?? '',
+      fldBaseUnit: inventory.fldBaseUnit ?? '',
+      fldInventoryDate: inventory.fldInventoryDate ?? new Date(),
+      fldSellingRate: inventory.fldSellingRate ?? 0,
+      fldAvailableStock: inventory.fldAvailableStock ?? 0,
+      fldInitialStock: inventory.fldInitialStock ?? 0,
+      fldIsAvailable: inventory.fldIsAvailable ?? true,
+      fldIsActive: inventory.fldIsActive ?? true,
+      fldCreatedBy: inventory.fldCreatedBy ?? 0,
+      fldCreatedDt: inventory.fldCreatedDt ?? new Date(),
+      fldModifiedBy: inventory.fldModifiedBy ?? 0,
+      fldModifiedDt: inventory.fldModifiedDt ?? new Date(),
+    };
+    this.deleteDialog.show();
+  }
+
+  confirmDelete(): void {
+    if (!this.pendingDeleteRequest) {
+      this.deleteDialog.close();
+      return;
+    }
+
+    this.deleteDialog.busy = true;
+
+    this.tblDailyInventoryService.deleteTblDailyInventory(this.pendingDeleteRequest).subscribe({
+      next: (response) => {
+        this.deleteDialog.busy = false;
+        this.deleteDialog.close();
+        this.pendingDeleteRequest = undefined;
+
+        if (response.status === 200) {
+          this.toastr.success('Record deleted successfully!', 'Success', {
+            toastClass: 'ngx-toastr custom-toast'
+          });
+
+          this.OnFormSubmit(this.actionType);
+        }
+      },
+      error: (err) => {
+        this.deleteDialog.busy = false;
+
+        const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
+
+        this.toastr.error(errorMsg, 'Error', {
+          toastClass: 'ngx-toastr custom-toast error-toast'
+        });
+
+        console.error('Delete Error:', err);
+      }
+    });
+  }
+
+  cancelDelete(): void {
+    this.pendingDeleteRequest = undefined;
   }
 
 }

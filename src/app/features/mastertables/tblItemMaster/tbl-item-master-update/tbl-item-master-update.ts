@@ -9,10 +9,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TblItemMasterService } from '../services/tbl-item-master';
 import { TblItemMaster } from '../models/tblItemMaster.model';
 import { TblItemMasterUpdate } from '../models/tblItemMaster-Update.model';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-tbl-item-master-update',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmDialogComponent],
   templateUrl: './tbl-item-master-update.html',
   styleUrl: './tbl-item-master-update.css',
 })
@@ -27,6 +28,9 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
   submitAction: 'Edit' | 'Delete' = 'Edit'; // default to Edit
 
   @ViewChild('form') form!: NgForm;
+  @ViewChild('deleteDialog') deleteDialog!: ConfirmDialogComponent;
+
+  private pendingDeleteRequest?: TblItemMasterUpdate;
 
   constructor(private tblItemMasterService: TblItemMasterService,
     private router: Router, private route: ActivatedRoute, private toastr: ToastrService,
@@ -80,8 +84,36 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const TblItemMasterUpdateRequest: TblItemMasterUpdate = {
-      fldId: this.tblItemMaster?.fldId ?? 0,
+    const TblItemMasterUpdateRequest: TblItemMasterUpdate = this.buildUpdateRequest();
+
+    if (!this.id) {
+      return;
+    }
+
+    this.editTblItemMasterSubscription = this.tblItemMasterService.updateTblItemMaster(TblItemMasterUpdateRequest)
+      .subscribe({
+        next: (response) => {
+          this.toastr.success('Record updated successfully!', 'Success', {
+            toastClass: 'ngx-toastr custom-toast'
+          });
+
+          this.router.navigateByUrl('mastertables/tblItemMaster');
+        },
+        error: (err) => {
+          const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
+
+          this.toastr.error(errorMsg, 'Error', {
+            toastClass: 'ngx-toastr custom-toast error-toast'
+          });
+
+          console.error('API Error:', err);
+        }
+      });
+  }
+
+  private buildUpdateRequest(): TblItemMasterUpdate {
+    return {
+      fldId: this.tblItemMaster?.fldId ?? this.id ?? 0,
       fldItemName: this.tblItemMaster?.fldItemName ?? '',
       fldItemNameUrdu: this.tblItemMaster?.fldItemNameUrdu ?? '',
       fldItemNameTamil: this.tblItemMaster?.fldItemNameTamil ?? '',
@@ -99,57 +131,59 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
       fldModifiedBy: this.tblItemMaster?.fldModifiedBy ?? 0,
       fldModifiedDt: this.tblItemMaster?.fldModifiedDt ?? new Date(),
     };
+  }
 
-    if (this.id) {
-      if (this.submitAction === 'Edit') {
-        this.editTblItemMasterSubscription = this.tblItemMasterService.updateTblItemMaster(TblItemMasterUpdateRequest)
-          .subscribe({
-            next: (response) => {
-              this.toastr.success('Record updated successfully!', 'Success', {
-                toastClass: 'ngx-toastr custom-toast'
-              });
-
-              this.router.navigateByUrl('mastertables/tblItemMaster');
-            },
-            error: (err) => {
-              const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
-
-              this.toastr.error(errorMsg, 'Error', {
-                toastClass: 'ngx-toastr custom-toast error-toast'
-              });
-
-              console.error('API Error:', err);
-            }
-          });
-      } else {
-
-        const proceed = confirm('R U Sure, U Want to Delete the selected Record?');
-
-        if (proceed) {
-          this.deleteTblItemMasterSubscription = this.tblItemMasterService.deleteTblItemMaster(TblItemMasterUpdateRequest)
-            .subscribe({
-              next: (response) => {
-                if (response.status === 200) {
-                  this.toastr.success('Record deleted successfully!', 'Success', {
-                    toastClass: 'ngx-toastr custom-toast'
-                  });
-
-                  this.router.navigateByUrl('mastertables/tblItemMaster');
-                }
-              },
-              error: (err) => {
-                const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
-
-                this.toastr.error(errorMsg, 'Error', {
-                  toastClass: 'ngx-toastr custom-toast error-toast'
-                });
-
-                console.error('API Error:', err);
-              }
-            });
-        }
-      }
+  /** Opens the confirmation dialog from the delete icon only. */
+  openDeleteDialog(): void {
+    if (!this.id) {
+      return;
     }
+
+    this.submitAction = 'Delete';
+    this.pendingDeleteRequest = this.buildUpdateRequest();
+    this.deleteDialog.show();
+  }
+
+  confirmDelete(): void {
+    if (!this.pendingDeleteRequest) {
+      this.deleteDialog.close();
+      return;
+    }
+
+    this.deleteDialog.busy = true;
+
+    this.deleteTblItemMasterSubscription = this.tblItemMasterService.deleteTblItemMaster(this.pendingDeleteRequest)
+      .subscribe({
+        next: (response) => {
+          this.deleteDialog.busy = false;
+          this.deleteDialog.close();
+          this.pendingDeleteRequest = undefined;
+
+          if (response.status === 200) {
+            this.toastr.success('Record deleted successfully!', 'Success', {
+              toastClass: 'ngx-toastr custom-toast'
+            });
+
+            this.router.navigateByUrl('mastertables/tblItemMaster');
+          }
+        },
+        error: (err) => {
+          this.deleteDialog.busy = false;
+
+          const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
+
+          this.toastr.error(errorMsg, 'Error', {
+            toastClass: 'ngx-toastr custom-toast error-toast'
+          });
+
+          console.error('API Error:', err);
+        }
+      });
+  }
+
+  cancelDelete(): void {
+    this.pendingDeleteRequest = undefined;
+    this.submitAction = 'Edit';
   }
 
   backToHome(): void {

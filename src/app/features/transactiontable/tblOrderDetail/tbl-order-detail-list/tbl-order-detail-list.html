@@ -148,11 +148,11 @@
 									[queryParams]="{ action: 'Edit' }">
 									<i class="bi bi-pencil-square"></i>
 								</a>
-								<a class="icon-btn delete" title="Delete"
-									[routerLink]="['/transactiontables/tblOrderDetail/Edit', tblorderdetail.fldId]"
-									[queryParams]="{ action: 'Delete' }">
-									<i class="bi bi-trash3"></i>
-								</a>
+								<button type="button" class="icon-btn delete" title="Delete"
+									[attr.aria-label]="'Delete order detail ' + tblorderdetail.fldId"
+									(click)="askDelete(tblorderdetail)">
+									<i class="bi bi-trash3" aria-hidden="true"></i>
+								</button>
 							</div>
 						</td>
 					</tr>
@@ -168,5 +168,12 @@
 		</ng-container>
 
 	</div>
+	<app-confirm-dialog #deleteDialog
+		[title]="'Delete ' + (deleteTargetLabel || 'this order detail') + '?'"
+		message="This order line will be permanently removed from its parent order."
+		confirmLabel="Delete Detail"
+		(confirmed)="confirmDelete()"
+		(cancelled)="cancelDelete()">
+	</app-confirm-dialog>
 
 </div>

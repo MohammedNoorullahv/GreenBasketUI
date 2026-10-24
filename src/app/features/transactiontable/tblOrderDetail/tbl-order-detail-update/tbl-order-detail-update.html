@@ -95,7 +95,7 @@
 					<i class="bi bi-floppy"></i>
 					Save
 				</button>
-				<button type="button" (click)="submitAction = 'Delete'; OnFormSubmit(form)" class="btn-app btn-delete" [disabled]="actionType !== 'Delete'">
+				<button type="button" (click)="openDeleteDialog()" class="btn-app btn-delete" [disabled]="!tblOrderDetail">
 					<i class="bi bi-trash3"></i>
 					Delete
 				</button>
@@ -116,5 +116,12 @@
 			</div>
 		</div>
 	</ng-template>
+	<app-confirm-dialog #deleteDialog
+		title="Delete this order detail?"
+		message="The selected order line will be permanently removed from this order."
+		confirmLabel="Delete Detail"
+		(confirmed)="confirmDelete()"
+		(cancelled)="cancelDelete()">
+	</app-confirm-dialog>
 
 </div>

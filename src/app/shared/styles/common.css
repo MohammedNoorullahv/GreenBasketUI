@@ -6332,3 +6332,7 @@ select.column-filter-input {
   outline: 2px solid #0b7a3b;
   outline-offset: 2px;
 }
+
+.fk-picker-group { display: flex; gap: 8px; align-items: stretch; }
+.fk-picker-group .form-control { flex: 1; min-width: 0; }
+.fk-picker-scroll { max-height: 50vh; overflow: auto; margin-top: 12px; }

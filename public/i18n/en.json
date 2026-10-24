@@ -18,7 +18,8 @@
     "ORDERS": "Orders",
     "CUSTOMER_CONCERNS": "Customer Concerns",
     "APP_SETTINGS": "App Settings",
-    "REPORTS": "Reports"
+    "REPORTS": "Reports",
+    "FEEDBACK": "Feedback"
   },
   "BUTTON": {
     "SAVE": "Save",

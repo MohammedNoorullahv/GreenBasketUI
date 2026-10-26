@@ -1,43 +1,43 @@
+// Path: src/app/features/mastertables/tblItemMaster/tbl-item-master-list/tbl-item-master-list.ts
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CommonModule, AsyncPipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { ColumnFilterIconComponent } from '../../../../shared/components/column-filter-icon/column-filter-icon.component';
-import { ColumnFilterPipe } from '../../../../shared/pipes/column-filter.pipe';
 
 import { TblItemMaster } from '../models/tblItemMaster.model';
-import { TblItemMasterService } from '../services/tbl-item-master'
+import { TblItemMasterService } from '../services/tbl-item-master';
 
 @Component({
   selector: 'app-tbl-item-master-list',
-  imports: [AsyncPipe, CommonModule, FormsModule, RouterLink, ColumnFilterPipe, ColumnFilterIconComponent],
+  imports: [AsyncPipe, CommonModule, RouterLink],
   templateUrl: './tbl-item-master-list.html',
   styleUrl: './tbl-item-master-list.css',
 })
-
 export class TblItemMasterListComponent implements OnInit {
-tblItemMaster$?: Observable<TblItemMaster[]>;
-actionType: string = '';
-submitAction: 'Load All' | 'Active Only' = 'Load All'; // default to Load All
-filters: Record<string, string> = {};
+  tblItemMaster$?: Observable<TblItemMaster[]>;
+  actionType: string = '';
+  submitAction: 'Load All' | 'Active Only' = 'Load All'; // default to Load All
 
-constructor(private tblItemMasterService: TblItemMasterService) {
-}
-ngOnInit(): void {
-	this.actionType = 'Load All';
-	this.tblItemMaster$ = this.tblItemMasterService.getAllTblItemMasters();
-}
-OnFormSubmit(action: string): void {
-	if (action === 'Load All')
-	{
-		this.actionType = "Load All";
-		this.tblItemMaster$ = this.tblItemMasterService.getAllTblItemMasters();
-	}
-	else
-	{
-		this.actionType = "Active Only";
-		this.tblItemMaster$ = this.tblItemMasterService.getActiveTblItemMasters();
-	}
-}
+  constructor(private tblItemMasterService: TblItemMasterService) {
+  }
+
+  ngOnInit(): void {
+    this.actionType = 'Load All';
+    this.tblItemMaster$ = this.tblItemMasterService.getAllTblItemMasters();
+  }
+
+  OnFormSubmit(action: string): void {
+    if (action === 'Load All') {
+      this.actionType = 'Load All';
+      this.tblItemMaster$ = this.tblItemMasterService.getAllTblItemMasters();
+    }
+    else {
+      this.actionType = 'Active Only';
+      this.tblItemMaster$ = this.tblItemMasterService.getActiveTblItemMasters();
+    }
+  }
+
+  imageUrl(path?: string | null): string {
+    return this.tblItemMasterService.getItemImageUrl(path);
+  }
 }

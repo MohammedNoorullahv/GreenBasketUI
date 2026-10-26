@@ -15,47 +15,47 @@ export class TblItemMasterService {
 
 	//GET ALL
 	getAllTblItemMasters(): Observable<TblItemMaster[]> {
-		return this.http.get<TblItemMaster[]>(`${environment.apiBaseUrl}/TblItemMaster/GetAllTblItemMasters`);
+		return this.http.get<TblItemMaster[]>(`${environment.apiBaseUrl}/api/TblItemMaster/GetAllTblItemMasters`);
 	};
 
 	//GET ACTIVE
 	getActiveTblItemMasters(): Observable<TblItemMaster[]> {
-		return this.http.get<TblItemMaster[]>(`${environment.apiBaseUrl}/TblItemMaster/GetActiveTblItemMasters`);
+		return this.http.get<TblItemMaster[]>(`${environment.apiBaseUrl}/api/TblItemMaster/GetActiveTblItemMasters`);
 	};
 
 	//GET ACTIVELEAN
 	getActiveLeanTblItemMasters(): Observable<TblItemMaster[]> {
-		return this.http.get<TblItemMaster[]>(`${environment.apiBaseUrl}/TblItemMaster/GetActiveLeanTblItemMasters`);
+		return this.http.get<TblItemMaster[]>(`${environment.apiBaseUrl}/api/TblItemMaster/GetActiveLeanTblItemMasters`);
 	};
 
 	//GET - BY ID
 	getTblItemMasterById(id: number): Observable<TblItemMaster> {
-		return this.http.get<TblItemMaster>(`${environment.apiBaseUrl}/TblItemMaster/GetTblItemMasterById/${id}`);
+		return this.http.get<TblItemMaster>(`${environment.apiBaseUrl}/api/TblItemMaster/GetTblItemMasterById/${id}`);
 	};
 
 	//POST
 	addTblItemMaster(model: TblItemMasterAdd): Observable<void> {
-		return this.http.post<void>(`${environment.apiBaseUrl}/TblItemMaster/CreateTblItemMaster`, model);
+		return this.http.post<void>(`${environment.apiBaseUrl}/api/TblItemMaster/CreateTblItemMaster`, model);
 	};
 
 	//POST - RANGE
 	addRangeTblItemMaster(models: TblItemMasterAdd[]): Observable<void> {
-		return this.http.post<void>(`${environment.apiBaseUrl}/TblItemMaster/CreateRangeTblItemMaster`, models);
+		return this.http.post<void>(`${environment.apiBaseUrl}/api/TblItemMaster/CreateRangeTblItemMaster`, models);
 	};
 
 	//UPDATE
 	updateTblItemMaster(tblItemMasterupdate: TblItemMasterUpdate): Observable<TblItemMaster> {
-		return this.http.patch<TblItemMaster>(`${environment.apiBaseUrl}/TblItemMaster/UpdateTblItemMaster`, tblItemMasterupdate);
+		return this.http.patch<TblItemMaster>(`${environment.apiBaseUrl}/api/TblItemMaster/UpdateTblItemMaster`, tblItemMasterupdate);
 	};
 
 	//UPDATE - RANGE
 	updateRangeTblItemMaster(tblItemMasterupdates: TblItemMasterUpdate[]): Observable<TblItemMaster[]> {
-		return this.http.patch<TblItemMaster[]>(`${environment.apiBaseUrl}/TblItemMaster/UpdateRangeTblItemMaster`, tblItemMasterupdates);
+		return this.http.patch<TblItemMaster[]>(`${environment.apiBaseUrl}/api/TblItemMaster/UpdateRangeTblItemMaster`, tblItemMasterupdates);
 	};
 
 	//DELETE
 	deleteTblItemMaster(tblItemMasterdelete: TblItemMasterUpdate): Observable<HttpResponse<any>> {
-		return this.http.delete<any>(`${environment.apiBaseUrl}/TblItemMaster/DeleteTblItemMaster`,
+		return this.http.delete<any>(`${environment.apiBaseUrl}/api/TblItemMaster/DeleteTblItemMaster`,
 			{
 				body: tblItemMasterdelete,
 				observe: 'response'
@@ -64,7 +64,7 @@ export class TblItemMasterService {
 
 	//DELETE - RANGE
 	deleteRangeTblItemMaster(tblItemMasterdeletes: TblItemMasterUpdate[]): Observable<HttpResponse<any>> {
-		return this.http.delete<any>(`${environment.apiBaseUrl}/TblItemMaster/DeleteRangeTblItemMaster`,
+		return this.http.delete<any>(`${environment.apiBaseUrl}/api/TblItemMaster/DeleteRangeTblItemMaster`,
 			{
 				body: tblItemMasterdeletes,
 				observe: 'response'
@@ -75,7 +75,7 @@ export class TblItemMasterService {
 	uploadTblItemMasterImage(file: File): Observable<{ path: string }> {
 		const formData = new FormData();
 		formData.append('file', file);
-		return this.http.post<{ path: string }>(`${environment.apiBaseUrl}/TblItemMaster/UploadTblItemMasterImage`, formData);
+		return this.http.post<{ path: string }>(`${environment.apiBaseUrl}/api/TblItemMaster/UploadTblItemMasterImage`, formData);
 	};
 
 	// Builds the public URL of a stored image path (apiBaseUrl ends with /api, the files are served from the site root)

@@ -17,7 +17,7 @@
 
 			<!-- Row 1: Item Category Name | Item Type -->
 			<div class="d-flex flex-row form-row">
-
+				
 				<div class="form-col field-group">
 					<label class="form-label" for="fldFKCategoryName">Item Category Name</label>
 					<select id="fldFKCategoryName" class="form-select" name="fldFKCategoryName"
@@ -50,25 +50,26 @@
 
 				<div class="form-col field-group">
 					<label class="form-label" for="fldFKItem">Item</label>
-					<select id="fldFKItem" class="form-select" name="fldFKItem"
+					<select id="fldFKItemType" class="form-select" name="fldFKItem"
 						[(ngModel)]="model.fldFKItem" 
-						[class.is-invalid]="form.controls['fldFKItem']?.touched && !model.fldFKItem">
+						[class.is-invalid]="form.controls['fldFKItemType']?.touched && !model.fldFKItem">
 						<option [ngValue]="0">-- Select --</option>
 						@for (p of items; track p.fldId) {
 						<option [ngValue]="p.fldId">{{ p.fldDescription }}</option>
 						}
 					</select>
 					<div class="text-danger" *ngIf="form.controls['fldFKItem']?.touched && !model.fldFKItem">
-						Item Type is required.
+						Item is required.
 					</div>
 				</div>
+
 			</div>
 
 			<!-- Row 2: Item Name | Item Name (Tamil) | Item Name (Urdu) -->
 			<div class="d-flex flex-row form-row">
 				<div class="form-col field-group">
-					<label class="form-label" for="fldItem">Item</label>
-					<input type="text" id="fldItem" class="form-control" name="fldItem" [(ngModel)]="model.fldItemName" maxlength="100" required>
+					<label class="form-label" for="fldItemName">Item Name</label>
+					<input type="text" id="fldItemName" class="form-control" name="fldItemName" [(ngModel)]="model.fldItemName" maxlength="100" required>
 					<div class="text-danger" *ngIf="form.controls['fldItemName']?.touched && form.controls['fldItemName']?.invalid">
 						Item Name is required.
 					</div>

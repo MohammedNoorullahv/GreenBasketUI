@@ -96,6 +96,12 @@ export class TblItemMasterAddComponent implements OnInit, OnDestroy {
     this.model.fldItemType = selected ? selected.fldDescription : '';
   }
 
+  onItemChange(id: number, list: TblProperty[]): void {
+    const selected = list.find(p => p.fldId === Number(id));
+    this.model.fldFKItem = selected ? selected.fldId : 0;
+    //this.model.fldItem = selected ? selected.fldDescription : '';
+  }
+
   onBaseUnitChange(id: number, list: TblProperty[]): void {
     const selected = list.find(p => p.fldId === Number(id));
     this.model.fldFKBaseUnit = selected ? selected.fldId : 0;

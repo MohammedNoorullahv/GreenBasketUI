@@ -164,12 +164,22 @@
         </div>
 
 
-        <button class="primary-button" type="submit" [disabled]="isLoading">
+        <!-- <button class="primary-button" type="submit" [disabled]="isLoading">
 
           {{
           isLoading
           ? 'Sending OTP...'
           : 'Send OTP'
+          }}
+
+        </button> -->
+
+           <button class="primary-button" type="submit" [disabled]="isLoading">
+
+          {{
+          isLoading
+          ? 'Proceeding...'
+          : 'Proceed with MPIN'
           }}
 
         </button>

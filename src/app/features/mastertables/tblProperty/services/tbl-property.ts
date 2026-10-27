@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { TblProperty } from '../models/tblProperty.model';
 import { TblPropertyAdd } from '../models/tblProperty-Add.model';
 import { TblPropertyUpdate } from '../models/tblProperty-Update.model';
-import { environment } from '../../../../../environments/environment.development';
+import { environment } from '../../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'

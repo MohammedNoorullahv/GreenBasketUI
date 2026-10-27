@@ -7,11 +7,14 @@ import { ToastrService } from 'ngx-toastr';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { TblItemMasterService } from '../services/tbl-item-master';
+import { TblProperty } from '../../tblProperty/models/tblProperty.model';
+import { TblPropertySharedservice } from '../../../../shared/services/tbl-property-shared-service';
+
 import { TblItemMasterUpdate } from '../models/tblItemMaster-Update.model';
 
 @Component({
   selector: 'app-tbl-item-master-update',
-  imports: [CommonModule, FormsModule, ConfirmDialogComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './tbl-item-master-update.html',
   styleUrl: './tbl-item-master-update.css',
 })
@@ -31,11 +34,13 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
   // FK combo sources (parent = TblProperty, type text must match a TblPropertyMaster FldDescription)
   tblPropertyCategoryName$?: Observable<TblProperty[]>;
   tblPropertyItemType$?: Observable<TblProperty[]>;
+  tblPropertyItem$?: Observable<TblProperty[]>;
   tblPropertyBaseUnit$?: Observable<TblProperty[]>;
   tblPropertyFractionalUnit$?: Observable<TblProperty[]>;
 
   @ViewChild('form') form!: NgForm;
-  @ViewChild('deleteDialog') deleteDialog!: ConfirmDialogComponent;
+  isDeleteDialogOpen = false;
+  isSaving = false;
 
   private pendingDeleteRequest?: TblItemMasterUpdate;
 
@@ -46,10 +51,11 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.tblPropertyCategoryName$ = this.tblPropertySharedService.getPropertiesByType('Category Name');
+    this.tblPropertyCategoryName$ = this.tblPropertySharedService.getPropertiesByType('Item Category');
+    this.tblPropertyItem$ = this.tblPropertySharedService.getPropertiesByType('Item');
     this.tblPropertyItemType$ = this.tblPropertySharedService.getPropertiesByType('Item Type');
-    this.tblPropertyBaseUnit$ = this.tblPropertySharedService.getPropertiesByType('Base Unit');
-    this.tblPropertyFractionalUnit$ = this.tblPropertySharedService.getPropertiesByType('Fractional Unit');
+    this.tblPropertyBaseUnit$ = this.tblPropertySharedService.getPropertiesByType('Unit of Measurement');
+    this.tblPropertyFractionalUnit$ = this.tblPropertySharedService.getPropertiesByType('Unit of Measurement');
 
     setTimeout(() => {
       if (this.form && this.form.controls['fldFKCategoryName']) {
@@ -64,7 +70,7 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
       .subscribe(([params, queryParams]) => {
         const idParam = params.get('id');
         this.id = idParam ? parseInt(idParam, 10) : null;
-        this.actionType = queryParams['action'];
+        this.actionType = queryParams['action'] === 'Delete' ? 'Delete' : 'Edit';
 
         if (this.id) {
           this.getTblItemMasterSubscription?.unsubscribe();
@@ -85,6 +91,11 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
     const selected = list.find(p => p.fldId === Number(id));
     this.tblItemMaster.fldFKCategoryName = selected ? selected.fldId : 0;
     this.tblItemMaster.fldCategoryName = selected ? selected.fldDescription : '';
+  }
+
+  onItemChange(id: number, list: TblProperty[]): void {
+    if (!this.tblItemMaster) return;
+    this.tblItemMaster.fldFKItem = list.find(p => p.fldId === Number(id))?.fldId ?? 0;
   }
 
   onItemTypeChange(id: number, list: TblProperty[]): void {
@@ -159,6 +170,7 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
           });
 
           console.error('API Error:', err);
+          this.cdr.detectChanges();
         }
       });
   }
@@ -175,7 +187,13 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
 
   OnFormSubmit(form: NgForm): void {
 
-    if (this.isUploading) {
+    if (this.isSaving || this.isUploading || !this.tblItemMaster || !this.id) {
+      return;
+    }
+
+    if (this.submitAction === 'Delete') {
+      this.pendingDeleteRequest = this.buildUpdateRequest();
+      this.isDeleteDialogOpen = true;
       return;
     }
 
@@ -190,9 +208,11 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.isSaving = true;
     this.editTblItemMasterSubscription = this.tblItemMasterService.updateTblItemMaster(TblItemMasterUpdateRequest)
       .subscribe({
         next: (response) => {
+          this.isSaving = false;
           this.toastr.success('Record updated successfully!', 'Success', {
             toastClass: 'ngx-toastr custom-toast'
           });
@@ -200,6 +220,8 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
           this.router.navigateByUrl('mastertables/tblItemMaster');
         },
         error: (err) => {
+          this.isSaving = false;
+          this.cdr.detectChanges();
           const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
 
           this.toastr.error(errorMsg, 'Error', {
@@ -207,6 +229,7 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
           });
 
           console.error('API Error:', err);
+          this.cdr.detectChanges();
         }
       });
   }
@@ -241,58 +264,31 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
       fldModifiedDt: new Date(), // placeholder; server overwrites
     };
 
-    if (this.id) {
-      if (this.submitAction === 'Edit') {
-        this.editTblItemMasterSubscription = this.tblItemMasterService.updateTblItemMaster(TblItemMasterUpdateRequest)
-          .subscribe({
-            next: (response) => {
-              this.toastr.success('Record updated successfully!', 'Success', {
-                toastClass: 'ngx-toastr custom-toast'
-              });
+  }
 
-              this.router.navigateByUrl('mastertables/tblItemMaster');
-            },
-            error: (err) => {
-              const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
-
-              this.toastr.error(errorMsg, 'Error', {
-                toastClass: 'ngx-toastr custom-toast error-toast'
-              });
-
-              console.error('API Error:', err);
-            }
-          });
-      } else {
-
-        const proceed = confirm('R U Sure, U Want to Delete the selected Record?');
-
-        if (proceed) {
-          this.deleteTblItemMasterSubscription = this.tblItemMasterService.deleteTblItemMaster(TblItemMasterUpdateRequest)
-            .subscribe({
-              next: (response) => {
-                if (response.status === 200) {
-                  this.toastr.success('Record deleted successfully!', 'Success', {
-                    toastClass: 'ngx-toastr custom-toast'
-                  });
-
-            this.router.navigateByUrl('mastertables/tblItemMaster');
-          }
+  confirmDelete(): void {
+    if (!this.pendingDeleteRequest || this.isSaving || !this.id) return;
+    this.isSaving = true;
+    this.deleteTblItemMasterSubscription = this.tblItemMasterService
+      .deleteTblItemMaster(this.pendingDeleteRequest).subscribe({
+        next: () => {
+          this.isSaving = false;
+          this.isDeleteDialogOpen = false;
+          this.pendingDeleteRequest = undefined;
+          this.toastr.success('Record deleted successfully!', 'Success');
+          void this.router.navigateByUrl('mastertables/tblItemMaster');
         },
         error: (err) => {
-          this.deleteDialog.busy = false;
-
-          const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
-
-          this.toastr.error(errorMsg, 'Error', {
-            toastClass: 'ngx-toastr custom-toast error-toast'
-          });
-
-          console.error('API Error:', err);
+          this.isSaving = false;
+          this.toastr.error(err?.error?.message || 'Unable to delete this item.', 'Error');
+          this.cdr.detectChanges();
         }
       });
   }
 
   cancelDelete(): void {
+    if (this.isSaving) return;
+    this.isDeleteDialogOpen = false;
     this.pendingDeleteRequest = undefined;
     this.submitAction = 'Edit';
   }

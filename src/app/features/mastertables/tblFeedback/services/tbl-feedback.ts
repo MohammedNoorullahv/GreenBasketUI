@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { TblFeedback } from '../models/tblFeedback.model';
 import { TblFeedbackAdd } from '../models/tblFeedback-Add.model';
 import { TblFeedbackUpdate } from '../models/tblFeedback-Update.model';
-import { environment } from '../../../../../environments/environment.development';
+import { environment } from '../../../../../environments/environment';
 
 @Injectable({
 	providedIn: 'root'

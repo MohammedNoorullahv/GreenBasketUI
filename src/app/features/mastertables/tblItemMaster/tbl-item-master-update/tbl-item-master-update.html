@@ -12,6 +12,7 @@
 		<div class="page-card">
 
 			@let categories = (tblPropertyCategoryName$ | async) ?? [];
+			@let items = (tblPropertyItem$ | async) ?? [];
 			@let itemTypes = (tblPropertyItemType$ | async) ?? [];
 			@let baseUnits = (tblPropertyBaseUnit$ | async) ?? [];
 			@let fractionalUnits = (tblPropertyFractionalUnit$ | async) ?? [];
@@ -46,6 +47,21 @@
 						Item Type is required.
 					</div>
 				</div>
+				<div class="form-col field-group">
+					<label class="form-label" for="fldFKItem">Item</label>
+					<select id="fldFKItem" class="form-select" name="fldFKItem"
+						[(ngModel)]="tblItemMaster.fldFKItem" (ngModelChange)="onItemChange($event, items)" 
+						[class.is-invalid]="form.controls['fldFKItem']?.touched && !tblItemMaster.fldFKItem">
+						<option [ngValue]="0">-- Select --</option>
+						@for (p of items; track p.fldId) {
+						<option [ngValue]="p.fldId">{{ p.fldDescription }}</option>
+						}
+					</select>
+					<div class="text-danger" *ngIf="form.controls['fldFKItem']?.touched && !tblItemMaster.fldFKItem">
+						Item is required.
+					</div>
+				</div>
+
 			</div>
 
 			<!-- Row 2: Item Name | Item Name (Tamil) | Item Name (Urdu) -->
@@ -155,11 +171,11 @@
 				 Section 3: Command buttons
 				 ============================================ -->
 			<div class="page-actions-bar">
-				<button type="button" (click)="submitAction = 'Edit'; OnFormSubmit(form)" class="btn-app btn-save" [disabled]="actionType !== 'Edit'">
+				<button type="button" (click)="submitAction = 'Edit'; OnFormSubmit(form)" class="btn-app btn-save" [disabled]="actionType !== 'Edit' || isSaving || isUploading">
 					<i class="bi bi-floppy"></i>
 					Save
 				</button>
-				<button type="button" (click)="submitAction = 'Delete'; OnFormSubmit(form)" class="btn-app btn-delete" [disabled]="actionType !== 'Delete'">
+				<button type="button" (click)="submitAction = 'Delete'; OnFormSubmit(form)" class="btn-app btn-delete" [disabled]="actionType !== 'Delete' || isSaving || isUploading">
 					<i class="bi bi-trash3"></i>
 					Delete
 				</button>
@@ -180,12 +196,16 @@
 			</div>
 		</div>
 	</ng-template>
-	<app-confirm-dialog #deleteDialog
-		title="Delete this item?"
-		message="The selected item will be permanently removed from the item master."
-		confirmLabel="Delete Item"
-		(confirmed)="confirmDelete()"
-		(cancelled)="cancelDelete()">
-	</app-confirm-dialog>
+  <div *ngIf="isDeleteDialogOpen" class="modal d-block" role="dialog" aria-modal="true"
+    aria-labelledby="itemDeleteTitle" style="background: rgba(0,0,0,.5)" (keydown.escape)="cancelDelete()">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+      <div class="modal-header"><h2 id="itemDeleteTitle" class="modal-title fs-5">Delete this item?</h2></div>
+      <div class="modal-body">Confirm deletion of {{ tblItemMaster?.fldItemName }}.</div>
+      <div class="modal-footer">
+        <button type="button" class="btn-app btn-dark" [disabled]="isSaving" (click)="cancelDelete()">Cancel</button>
+        <button type="button" class="btn-app btn-delete" [disabled]="isSaving" (click)="confirmDelete()">{{ isSaving ? 'Deleting...' : 'Delete Item' }}</button>
+      </div>
+    </div></div>
+  </div>
 
 </div>

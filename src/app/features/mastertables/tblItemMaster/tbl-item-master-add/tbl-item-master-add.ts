@@ -162,6 +162,7 @@ export class TblItemMasterAddComponent implements OnInit, OnDestroy {
           });
 
           console.error('API Error:', err);
+          this.cdr.detectChanges();
         }
       });
   }
@@ -216,6 +217,7 @@ export class TblItemMasterAddComponent implements OnInit, OnDestroy {
           });
 
           console.error('API Error:', err);
+          this.cdr.detectChanges();
         }
       });
   }

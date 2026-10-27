@@ -5,7 +5,8 @@ import { Observable } from 'rxjs';
 import { TblItemMaster } from '../models/tblItemMaster.model';
 import { TblItemMasterAdd } from '../models/tblItemMaster-Add.model';
 import { TblItemMasterUpdate } from '../models/tblItemMaster-Update.model';
-import { environment } from '../../../../../environments/environment.development';
+import { environment } from '../../../../../environments/environment';
+
 
 @Injectable({
 	providedIn: 'root'

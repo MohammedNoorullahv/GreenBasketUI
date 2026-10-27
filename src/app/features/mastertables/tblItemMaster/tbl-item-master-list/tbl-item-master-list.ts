@@ -2,15 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CommonModule, AsyncPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { ColumnFilterIconComponent } from '../../../../shared/components/column-filter-icon/column-filter-icon.component';
-import { ColumnFilterPipe } from '../../../../shared/pipes/column-filter.pipe';
+import { FormsModule } from '@angular/forms';
 
 import { TblItemMaster } from '../models/tblItemMaster.model';
 import { TblItemMasterService } from '../services/tbl-item-master'
 
 @Component({
   selector: 'app-tbl-item-master-list',
-  imports: [AsyncPipe, CommonModule, FormsModule, RouterLink, ColumnFilterPipe, ColumnFilterIconComponent],
+  imports: [AsyncPipe, CommonModule, FormsModule, RouterLink],
   templateUrl: './tbl-item-master-list.html',
   styleUrl: './tbl-item-master-list.css',
 })
@@ -25,6 +24,10 @@ ngOnInit(): void {
 	this.actionType = 'Load All';
 	this.tblItemMaster$ = this.tblItemMasterService.getAllTblItemMasters();
 }
+imageUrl(path?: string | null): string {
+  return this.tblItemMasterService.getItemImageUrl(path);
+}
+
 OnFormSubmit(action: string): void {
 	if (action === 'Load All')
 	{

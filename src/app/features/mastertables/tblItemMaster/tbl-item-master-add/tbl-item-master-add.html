@@ -50,9 +50,9 @@
 
 				<div class="form-col field-group">
 					<label class="form-label" for="fldFKItem">Item</label>
-					<select id="fldFKItemType" class="form-select" name="fldFKItem"
-						[(ngModel)]="model.fldFKItem" 
-						[class.is-invalid]="form.controls['fldFKItemType']?.touched && !model.fldFKItem">
+					<select id="fldFKItem" class="form-select" name="fldFKItem"
+						[(ngModel)]="model.fldFKItem" (ngModelChange)="onItemChange($event, items)" 
+						[class.is-invalid]="form.controls['fldFKItem']?.touched && !model.fldFKItem">
 						<option [ngValue]="0">-- Select --</option>
 						@for (p of items; track p.fldId) {
 						<option [ngValue]="p.fldId">{{ p.fldDescription }}</option>

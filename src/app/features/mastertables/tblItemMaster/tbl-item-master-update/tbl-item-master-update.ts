@@ -8,6 +8,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { TblItemMasterService } from '../services/tbl-item-master';
 import { TblItemMasterUpdate } from '../models/tblItemMaster-Update.model';
+import { TblProperty } from '../../tblProperty/models/tblProperty.model';
+import { TblPropertySharedservice } from '../../../../shared/services/tbl-property-shared-service';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-tbl-item-master-update',
@@ -184,15 +187,20 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const TblItemMasterUpdateRequest: TblItemMasterUpdate = this.buildUpdateRequest();
-
-    if (!this.id) {
+    if (!this.id || !this.tblItemMaster) {
       return;
     }
 
+    if (this.submitAction === 'Delete') {
+      this.openDeleteDialog();
+      return;
+    }
+
+    const TblItemMasterUpdateRequest: TblItemMasterUpdate = this.buildUpdateRequest();
+
     this.editTblItemMasterSubscription = this.tblItemMasterService.updateTblItemMaster(TblItemMasterUpdateRequest)
       .subscribe({
-        next: (response) => {
+        next: () => {
           this.toastr.success('Record updated successfully!', 'Success', {
             toastClass: 'ngx-toastr custom-toast'
           });
@@ -240,40 +248,38 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
       fldModifiedBy: 0, // AUTH-STAGE-2: server sets this from the logged-in user
       fldModifiedDt: new Date(), // placeholder; server overwrites
     };
+  }
 
-    if (this.id) {
-      if (this.submitAction === 'Edit') {
-        this.editTblItemMasterSubscription = this.tblItemMasterService.updateTblItemMaster(TblItemMasterUpdateRequest)
-          .subscribe({
-            next: (response) => {
-              this.toastr.success('Record updated successfully!', 'Success', {
-                toastClass: 'ngx-toastr custom-toast'
-              });
+  /** Opens the confirmation dialog from the delete button only. */
+  openDeleteDialog(): void {
+    if (!this.id || !this.tblItemMaster) {
+      return;
+    }
 
-              this.router.navigateByUrl('mastertables/tblItemMaster');
-            },
-            error: (err) => {
-              const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
+    this.submitAction = 'Delete';
+    this.pendingDeleteRequest = this.buildUpdateRequest();
+    this.deleteDialog.show();
+  }
 
-              this.toastr.error(errorMsg, 'Error', {
-                toastClass: 'ngx-toastr custom-toast error-toast'
-              });
+  confirmDelete(): void {
+    if (!this.pendingDeleteRequest) {
+      this.deleteDialog.close();
+      return;
+    }
 
-              console.error('API Error:', err);
-            }
-          });
-      } else {
+    this.deleteDialog.busy = true;
 
-        const proceed = confirm('R U Sure, U Want to Delete the selected Record?');
+    this.deleteTblItemMasterSubscription = this.tblItemMasterService.deleteTblItemMaster(this.pendingDeleteRequest)
+      .subscribe({
+        next: (response) => {
+          this.deleteDialog.busy = false;
+          this.deleteDialog.close();
+          this.pendingDeleteRequest = undefined;
 
-        if (proceed) {
-          this.deleteTblItemMasterSubscription = this.tblItemMasterService.deleteTblItemMaster(TblItemMasterUpdateRequest)
-            .subscribe({
-              next: (response) => {
-                if (response.status === 200) {
-                  this.toastr.success('Record deleted successfully!', 'Success', {
-                    toastClass: 'ngx-toastr custom-toast'
-                  });
+          if (response.status === 200) {
+            this.toastr.success('Record deleted successfully!', 'Success', {
+              toastClass: 'ngx-toastr custom-toast'
+            });
 
             this.router.navigateByUrl('mastertables/tblItemMaster');
           }

@@ -559,9 +559,15 @@
         <h1 id="gbNewOrderTitle">{{ 'OrderShopping.BUILD_YOUR_VEGETABLE_BASKET' | translate }}</h1>
         <p>{{ 'OrderShopping.SHOP_PRODUCT_FIRST_HELP' | translate }}</p>
       </div>
-      <span class="gb-hero-badge">
-        <i class="bi bi-shop-window" aria-hidden="true"></i>
-        {{ 'OrderShopping.ONE_VENDOR_PER_ORDER' | translate }}</span>
+      <aside class="gb-hero-note" *ngIf="cart.length === 0">
+        <span class="gb-hero-note-icon" aria-hidden="true">
+          <i class="bi bi-shop-window"></i>
+        </span>
+        <div class="gb-hero-note-copy">
+          <strong>{{ 'OrderShopping.SINGLE_VENDOR_BASKET_TITLE' | translate }}</strong>
+          <p>{{ 'OrderShopping.SINGLE_VENDOR_BASKET_HELP' | translate }}</p>
+        </div>
+      </aside>
     </section>
 
     <!-- Rendered after the product grid: product-first shopping. -->
@@ -738,19 +744,12 @@
             [attr.aria-pressed]="category === c" (click)="setCategory(c)">
              {{ (c | menuCaption:'OrderShopping') }} </button>
         </div>
-        <div class="gb-vendor-filters" role="group" [attr.aria-label]="'OrderShopping.FILTER_BY_VENDOR' | translate">
-          <span class="gb-vendor-filters-label">
-            <i class="bi bi-shop" aria-hidden="true"></i>
-            {{ 'OrderShopping.FILTER_BY_VENDOR' | translate }}
-          </span>
-          <button type="button" class="gb-vendor-chip" [class.active]="vendorFilter === 'all'"
-            [attr.aria-pressed]="vendorFilter === 'all'" (click)="setVendorFilter('all')">
-            {{ 'OrderShopping.ALL_VENDORS' | translate }}
-          </button>
+        <div class="gb-vendor-filters" role="group" *ngIf="vendorOptions.length > 0"
+          [attr.aria-label]="'OrderShopping.FILTER_BY_VENDOR' | translate">
           <button type="button" class="gb-vendor-chip" *ngFor="let vendor of vendorOptions"
             [class.active]="vendorFilter === vendor.fldId" [attr.aria-pressed]="vendorFilter === vendor.fldId"
             (click)="setVendorFilter(vendor.fldId)">
-            {{ vendor.fldDescription }}
+            <span class="gb-vendor-chip-name">{{ vendor.fldDescription }}</span>
             <span class="gb-vendor-chip-count">{{ vendorStockCount(vendor.fldId) }}</span>
           </button>
         </div>
@@ -773,8 +772,21 @@
 
       <div class="gb-catalog-heading" *ngIf="!loading && stock.length > 0">
         <div>
-          <h2>{{ 'OrderShopping.AVAILABLE_VEGETABLES' | translate }}</h2>
+          <h2>{{ (category === 'All' ? ('OrderShopping.ALL_ITEMS' | translate) : (category | menuCaption:'OrderShopping')) }}</h2>
           <p>{{ ('OrderShopping.VALUE_VALUE_AVAILABLE' | translate:{p0: (visibleStock.length), p1: ((visibleStock.length === 1 ? ('OrderShopping.ITEM' | translate) : ('OrderShopping.ITEMS' | translate)))}) }}</p>
+        </div>
+        <div class="gb-view-toggle" role="group" [attr.aria-label]="'OrderShopping.VIEW_LAYOUT' | translate">
+          <span class="gb-view-toggle-label" aria-hidden="true">{{ 'OrderShopping.VIEW' | translate }}</span>
+          <button type="button" [class.active]="viewMode === 'grid'" [attr.aria-pressed]="viewMode === 'grid'"
+            [attr.aria-label]="'OrderShopping.GRID_VIEW' | translate" (click)="setViewMode('grid')">
+            <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+            <span>{{ 'OrderShopping.GRID_VIEW' | translate }}</span>
+          </button>
+          <button type="button" [class.active]="viewMode === 'list'" [attr.aria-pressed]="viewMode === 'list'"
+            [attr.aria-label]="'OrderShopping.LIST_VIEW' | translate" (click)="setViewMode('list')">
+            <i class="bi bi-list-ul" aria-hidden="true"></i>
+            <span>{{ 'OrderShopping.LIST_VIEW' | translate }}</span>
+          </button>
         </div>
       </div>
 
@@ -793,7 +805,44 @@
         <p>{{ 'OrderShopping.NO_AVAILABLE_VEGETABLES_MATCH_YOUR_SEARCH' | translate }}</p>
       </div>
 
-      <section class="gb-products" *ngIf="visibleStock.length > 0" [attr.aria-label]="'OrderShopping.AVAILABLE_VEGETABLES' | translate">
+      <ng-template #itemControls let-item>
+        <div class="gb-quantity-entry" *ngIf="!item.fldAllowFlatRupeeValueBooking">
+          <label class="gb-entry-label" [attr.for]="'gbQty-' + item.fldId">{{ 'OrderShopping.QUANTITY' | translate }}</label>
+          <div class="gb-quantity">
+            <button type="button" [attr.aria-label]="('OrderShopping.DECREASE_VALUE' | translate:{p0: (item.fldItemName)})" (click)="adjust(item, -1)"
+              [disabled]="quantityFor(item.fldId) <= 0">−</button>
+            <input [id]="'gbQty-' + item.fldId" type="number" inputmode="decimal" class="gb-quantity-input"
+              min="0" [class.gb-input-invalid]="hasQuantityError(item)"
+              [attr.aria-invalid]="hasQuantityError(item)"
+              [attr.aria-describedby]="hasQuantityError(item) ? 'gbQtyError-' + item.fldId : null"
+              [max]="item.fldAvailableStock" [step]="step(item)" [value]="quantityFor(item.fldId)"
+              [attr.aria-label]="('OrderShopping.QUANTITY_FOR_VALUE' | translate:{p0: (item.fldItemName)})"
+              (input)="onQuantityInput(item, $any($event.target).value)"
+              (change)="setQuantity(item, $any($event.target).value)" />
+            <button type="button" [attr.aria-label]="('OrderShopping.INCREASE_VALUE' | translate:{p0: (item.fldItemName)})" (click)="adjust(item, 1)"
+              [disabled]="quantityFor(item.fldId) + 1 > item.fldAvailableStock">+</button>
+          </div>
+          <p class="gb-field-error" [id]="'gbQtyError-' + item.fldId" role="alert"
+            *ngIf="quantityErrorFor(item) as error">
+            <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+             {{ (error | menuCaption:'OrderShopping') }} </p>
+          <small *ngIf="item.fldAllowFractionalQuantity">{{ ('OrderShopping.STEP_VALUE' | translate:{p0: (step(item))}) }}</small>
+          <small *ngIf="!item.fldAllowFractionalQuantity">{{ 'OrderShopping.WHOLE_NUMBERS_ONLY' | translate }}</small>
+        </div>
+
+        <div class="gb-flat-booking" *ngIf="item.fldAllowFlatRupeeValueBooking">
+          <label class="gb-entry-label" [attr.for]="'gbAmount-' + item.fldId">{{ 'OrderShopping.ENTER_AMOUNT' | translate }}</label>
+          <input [id]="'gbAmount-' + item.fldId" type="number" class="gb-input" min="0" step="0.01"
+            [max]="item.fldAvailableStock * item.fldSellingRate" [value]="flatValueFor(item.fldId)"
+            (change)="setFlatValue(item, $any($event.target).value)" />
+          <small *ngIf="flatValueFor(item.fldId) > 0">
+             ≈ {{ quantityFor(item.fldId) | number:'1.0-3' }} {{ item.fldBaseUnit }} </small>
+          <small>{{ ('OrderShopping.MAXIMUM_VALUE' | translate:{p0: (item.fldAvailableStock * item.fldSellingRate | number:'1.2-2')}) }}</small>
+        </div>
+      </ng-template>
+
+      <section class="gb-products" *ngIf="visibleStock.length > 0 && viewMode === 'grid'"
+        [attr.aria-label]="category === 'All' ? ('OrderShopping.ALL_ITEMS' | translate) : (category | menuCaption:'OrderShopping')">
         <article class="gb-product" *ngFor="let item of visibleStock">
           <img class="gb-product-image" [src]="imageUrl(item.fldItemImagePath)" [alt]="item.fldItemName"
             loading="lazy" (error)="onImageError($event)" />
@@ -822,38 +871,45 @@
             </div>
           </div>
 
-          <div class="gb-quantity-entry" *ngIf="!item.fldAllowFlatRupeeValueBooking">
-            <label class="gb-entry-label" [attr.for]="'gbQty-' + item.fldId">{{ 'OrderShopping.QUANTITY' | translate }}</label>
-            <div class="gb-quantity">
-              <button type="button" [attr.aria-label]="('OrderShopping.DECREASE_VALUE' | translate:{p0: (item.fldItemName)})" (click)="adjust(item, -1)"
-                [disabled]="quantityFor(item.fldId) <= 0">−</button>
-              <input [id]="'gbQty-' + item.fldId" type="number" inputmode="decimal" class="gb-quantity-input"
-                min="0" [class.gb-input-invalid]="hasQuantityError(item)"
-                [attr.aria-invalid]="hasQuantityError(item)"
-                [attr.aria-describedby]="hasQuantityError(item) ? 'gbQtyError-' + item.fldId : null"
-                [max]="item.fldAvailableStock" [step]="step(item)" [value]="quantityFor(item.fldId)"
-                [attr.aria-label]="('OrderShopping.QUANTITY_FOR_VALUE' | translate:{p0: (item.fldItemName)})"
-                (input)="onQuantityInput(item, $any($event.target).value)"
-                (change)="setQuantity(item, $any($event.target).value)" />
-              <button type="button" [attr.aria-label]="('OrderShopping.INCREASE_VALUE' | translate:{p0: (item.fldItemName)})" (click)="adjust(item, 1)"
-                [disabled]="quantityFor(item.fldId) + 1 > item.fldAvailableStock">+</button>
+          <ng-container *ngTemplateOutlet="itemControls; context: {$implicit: item}"></ng-container>
+        </article>
+      </section>
+
+      <section class="gb-item-list" *ngIf="visibleStock.length > 0 && viewMode === 'list'"
+        [attr.aria-label]="category === 'All' ? ('OrderShopping.ALL_ITEMS' | translate) : (category | menuCaption:'OrderShopping')">
+        <div class="gb-item-list-head" aria-hidden="true">
+          <span>{{ 'OrderShopping.ITEM_2' | translate }}</span>
+          <span>{{ 'OrderShopping.PRICE' | translate }}</span>
+          <span>{{ 'OrderShopping.QUANTITY' | translate }}</span>
+        </div>
+
+        <article class="gb-item-row" *ngFor="let item of visibleStock">
+          <div class="gb-item-row-info">
+            <span class="gb-product-vendor" [class.gb-product-vendor-current]="cart.length > 0 && cartVendorId === item.fldFKVendorId">
+              <i class="bi" [ngClass]="cart.length > 0 && cartVendorId === item.fldFKVendorId ? 'bi-check-circle-fill' : 'bi-shop'" aria-hidden="true"></i>
+              {{ vendorNameFor(item) }}
+            </span>
+            <div class="gb-item-row-title">
+              <strong>{{ item.fldItemName }}</strong>
+              <small class="gb-product-alt" *ngIf="item.fldItemNameTamil">{{ item.fldItemNameTamil }}</small>
             </div>
-            <p class="gb-field-error" [id]="'gbQtyError-' + item.fldId" role="alert"
-              *ngIf="quantityErrorFor(item) as error">
-              <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
-               {{ (error | menuCaption:'OrderShopping') }} </p>
-            <small *ngIf="item.fldAllowFractionalQuantity">{{ ('OrderShopping.STEP_VALUE' | translate:{p0: (step(item))}) }}</small>
-            <small *ngIf="!item.fldAllowFractionalQuantity">{{ 'OrderShopping.WHOLE_NUMBERS_ONLY' | translate }}</small>
+            <div class="gb-product-chips">
+              <span class="gb-chip">
+                <i class="bi bi-box-seam" aria-hidden="true"></i>
+                {{ ('OrderShopping.VALUE_VALUE_AVAILABLE' | translate:{p0: (item.fldAvailableStock | number:'1.0-3'), p1: (item.fldBaseUnit)}) }}</span>
+              <span class="gb-chip gb-chip-selected" *ngIf="quantityFor(item.fldId) > 0">
+                <i class="bi bi-check-circle" aria-hidden="true"></i>
+                {{ ('OrderShopping.SELECTED_VALUE' | translate:{p0: ((flatValueFor(item.fldId) > 0 ? (flatValueFor(item.fldId) | number:'1.2-2') : (quantityFor(item.fldId) * item.fldSellingRate | number:'1.2-2')))}) }}</span>
+            </div>
           </div>
 
-          <div class="gb-flat-booking" *ngIf="item.fldAllowFlatRupeeValueBooking">
-            <label class="gb-entry-label" [attr.for]="'gbAmount-' + item.fldId">{{ 'OrderShopping.ENTER_AMOUNT' | translate }}</label>
-            <input [id]="'gbAmount-' + item.fldId" type="number" class="gb-input" min="0" step="0.01"
-              [max]="item.fldAvailableStock * item.fldSellingRate" [value]="flatValueFor(item.fldId)"
-              (change)="setFlatValue(item, $any($event.target).value)" />
-            <small *ngIf="flatValueFor(item.fldId) > 0">
-               ≈ {{ quantityFor(item.fldId) | number:'1.0-3' }} {{ item.fldBaseUnit }} </small>
-            <small>{{ ('OrderShopping.MAXIMUM_VALUE' | translate:{p0: (item.fldAvailableStock * item.fldSellingRate | number:'1.2-2')}) }}</small>
+          <div class="gb-item-row-price">
+            <strong>₹{{ item.fldSellingRate | number:'1.2-2' }}</strong>
+            <small>/ {{ item.fldBaseUnit }}</small>
+          </div>
+
+          <div class="gb-item-row-controls">
+            <ng-container *ngTemplateOutlet="itemControls; context: {$implicit: item}"></ng-container>
           </div>
         </article>
       </section>
@@ -933,59 +989,62 @@
                    {{ cart.length }} {{ (cart.length === 1 ? ('OrderShopping.ITEM' | translate) : ('OrderShopping.ITEMS' | translate)) }} </span>
               </div>
 
-              <article class="gb-product gb-checkout-item" *ngFor="let line of cart">
-                <img class="gb-product-image" [src]="imageUrl(line.stock.fldItemImagePath)"
-                  [alt]="line.stock.fldItemName" (error)="onImageError($event)" />
+              <div class="gb-checkout-items-scroll" role="region" tabindex="0"
+                [attr.aria-label]="'OrderShopping.YOUR_ITEMS' | translate">
+                <article class="gb-product gb-checkout-item" *ngFor="let line of cart">
+                  <img class="gb-product-image" [src]="imageUrl(line.stock.fldItemImagePath)"
+                    [alt]="line.stock.fldItemName" (error)="onImageError($event)" />
 
-                <div class="gb-product-info">
-                  <strong>{{ line.stock.fldItemName }}</strong>
-                  <small>
-                     ₹{{ line.stock.fldSellingRate | number:'1.2-2' }} / {{ line.stock.fldBaseUnit }} </small>
-                  <small>
-                    {{ ('OrderShopping.AVAILABLE_VALUE_VALUE' | translate:{p0: (line.stock.fldAvailableStock | number:'1.0-3'), p1: (line.stock.fldBaseUnit)}) }}</small>
-                </div>
-
-                <div class="gb-cart-actions">
-                  <div class="gb-quantity" *ngIf="!line.stock.fldAllowFlatRupeeValueBooking">
-                    <button type="button" [attr.aria-label]="('OrderShopping.DECREASE_VALUE' | translate:{p0: (line.stock.fldItemName)})"
-                      (click)="adjust(line.stock, -1)" [disabled]="line.quantity <= 0">−</button>
-                    <input type="number" inputmode="decimal" class="gb-quantity-input" min="0"
-                      [max]="line.stock.fldAvailableStock"
-                      [class.gb-input-invalid]="hasQuantityError(line.stock)"
-                      [attr.aria-invalid]="hasQuantityError(line.stock)"
-                      [attr.aria-describedby]="hasQuantityError(line.stock) ? 'gbQtyError-' + line.stock.fldId : null"
-                      [step]="step(line.stock)" [value]="line.quantity"
-                      [attr.aria-label]="('OrderShopping.QUANTITY_FOR_VALUE' | translate:{p0: (line.stock.fldItemName)})"
-                      (input)="onQuantityInput(line.stock, $any($event.target).value)"
-                      (change)="setQuantity(line.stock, $any($event.target).value)" />
-                    <button type="button" [attr.aria-label]="('OrderShopping.INCREASE_VALUE' | translate:{p0: (line.stock.fldItemName)})"
-                      (click)="adjust(line.stock, 1)"
-                      [disabled]="line.quantity + 1 > line.stock.fldAvailableStock">+</button>
-                  </div>
-
-                  <p class="gb-field-error" [id]="'gbQtyError-' + line.stock.fldId" role="alert"
-                    *ngIf="quantityErrorFor(line.stock) as error">
-                    <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
-                     {{ (error | menuCaption:'OrderShopping') }} </p>
-
-                  <div class="gb-flat-booking" *ngIf="line.stock.fldAllowFlatRupeeValueBooking">
-                    <label [attr.for]="'gbCheckoutAmount-' + line.stock.fldId">{{ 'OrderShopping.AMOUNT' | translate }}</label>
-                    <input [id]="'gbCheckoutAmount-' + line.stock.fldId" type="number" class="gb-input" min="0"
-                      step="0.01" [max]="line.stock.fldAvailableStock * line.stock.fldSellingRate"
-                      [value]="line.flatRupeeBookingValue"
-                      (change)="setFlatValue(line.stock, $any($event.target).value)" />
+                  <div class="gb-product-info">
+                    <strong>{{ line.stock.fldItemName }}</strong>
                     <small>
-                      {{ ('OrderShopping.QUANTITY_VALUE_VALUE' | translate:{p0: (line.quantity | number:'1.0-3'), p1: (line.stock.fldBaseUnit)}) }}</small>
+                       ₹{{ line.stock.fldSellingRate | number:'1.2-2' }} / {{ line.stock.fldBaseUnit }} </small>
+                    <small>
+                      {{ ('OrderShopping.AVAILABLE_VALUE_VALUE' | translate:{p0: (line.stock.fldAvailableStock | number:'1.0-3'), p1: (line.stock.fldBaseUnit)}) }}</small>
                   </div>
 
-                  <strong class="gb-cart-line-total">₹{{ lineTotal(line) | number:'1.2-2' }}</strong>
+                  <div class="gb-cart-actions">
+                    <div class="gb-quantity" *ngIf="!line.stock.fldAllowFlatRupeeValueBooking">
+                      <button type="button" [attr.aria-label]="('OrderShopping.DECREASE_VALUE' | translate:{p0: (line.stock.fldItemName)})"
+                        (click)="adjust(line.stock, -1)" [disabled]="line.quantity <= 0">−</button>
+                      <input type="number" inputmode="decimal" class="gb-quantity-input" min="0"
+                        [max]="line.stock.fldAvailableStock"
+                        [class.gb-input-invalid]="hasQuantityError(line.stock)"
+                        [attr.aria-invalid]="hasQuantityError(line.stock)"
+                        [attr.aria-describedby]="hasQuantityError(line.stock) ? 'gbQtyError-' + line.stock.fldId : null"
+                        [step]="step(line.stock)" [value]="line.quantity"
+                        [attr.aria-label]="('OrderShopping.QUANTITY_FOR_VALUE' | translate:{p0: (line.stock.fldItemName)})"
+                        (input)="onQuantityInput(line.stock, $any($event.target).value)"
+                        (change)="setQuantity(line.stock, $any($event.target).value)" />
+                      <button type="button" [attr.aria-label]="('OrderShopping.INCREASE_VALUE' | translate:{p0: (line.stock.fldItemName)})"
+                        (click)="adjust(line.stock, 1)"
+                        [disabled]="line.quantity + 1 > line.stock.fldAvailableStock">+</button>
+                    </div>
 
-                  <button type="button" class="gb-remove" [attr.aria-label]="('OrderShopping.REMOVE_VALUE' | translate:{p0: (line.stock.fldItemName)})"
-                    (click)="remove(line.stock.fldId)">
-                    <i class="bi bi-trash3" aria-hidden="true"></i>
-                    {{ 'OrderShopping.REMOVE' | translate }}</button>
-                </div>
-              </article>
+                    <p class="gb-field-error" [id]="'gbQtyError-' + line.stock.fldId" role="alert"
+                      *ngIf="quantityErrorFor(line.stock) as error">
+                      <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                       {{ (error | menuCaption:'OrderShopping') }} </p>
+
+                    <div class="gb-flat-booking" *ngIf="line.stock.fldAllowFlatRupeeValueBooking">
+                      <label [attr.for]="'gbCheckoutAmount-' + line.stock.fldId">{{ 'OrderShopping.AMOUNT' | translate }}</label>
+                      <input [id]="'gbCheckoutAmount-' + line.stock.fldId" type="number" class="gb-input" min="0"
+                        step="0.01" [max]="line.stock.fldAvailableStock * line.stock.fldSellingRate"
+                        [value]="line.flatRupeeBookingValue"
+                        (change)="setFlatValue(line.stock, $any($event.target).value)" />
+                      <small>
+                        {{ ('OrderShopping.QUANTITY_VALUE_VALUE' | translate:{p0: (line.quantity | number:'1.0-3'), p1: (line.stock.fldBaseUnit)}) }}</small>
+                    </div>
+
+                    <strong class="gb-cart-line-total">₹{{ lineTotal(line) | number:'1.2-2' }}</strong>
+
+                    <button type="button" class="gb-remove" [attr.aria-label]="('OrderShopping.REMOVE_VALUE' | translate:{p0: (line.stock.fldItemName)})"
+                      (click)="remove(line.stock.fldId)">
+                      <i class="bi bi-trash3" aria-hidden="true"></i>
+                      {{ 'OrderShopping.REMOVE' | translate }}</button>
+                  </div>
+                </article>
+              </div>
             </section>
 
             <section class="gb-checkout-card" [attr.aria-label]="'OrderShopping.CUSTOMER_ADDRESS' | translate">
@@ -1080,7 +1139,14 @@
                 <strong>− ₹{{ deliverySavings | number:'1.2-2' }}</strong>
               </div>
               <div class="gb-bill-line">
-                <span>{{ 'OrderShopping.DELIVERY_CHARGES_PAYABLE' | translate }}</span>
+                <span class="gb-bill-label">
+                  {{ 'OrderShopping.DELIVERY_CHARGES_PAYABLE' | translate }}
+                  <button type="button" class="gb-bill-edit" *ngIf="!orderSaved" (click)="editDeliveryOptions()"
+                    [attr.aria-label]="'OrderShopping.EDIT_DELIVERY_OPTIONS' | translate">
+                    <i class="bi bi-pencil" aria-hidden="true"></i>
+                    {{ 'OrderShopping.EDIT' | translate }}
+                  </button>
+                </span>
                 <strong>₹{{ charge | number:'1.2-2' }}</strong>
               </div>
 

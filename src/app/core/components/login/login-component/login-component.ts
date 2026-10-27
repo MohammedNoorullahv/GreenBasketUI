@@ -60,7 +60,7 @@ export class LoginComponent {
   mobileNumber = '';
   otp = '';
   mpin = '';
-  verificationMethod: 'OTP' | 'MPIN' = 'OTP';
+  verificationMethod: 'OTP' | 'MPIN' = 'MPIN';
   readonly mpinLength = 6; // Match this to your backend MPIN policy.
   showMPIN = false;
 
@@ -203,7 +203,7 @@ export class LoginComponent {
 
           this.mpin = '';
           this.showMPIN = false;
-          this.verificationMethod = 'OTP';
+          this.verificationMethod = 'MPIN';
           this.otpSent = true;
 
           this.successMessage =
@@ -396,7 +396,7 @@ export class LoginComponent {
     if (this.isLoading) return;
     this.mpin = '';
     this.showMPIN = false;
-    this.verificationMethod = 'OTP';
+    this.verificationMethod = 'MPIN';
 
     this.otpSent = false;
     this.otp = '';

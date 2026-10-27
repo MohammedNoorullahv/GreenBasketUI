@@ -1,0 +1,129 @@
+<!-- Path: src/app/features/mastertables/tblFeedback/tbl-feedback-list/tbl-feedback-list.html -->
+<div class="container grid-page-shell">
+
+    <div class="page-header-bar">
+
+        <h1 class="page-caption">Feedbacks</h1>
+
+        <div class="page-header-center">
+            <button type="button" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'"
+                (click)="OnFormSubmit('Load All')">
+                <i class="bi bi-list-ul"></i>
+                All Records
+            </button>
+
+            <button type="button" class="btn-app btn-toggle" [disabled]="actionType === 'Active Only'"
+                (click)="OnFormSubmit('Active Only')">
+                <i class="bi bi-check-circle"></i>
+                Active Records
+            </button>
+        </div>
+
+        <div class="page-header-right">
+            <a [routerLink]="['/mastertables/tblFeedback/add']" class="btn-app btn-new">
+                <i class="bi bi-plus-lg"></i>
+                New Record
+            </a>
+        </div>
+
+    </div>
+
+    <div class="page-card">
+
+        <div class="page-header-bar-secondary">
+
+            <div class="page-header-left">
+                <button type="button" class="btn-app btn-outline">
+                    <i class="bi bi-funnel"></i>
+                    Filter
+                </button>
+
+                <button type="button" class="btn-app btn-outline">
+                    <i class="bi bi-download"></i>
+                    Export CSV
+                </button>
+            </div>
+
+            <div class="page-header-right">
+                @if (tblFeedback$ | async; as items) {
+                <span class="pagination-info">
+                    Showing {{ items.length }} of {{ items.length }} Records
+                </span>
+                }
+
+                <button type="button" class="pager-btn" disabled>
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <button type="button" class="pager-btn" disabled>
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+
+        </div>
+
+        @if (tblFeedback$ | async; as items) {
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Profile Id</th>
+                    <th>User Type</th>
+                    <th>Category</th>
+                    <th>Feedback Type</th>
+                    <th>Menu Name</th>
+                    <th>Feature Name</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>App Version</th>
+                    <th>Active</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @for (r of items; track r.fldId) {
+                <tr>
+                    <td class="cell-code">{{ r.fldId }}</td>
+                    <td>{{ r.fldFKProfileId }}</td>
+                    <td class="cell-primary">{{ r.fldUserType }}</td>
+                    <td>{{ r.fldCategory }}</td>
+                    <td>{{ r.fldFeedbackType }}</td>
+                    <td>{{ r.fldMenuName }}</td>
+                    <td>{{ r.fldFeatureName }}</td>
+                    <td>{{ r.fldSubject }}</td>
+                    <td>{{ r.fldStatus }}</td>
+                    <td class="cell-mono">{{ r.fldAppVersion }}</td>
+                    <td>
+                        <span class="badge-pill" [ngClass]="r.fldIsActive ? 'badge-success' : 'badge-muted'">
+                            {{ r.fldIsActive ? 'Yes' : 'No' }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="row-actions">
+                            <a class="icon-btn edit" title="Edit"
+                                [routerLink]="['/mastertables/tblFeedback/edit', r.fldId]"
+                                [queryParams]="{ action: 'Edit' }">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <a class="icon-btn delete" title="Delete"
+                                [routerLink]="['/mastertables/tblFeedback/edit', r.fldId]"
+                                [queryParams]="{ action: 'Delete' }">
+                                <i class="bi bi-trash3"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (items.length === 0) {
+        <p class="grid-footnote">No records found.</p>
+        }
+
+        }
+
+    </div>
+
+</div>

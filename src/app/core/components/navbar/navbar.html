@@ -96,21 +96,21 @@
 
             <a *ngIf="isAdmin" class="menu-item" routerLink="/mastertables/tblPropertyMaster"
                 routerLinkActive="active-submenu" (click)="isSidebarCollapsed = true">
-                <i class="bi bi-buildings"></i>
+                <i class="bi bi-sliders"></i>
                 <span>{{ 'MENU.PROPERTY_MASTER' | translate }}</span>
             </a>
 
 
             <a *ngIf="isAdmin" class="menu-item" routerLink="/mastertables/tblProperty"
                 routerLinkActive="active-submenu" (click)="isSidebarCollapsed = true">
-                <i class="bi bi-buildings"></i>
+                <i class="bi bi-toggles"></i>
                 <span>{{ 'MENU.PROPERTY' | translate }}</span>
             </a>
 
 
             <a *ngIf="isAdmin" class="menu-item" routerLink="/mastertables/tblMenuMaster"
                 routerLinkActive="active-submenu" (click)="isSidebarCollapsed = true">
-                <i class="bi bi-buildings"></i>
+                <i class="bi bi-list-ul"></i>
                 <span>{{ 'MENU.MENU_MASTER' | translate }}</span>
             </a>
 
@@ -164,6 +164,14 @@
 
             <a class="menu-item" routerLink="/reports" routerLinkActive="active" (click)="isSidebarCollapsed = true">
                 <i class="bi bi-pie-chart"></i> <span>{{ 'MENU.REPORTS' | translate }}</span>
+            </a>
+
+            
+
+            <a class="menu-item" routerLink="/mastertables/tblFeedback" routerLinkActive="active-submenu" 
+            (click)="isSidebarCollapsed = true">
+                <i class="bi bi-chat-square-text"></i> 
+                <span>{{ 'MENU.FEEDBACK' | translate }}</span>
             </a>
 
             <div *ngIf="isVendor" class="vendor-push-settings" style="padding:8px 12px;">

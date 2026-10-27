@@ -1,40 +1,48 @@
-import { Component, OnDestroy, ViewChild, ChangeDetectorRef, ElementRef } from '@angular/core';
+// Path: src/app/features/mastertables/tblItemMaster/tbl-item-master-add/tbl-item-master-add.ts
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
 
-import { TblItemMaster } from '../models/tblItemMaster.model';
 import { TblItemMasterAdd } from '../models/tblItemMaster-Add.model';
 import { TblItemMasterService } from '../services/tbl-item-master';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TblProperty } from '../../tblProperty/models/tblProperty.model';
+import { TblPropertySharedservice } from '../../../../shared/services/tbl-property-shared-service';
+
 
 @Component({
   selector: 'app-tbl-item-master-add',
-  imports: [CommonModule, FormsModule, TranslatePipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: './tbl-item-master-add.html',
   styleUrl: './tbl-item-master-add.css',
 })
-
-export class TblItemMasterAddComponent implements OnDestroy {
+export class TblItemMasterAddComponent implements OnInit, OnDestroy {
   model: TblItemMasterAdd;
   submitAction: 'SaveAndAddNew' | 'SaveAndClose' | 'exit' = 'exit'; // default to exit
   private addTblItemMasterSubscription?: Subscription;
+  private uploadImageSubscription?: Subscription;
   @ViewChild('form') form!: NgForm;
-  @ViewChild('itemImageInput') itemImageInput!: ElementRef<HTMLInputElement>;
   isSaving: boolean = false;
+  isUploading: boolean = false;
+  imageError: string = '';
 
-  selecteditemImage: File | null = null;
-
-  itemImagePreview: string | null = null;
+  // FK combo sources (parent = TblProperty, type text must match a TblPropertyMaster FldDescription)
+  tblPropertyCategoryName$?: Observable<TblProperty[]>;
+  tblPropertyItemType$?: Observable<TblProperty[]>;
+  tblPropertyItem$?: Observable<TblProperty[]>;
+  tblPropertyBaseUnit$?: Observable<TblProperty[]>;
+  tblPropertyFractionalUnit$?: Observable<TblProperty[]>;
 
   constructor(private tblItemMasterService: TblItemMasterService,
-    private router: Router, private toastr: ToastrService, private cdr: ChangeDetectorRef,
-    private translate: TranslateService) {
-    this.model = {
-      fldId: 0,
+    private tblPropertySharedService: TblPropertySharedservice,
+    private router: Router, private toastr: ToastrService, private cdr: ChangeDetectorRef) {
+    this.model = this.newModel();
+  }
+
+  private newModel(): TblItemMasterAdd {
+    return {
       fldItemName: '',
       fldItemNameUrdu: '',
       fldItemNameTamil: '',
@@ -42,174 +50,149 @@ export class TblItemMasterAddComponent implements OnDestroy {
       fldCategoryName: '',
       fldBaseUnit: '',
       fldAllowFractionalQuantity: false,
+      fldFractionalUnit: '',
       fldSubUnitLabel: '',
       fldAllowFlatRupeeValueBooking: true,
       fldMinOrderQuantityStep: 1,
       fldItemImagePath: '',
+      fldFKItem: 0,
+      fldFKItemType: 0,
+      fldFKCategoryName: 0,
+      fldFKBaseUnit: 0,
+      fldFKFractionalUnit: 0,
+      fldIsOpenPackingItem: true,
+      fldFKGroupId: 0,
+      fldConversionRatetoBaseUnit: 0,
       fldIsActive: true,
-      fldCreatedBy: 0,
-      fldCreatedDt: new Date(),
+      fldCreatedBy: 0, // AUTH-STAGE-2: server sets this from the logged-in user
+      fldCreatedDt: new Date(), // placeholder; server overwrites
     };
   }
 
-  changeLanguage(language: string) {
-    this.translate.use(language);
+  ngOnInit(): void {
+    this.tblPropertyCategoryName$ = this.tblPropertySharedService.getPropertiesByType('Item Category');
+    this.tblPropertyItemType$ = this.tblPropertySharedService.getPropertiesByType('Item Type');
+    this.tblPropertyItem$ = this.tblPropertySharedService.getPropertiesByType('Item');
+    this.tblPropertyBaseUnit$ = this.tblPropertySharedService.getPropertiesByType('Unit of Measurement');
+    this.tblPropertyFractionalUnit$ = this.tblPropertySharedService.getPropertiesByType('Unit of Measurement');
+
+    setTimeout(() => {
+      if (this.form && this.form.controls['fldFKCategoryName']) {
+        this.form.controls['fldFKCategoryName'].markAsTouched();
+      }
+    });
   }
 
-  // onFractionalQuantityChange(allowed: boolean): void {
-  //   if (!allowed) {
-  //     this.model.fldSubUnitLabel = '';
-  //     if (this.model.fldMinOrderQuantityStep != null) {
-  //       this.model.fldMinOrderQuantityStep = Math.trunc(this.model.fldMinOrderQuantityStep);
-  //     }
-  //   }
-  // }
-
-  onFractionalQuantityChange(allowed: boolean): void {
-
-    if (allowed) {
-
-      // Fractional quantity allowed
-      this.model.fldMinOrderQuantityStep = 0.1;
-
-    } else {
-
-      // Fractional quantity not allowed
-      this.model.fldSubUnitLabel = '';
-
-      this.model.fldMinOrderQuantityStep = 1;
-
-    }
-
+  // ---- FK combo handlers: store the selected Id in FldFK<X> and its text in Fld<X> ----
+  onCategoryChange(id: number, list: TblProperty[]): void {
+    const selected = list.find(p => p.fldId === Number(id));
+    this.model.fldFKCategoryName = selected ? selected.fldId : 0;
+    this.model.fldCategoryName = selected ? selected.fldDescription : '';
   }
 
-  onMinOrderQuantityChange(): void {
-    if (!this.model.fldAllowFractionalQuantity &&
-      this.model.fldMinOrderQuantityStep != null &&
-      Number.isFinite(this.model.fldMinOrderQuantityStep)) {
-      this.model.fldMinOrderQuantityStep = Math.trunc(this.model.fldMinOrderQuantityStep);
+  onItemTypeChange(id: number, list: TblProperty[]): void {
+    const selected = list.find(p => p.fldId === Number(id));
+    this.model.fldFKItemType = selected ? selected.fldId : 0;
+    this.model.fldItemType = selected ? selected.fldDescription : '';
+  }
+
+  onItemChange(id: number, list: TblProperty[]): void {
+    const selected = list.find(p => p.fldId === Number(id));
+    this.model.fldFKItem = selected ? selected.fldId : 0;
+    //this.model.fldItem = selected ? selected.fldDescription : '';
+  }
+
+  onBaseUnitChange(id: number, list: TblProperty[]): void {
+    const selected = list.find(p => p.fldId === Number(id));
+    this.model.fldFKBaseUnit = selected ? selected.fldId : 0;
+    this.model.fldBaseUnit = selected ? selected.fldDescription : '';
+  }
+
+  onFractionalUnitChange(id: number, list: TblProperty[]): void {
+    const selected = list.find(p => p.fldId === Number(id));
+    this.model.fldFKFractionalUnit = selected ? selected.fldId : 0;
+    this.model.fldFractionalUnit = selected ? selected.fldDescription : '';
+  }
+
+  // Sub Measuring Unit only applies when fractional quantity is allowed
+  onAllowFractionalChange(allowed: boolean): void {
+    if (!allowed) {
+      this.model.fldFKFractionalUnit = 0;
+      this.model.fldFractionalUnit = '';
     }
+  }
+
+  // ---- Image upload (JPG / PNG / WebP, max 5 MB) ----
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ''; // allow choosing the same file again
+
+    if (!file) {
+      return;
+    }
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      this.imageError = 'Only JPG, PNG or WebP images are allowed.';
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.imageError = 'Image size must be 5 MB or less.';
+      return;
+    }
+
+    this.imageError = '';
+    this.isUploading = true;
+    this.uploadImageSubscription?.unsubscribe();
+    this.uploadImageSubscription = this.tblItemMasterService.uploadTblItemMasterImage(file)
+      .subscribe({
+        next: (response) => {
+          this.model.fldItemImagePath = response.path;
+          this.isUploading = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.isUploading = false;
+
+          const errorMsg = err?.error?.message || err?.error || 'Image upload failed';
+
+          this.toastr.error(errorMsg, 'Error', {
+            toastClass: 'ngx-toastr custom-toast error-toast'
+          });
+
+          console.error('API Error:', err);
+        }
+      });
+  }
+
+  removeImage(): void {
+    this.model.fldItemImagePath = '';
+    this.imageError = '';
+  }
+
+  imageUrl(path?: string | null): string {
+    return this.tblItemMasterService.getItemImageUrl(path);
   }
 
   OnFormSubmit(form: NgForm, action: 'SaveAndAddNew' | 'SaveAndClose'): void {
 
-    if (this.isSaving) {
+    if (this.isSaving || this.isUploading) {
       return;
     }
 
     this.submitAction = action;
 
-    if (form.invalid) {
+    if (!this.isFormValid(form)) {
       form.control.markAllAsTouched();
-      return;
-    }
-
-    if (!this.model.fldItemName?.trim()) {
-      return;
-    }
-
-    if (!this.model.fldItemType?.trim()) {
-      return;
-    }
-
-    if (!this.model.fldCategoryName?.trim()) {
-      return;
-    }
-
-    if (!this.model.fldBaseUnit?.trim()) {
-      return;
-    }
-
-    if (!this.model.fldMinOrderQuantityStep || this.model.fldMinOrderQuantityStep <= 0) {
-      return;
-    }
-
-    if (!this.model.fldAllowFractionalQuantity) {
-      this.model.fldSubUnitLabel = '';
-    } else if (!this.model.fldSubUnitLabel?.trim()) {
-      form.controls['fldSubUnitLabel']?.markAsTouched();
-      this.toastr.error('Sub Unit Label is required when fractional quantity is allowed.');
-      return;
-    }
-
-    if (!this.model.fldAllowFractionalQuantity &&
-      !Number.isInteger(this.model.fldMinOrderQuantityStep)) {
-      form.controls['fldMinOrderQuantityStep']?.markAsTouched();
-      this.toastr.error('Min Order Quantity Step must be a whole number.');
       return;
     }
 
     this.isSaving = true;
 
-    const formData = new FormData();
-
-    formData.append(
-      'FldItemName',
-      this.model.fldItemName
-    );
-
-    formData.append(
-      'FldItemNameTamil',
-      this.model.fldItemNameTamil
-    );
-
-    formData.append(
-      'FldItemNameUrdu',
-      this.model.fldItemNameUrdu
-    );
-
-    formData.append(
-      'FldItemType',
-      this.model.fldItemType
-    );
-
-    formData.append(
-      'FldCategoryName',
-      this.model.fldCategoryName
-    );
-
-    formData.append(
-      'FldBaseUnit',
-      this.model.fldBaseUnit
-    );
-
-    formData.append(
-      'FldAllowFractionalQuantity',
-      String(this.model.fldAllowFractionalQuantity)
-    );
-
-    formData.append(
-      'FldSubUnitLabel',
-      this.model.fldSubUnitLabel ?? ''
-    );
-
-    formData.append(
-      'FldAllowFlatRupeeValueBooking',
-      String(this.model.fldAllowFlatRupeeValueBooking)
-    );
-
-    formData.append(
-      'FldMinOrderQuantityStep',
-      String(this.model.fldMinOrderQuantityStep)
-    );
-
-    // Attach selected image
-
-    if (this.selecteditemImage) {
-
-      formData.append(
-        'ItemImage',
-        this.selecteditemImage,
-        this.selecteditemImage.name
-      );
-
-    }
-
-    // Submit to API
-
-    this.addTblItemMasterSubscription = this.tblItemMasterService.addTblItemMaster(formData)
+    this.addTblItemMasterSubscription = this.tblItemMasterService.addTblItemMaster(this.model)
       .subscribe({
-        next: (response) => {
+        next: () => {
           this.isSaving = false;
 
           this.toastr.success('Record saved successfully!', 'Success', {
@@ -237,29 +220,18 @@ export class TblItemMasterAddComponent implements OnDestroy {
       });
   }
 
-  resetForm(): void {
-    // Keep all shared item settings for the next entry.
-    this.model.fldId = 0;
-    this.model.fldItemName = '';
-    this.model.fldItemNameUrdu = '',
-      this.model.fldItemNameTamil = '',
-      this.model.fldItemImagePath = '';
-    this.model.fldCreatedBy = 0;
-    this.model.fldCreatedDt = new Date();
-
-    this.selecteditemImage = null;
-    this.itemImagePreview = null;
-    if (this.itemImageInput) {
-      this.itemImageInput.nativeElement.value = '';
-    }
-
-    // Reset validation state without resetting the other model values.
-    this.form?.controls['fldItemName']?.reset('');
-    this.form?.form.markAsPristine();
-    this.form?.form.markAsUntouched();
-
+  resetForm() {
+    this.model = this.newModel();
+    this.imageError = '';
+    this.form?.resetForm(this.model);
     setTimeout(() => {
-      document.getElementById('fldItemName')?.focus();
+      if (this.form && this.form.controls['fldFKCategoryName']) {
+        this.form.controls['fldFKCategoryName'].markAsTouched();
+      }
+      const firstInput = document.getElementById('fldFKCategoryName');
+      if (firstInput) {
+        firstInput.focus();
+      }
     });
   }
 
@@ -269,6 +241,7 @@ export class TblItemMasterAddComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.addTblItemMasterSubscription?.unsubscribe();
+    this.uploadImageSubscription?.unsubscribe();
   }
 
   isFormValid(form: any): boolean {
@@ -277,19 +250,19 @@ export class TblItemMasterAddComponent implements OnDestroy {
       return false;
     }
 
+    if (!this.model.fldFKCategoryName || this.model.fldFKCategoryName <= 0 || !this.model.fldCategoryName?.trim()) {
+      return false;
+    }
+
+    if (!this.model.fldFKItemType || this.model.fldFKItemType <= 0 || !this.model.fldItemType?.trim()) {
+      return false;
+    }
+
     if (!this.model.fldItemName?.trim()) {
       return false;
     }
 
-    if (!this.model.fldItemType?.trim()) {
-      return false;
-    }
-
-    if (!this.model.fldCategoryName?.trim()) {
-      return false;
-    }
-
-    if (!this.model.fldBaseUnit?.trim()) {
+    if (!this.model.fldFKBaseUnit || this.model.fldFKBaseUnit <= 0 || !this.model.fldBaseUnit?.trim()) {
       return false;
     }
 
@@ -297,87 +270,6 @@ export class TblItemMasterAddComponent implements OnDestroy {
       return false;
     }
 
-    if (this.model.fldAllowFractionalQuantity &&
-      !this.model.fldSubUnitLabel?.trim()) {
-      return false;
-    }
-
-    if (!this.model.fldAllowFractionalQuantity &&
-      !Number.isInteger(this.model.fldMinOrderQuantityStep)) {
-      return false;
-    }
-
     return true;
   }
-
-  onItemImageSelected(event: Event): void {
-
-    const input = event.target as HTMLInputElement;
-
-    const file = input.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp"
-    ];
-
-    if (!allowedTypes.includes(file.type)) {
-
-      this.toastr.error(
-        "Please select a JPG, PNG or WebP image."
-      );
-
-      input.value = "";
-
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-
-      this.toastr.error(
-        "Image size must not exceed 5 MB."
-      );
-
-      input.value = "";
-
-      return;
-    }
-
-    this.selecteditemImage = file;
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-
-      this.itemImagePreview =
-        reader.result as string;
-
-      this.cdr.detectChanges();
-
-    };
-
-    reader.readAsDataURL(file);
-
-  }
-
-  removeitemImage(
-    input: HTMLInputElement
-  ): void {
-
-    this.selecteditemImage = null;
-
-    this.itemImagePreview = null;
-
-    this.model.fldItemImagePath = "";
-
-    input.value = "";
-
-  }
-
 }
-

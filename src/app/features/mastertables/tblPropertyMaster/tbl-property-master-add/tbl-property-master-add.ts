@@ -1,13 +1,15 @@
 // Path: src/app/features/mastertables/tblPropertyMaster/tbl-property-master-add/tbl-property-master-add.ts
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, Inject, OnDestroy, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
 
 import { TblPropertyMasterAdd } from '../models/tblPropertyMaster-Add.model';
 import { TblPropertyMasterService } from '../services/tbl-property-master';
+
+import { TblPropertySharedservice } from '../../../../shared/services/tbl-property-shared-service';
 
 @Component({
   selector: 'app-tbl-property-master-add',
@@ -21,9 +23,16 @@ export class TblPropertyMasterAddComponent implements OnInit, OnDestroy {
   private addTblPropertyMasterSubscription?: Subscription;
   @ViewChild('form') form!: NgForm;
   isSaving: boolean = false;
+  isLoading = true;
+  loadError = '';
+  private readonly subscriptions = new Subscription();
+  private focusTimer?: ReturnType<typeof setTimeout>;
+  @ViewChild('descriptionInput') descriptionInput?: ElementRef<HTMLInputElement>;
 
   constructor(private tblPropertyMasterService: TblPropertyMasterService,
-    private router: Router, private toastr: ToastrService, private cdr: ChangeDetectorRef) {
+    private tblPropertySharedService: TblPropertySharedservice,
+    private router: Router, private toastr: ToastrService, private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: object) {
     this.model = this.newModel();
   }
 
@@ -39,16 +48,30 @@ export class TblPropertyMasterAddComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    setTimeout(() => {
-      if (this.form && this.form.controls['fldSlNo']) {
-        this.form.controls['fldSlNo'].markAsTouched();
+    this.loadPage();
+  }
+
+  loadPage(): void {
+    this.isLoading = true;
+    this.loadError = '';
+    this.subscriptions.add(this.tblPropertySharedService.ensureReady().subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.model.fldSlNo = this.tblPropertySharedService.getNextPropertyMasterSlNo();
+        this.focusDescription();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.isLoading = false;
+        this.loadError = 'Unable to load property data. Please retry.';
+        this.cdr.detectChanges();
       }
-    });
+    }));
   }
 
   OnFormSubmit(form: NgForm, action: 'SaveAndAddNew' | 'SaveAndClose'): void {
 
-    if (this.isSaving) {
+    if (this.isSaving || this.isLoading || !!this.loadError) {
       return;
     }
 
@@ -68,11 +91,14 @@ export class TblPropertyMasterAddComponent implements OnInit, OnDestroy {
     }
 
     this.isSaving = true;
+    const submitted = { ...this.model };
 
-    this.addTblPropertyMasterSubscription = this.tblPropertyMasterService.addTblPropertyMaster(this.model)
+    this.addTblPropertyMasterSubscription = this.tblPropertyMasterService.addTblPropertyMaster(submitted)
       .subscribe({
         next: () => {
           this.isSaving = false;
+          this.tblPropertySharedService.propertyMasterSaved(submitted.fldSlNo);
+          this.tblPropertySharedService.refreshProperties();
           
           this.toastr.success('Record saved successfully!', 'Success', {
             toastClass: 'ngx-toastr custom-toast'
@@ -99,14 +125,22 @@ export class TblPropertyMasterAddComponent implements OnInit, OnDestroy {
       });
   }
 
-  resetForm() {
-    this.model = this.newModel();
+  resetForm(): void {
+    // Keep dropdown and flags; clear only Description and Short Name.
+    this.model = {
+      ...this.model,
+      fldDescription: '',
+      fldShortName: '',
+      fldSlNo: this.tblPropertySharedService.getNextPropertyMasterSlNo()
+    };
     this.form?.resetForm(this.model);
-    setTimeout(() => {
-      // first field of the form
-      this.form?.controls['fldSlNo']?.markAsTouched();
-      document.getElementById('fldSlNo')?.focus();
-    });
+    this.focusDescription();
+  }
+
+  private focusDescription(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (this.focusTimer) clearTimeout(this.focusTimer);
+    this.focusTimer = setTimeout(() => this.descriptionInput?.nativeElement.focus());
   }
 
   backToHome(): void {
@@ -114,6 +148,8 @@ export class TblPropertyMasterAddComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+    if (this.focusTimer) clearTimeout(this.focusTimer);
     this.addTblPropertyMasterSubscription?.unsubscribe();
   }
 

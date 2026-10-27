@@ -4,11 +4,11 @@ import { MenuCaptionPipe as GbMenuCaptionPipe } from '../../../../shared/pipes/m
 import { TranslatePipe as GbPageTranslatePipe } from '@ngx-translate/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
-  ChangeDetectorRef, Component, HostListener, Input, OnChanges, OnDestroy,
-  OnInit, SimpleChanges, PLATFORM_ID, Inject
+  ChangeDetectorRef, Component, HostListener, Input, OnDestroy,
+  OnInit, PLATFORM_ID, Inject
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Subscription, map, finalize, timeout } from 'rxjs';
+import { Subscription, map, finalize, timeout, forkJoin, of, catchError } from 'rxjs';
 import * as QRCode from 'qrcode';
 import { ToastrService } from 'ngx-toastr';
 import { environment } from '../../../../../environments/environment';
@@ -38,7 +38,7 @@ type OrderDeliveryRequest = Omit<OrderShoppingRequest, 'orderHeader'> & {
   styleUrl: './tbl-order-shopping.css'
 })
 
-export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
+export class TblOrderShoppingComponent implements OnInit, OnDestroy {
   // Pass these from your authenticated customer/session and vendor selection API.
   @Input() customerId = 0;
   @Input() vendorOptions: OrderVendorOption[] = [];
@@ -52,8 +52,13 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
   requestedDeliveryDate = this.today();
   searchText = '';
   category = 'All';
+  // 'all' lets the customer browse every vendor before the basket is locked.
+  vendorFilter: number | 'all' = 'all';
   stock: OrderStockItem[] = [];
   cart: OrderCartLine[] = [];
+  // Holds an attempted line while we ask the customer to replace their
+  // current single-vendor basket.
+  pendingVendorSwitch: { item: OrderStockItem; raw: number | string; mode: 'quantity' | 'flat' } | null = null;
   // Inline, per-item quantity validation messages keyed by stock id.
   quantityErrors: { [stockId: number]: string } = {};
   loading = false;
@@ -122,6 +127,33 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
       }
       totals.set(current.fldId, { item: current, quantity });
     }
+
+    // Voice input can mention products across vendors. A basket must stay
+    // with one vendor, so reject the batch instead of silently dropping lines.
+    const voiceVendorIds = new Set(
+      Array.from(totals.values()).map(row => this.vendorIdFor(row.item))
+    );
+
+    if (voiceVendorIds.size > 1) {
+      this.toastr.warning(
+        'The voice order includes items from more than one vendor. Add items from one vendor at a time.'
+      );
+      return;
+    }
+
+    const voiceVendorId = voiceVendorIds.values().next().value as number | undefined;
+
+    if (
+      voiceVendorId &&
+      this.cart.length &&
+      this.cartVendorId !== voiceVendorId
+    ) {
+      this.toastr.warning(
+        `Your basket is with ${this.cartVendorName}. Finish or start a new basket before adding items from another vendor.`
+      );
+      return;
+    }
+
     for (const row of totals.values()) this.setQuantity(row.item, row.quantity);
     this.toastr.info('Voice quantities added. Review the cart and select delivery before saving.');
   }
@@ -182,134 +214,85 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-
-    if (
-      this.shoppingStarted &&
-      changes['vendorOptions'] &&
-      this.vendorOptions.length === 1 &&
-      !this.vendorId
-    ) {
-
-      this.changeVendor(
-        this.vendorOptions[0].fldId
-      );
-
-    }
-
-  }
-
-
   private today(): string {
     const d = new Date();
     return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   }
 
-  changeVendor(nextId: number | string): void {
-    const id = Number(nextId);
-    if (id === this.vendorId) return;
-    if (this.cart.length && !confirm('Changing vendor will clear your cart. Continue?')) return;
-    this.vendorId = id;
-    this.cart = [];
-    this.stock = [];
-    this.quantityErrors = {};
-    this.vendorProfile = null;
-    this.deliveryCharges = 0;
-    this.showCheckout = false;
-
-    // Delivery rules are vendor-specific. Start from the safe current-day
-    // defaults so an Advance option from the previous vendor cannot remain
-    // selected on a vendor that does not support it.
-    this.orderOption = 'Current Day Order';
-    this.fldOrderType = 'Normal Delivery';
-    this.requestedDeliveryDate = this.today();
-    this.upiQrDataUrl = '';
-    this.upiTransactionReference = '';
-    this.loadStock();
-    this.loadVendorProfile();
-  }
-
-  loadStock(): void {
+  /**
+   * Product-first shopping.
+   *
+   * The catalogue is built from every active vendor so the customer can pick
+   * products immediately. The vendor is locked only when the first line is
+   * added to the basket, and the basket never contains more than one vendor.
+   */
+  loadCatalog(): void {
 
     this.request?.unsubscribe();
 
-    if (!this.vendorId) {
-      this.stock = [];
+    this.stock = [];
+    this.loading = true;
+
+    const vendors = this.vendorOptions;
+
+    if (!vendors.length) {
       this.loading = false;
       return;
     }
 
-    this.loading = true;
+    let failedVendors = 0;
 
-    this.request = this.inventoryService
-      .getAvailableStockForOrder(this.vendorId)
+    const requests = vendors.map(vendor =>
+      this.inventoryService
+        .getAvailableStockForOrder(vendor.fldId)
+        .pipe(
+          map(items => this.mapStockItems(items, vendor.fldId)),
+          catchError(err => {
+            failedVendors++;
+            console.error(
+              `Unable to load stock for vendor ${vendor.fldId}:`,
+              err
+            );
+            return of([] as OrderStockItem[]);
+          })
+        )
+    );
+
+    this.request = forkJoin(requests)
+      .pipe(finalize(() => {
+        this.loading = false;
+        this.cdr.detectChanges();
+      }))
       .subscribe({
 
-        next: (items) => {
+        next: (groups) => {
 
-          console.log(
-            'Original API Stock:',
-            items
-          );
+          this.stock = groups.flat();
 
-          // Map API fields to shopping screen model.
-          this.stock = items.map(item => {
+          // A filter can outlive a refresh. Fall back to a state that is
+          // guaranteed to show products.
+          if (this.category !== 'All' && !this.categories.includes(this.category)) {
+            this.category = 'All';
+          }
 
-            const apiItem = item as OrderStockItem & {
-              fldCurrentStock?: number;
-              fldFKItemMasterId?: number;
-            };
+          if (
+            this.vendorFilter !== 'all' &&
+            !this.vendorOptions.some(vendor => vendor.fldId === this.vendorFilter)
+          ) {
+            this.vendorFilter = 'all';
+          }
 
-            return {
-
-              ...item,
-
-              // Actual available quantity returned by API.
-              fldAvailableStock: Number(
-                apiItem.fldCurrentStock ?? 0
-              ),
-
-              // Actual Item Master ID returned by API.
-              fldFKItemId: Number(
-                apiItem.fldFKItemMasterId ?? 0
-              ),
-
-              fldSellingRate: Number(
-                item.fldSellingRate ?? 0
-              )
-
-            };
-
-          }).filter(item =>
-
-            item.fldIsActive === true &&
-
-            item.fldIsAvailable === true &&
-
-            item.fldAvailableStock > 0 &&
-
-            item.fldSellingRate > 0
-
-          );
-
-          this.loading = false;
-
-          console.table(
-            this.stock.map(item => ({
-              StockId: item.fldId,
-              ItemName: item.fldItemName,
-              AvailableStock: item.fldAvailableStock,
-              SellingRate: item.fldSellingRate
-            }))
-          );
+          if (failedVendors > 0 && failedVendors < vendors.length) {
+            this.toastr.warning(
+              'Some vendor catalogues could not be loaded. Refresh to see every product.'
+            );
+          }
 
           this.cdr.detectChanges();
 
         },
 
         error: (err) => {
-
-          this.loading = false;
 
           this.stock = [];
 
@@ -322,22 +305,112 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
             'Unable to load available vegetables.'
           );
 
-          this.cdr.detectChanges();
-
         }
 
       });
 
   }
 
+  private mapStockItems(items: OrderStockItem[], vendorId: number): OrderStockItem[] {
+
+    return (items ?? []).map(item => {
+
+      const apiItem = item as OrderStockItem & {
+        fldCurrentStock?: number;
+        fldFKItemMasterId?: number;
+      };
+
+      return {
+
+        ...item,
+
+        // The catalogue is merged across vendors. Keep the owning vendor on
+        // every product, even if an older API response omits it.
+        fldFKVendorId: Number(item.fldFKVendorId ?? vendorId) || vendorId,
+
+        // Actual available quantity returned by API.
+        fldAvailableStock: Number(
+          apiItem.fldCurrentStock ?? 0
+        ),
+
+        // Actual Item Master ID returned by API.
+        fldFKItemId: Number(
+          apiItem.fldFKItemMasterId ?? 0
+        ),
+
+        fldSellingRate: Number(
+          item.fldSellingRate ?? 0
+        )
+
+      };
+
+    }).filter(item =>
+
+      item.fldIsActive === true &&
+
+      item.fldIsAvailable === true &&
+
+      item.fldAvailableStock > 0 &&
+
+      item.fldSellingRate > 0
+
+    );
+
+  }
+
+  get vendorScopedStock(): OrderStockItem[] {
+    return this.vendorFilter === 'all'
+      ? this.stock
+      : this.stock.filter(item => Number(item.fldFKVendorId) === this.vendorFilter);
+  }
+
   get categories(): string[] {
-    return ['All', ...new Set(this.stock.map(x => x.fldCategoryName || 'Other'))];
+    return ['All', ...new Set(this.vendorScopedStock.map(x => x.fldCategoryName || 'Other'))];
   }
 
   get visibleStock(): OrderStockItem[] {
-    const eligible = this.stock.filter(x =>
+    const eligible = this.vendorScopedStock.filter(x =>
       this.category === 'All' || (x.fldCategoryName || 'Other') === this.category);
     return this.searchText.trim() ? rankStock(this.searchText, eligible, eligible.length) : eligible;
+  }
+
+  get cartVendorId(): number {
+    const lineVendorId = Number(this.cart[0]?.stock.fldFKVendorId);
+    return Number.isFinite(lineVendorId) && lineVendorId > 0 ? lineVendorId : this.vendorId;
+  }
+
+  get cartVendorName(): string {
+    const id = this.cartVendorId;
+    if (!id) return '';
+    return this.vendorOptions.find(vendor => vendor.fldId === id)?.fldDescription || 'Local vendor';
+  }
+
+  get pendingVendorName(): string {
+    return this.pendingVendorSwitch
+      ? this.vendorNameFor(this.pendingVendorSwitch.item)
+      : '';
+  }
+
+  get pendingItemName(): string {
+    return this.pendingVendorSwitch?.item.fldItemName || '';
+  }
+
+  vendorNameFor(item: OrderStockItem): string {
+    const vendorId = Number(item.fldFKVendorId);
+    return this.vendorOptions.find(vendor => vendor.fldId === vendorId)?.fldDescription || 'Local vendor';
+  }
+
+  vendorStockCount(vendorId: number): number {
+    return this.stock.filter(item => Number(item.fldFKVendorId) === vendorId).length;
+  }
+
+  setVendorFilter(filter: number | 'all'): void {
+    this.vendorFilter = filter;
+    if (this.category !== 'All' && !this.categories.includes(this.category)) {
+      this.category = 'All';
+    }
+    this.clearHiddenQuantityErrors();
+    this.cdr.detectChanges();
   }
 
   readonly imageFallbackUrl = 'data:image/svg+xml,' + encodeURIComponent(
@@ -588,24 +661,50 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
       this.toastr.error('Missing Daily Inventory ID in stock API response.');
       return;
     }
+
+    // 6. A basket can only contain products from one vendor. If the customer
+    // adds an item from another vendor, ask before replacing the basket.
+    const itemVendorId = this.vendorIdFor(item);
+
+    if (
+      quantity > 0 &&
+      this.cart.length &&
+      this.cartVendorId !== itemVendorId
+    ) {
+      this.pendingVendorSwitch = {
+        item,
+        raw,
+        mode: 'quantity'
+      };
+      this.lockBackgroundScroll();
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // The first product decides the vendor for the whole order.
+    if (quantity > 0) {
+      this.lockCartVendor(item);
+    }
+
     const existingIndex = this.cart.findIndex(
       line => line.stock.fldId === item.fldId
     );
 
-    // 6. Quantity zero: remove only this vegetable.
+    // 7. Quantity zero: remove only this vegetable.
     if (quantity === 0) {
 
       this.cart = this.cart.filter(
         line => line.stock.fldId !== item.fldId
       );
 
+      this.releaseCartVendorIfEmpty();
       void this.refreshUpiQr();
       this.cdr.detectChanges();
 
       return;
     }
 
-    // 7. Prepare the updated cart line.
+    // 8. Prepare the updated cart line.
     const updatedLine: OrderCartLine = {
 
       stock: item,
@@ -655,9 +754,104 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
   remove(stockId: number): void {
     this.cart = this.cart.filter(line => line.stock.fldId !== stockId);
     this.clearQuantityErrorById(stockId);
-    if (!this.cart.length) this.showCheckout = false;
+    this.releaseCartVendorIfEmpty();
     void this.refreshUpiQr();
     this.cdr.detectChanges();
+  }
+
+  private vendorIdFor(item: OrderStockItem): number {
+    const id = Number(item.fldFKVendorId);
+    return Number.isFinite(id) && id > 0 ? id : this.vendorId;
+  }
+
+  /**
+   * Locks the basket to the product's vendor the first time an item is added.
+   * Vendor-specific delivery rules are reloaded so a previous vendor's policy
+   * can never leak into the new basket.
+   */
+  private lockCartVendor(item: OrderStockItem): void {
+    const id = this.vendorIdFor(item);
+    if (id <= 0 || this.vendorId === id) return;
+
+    this.vendorId = id;
+    this.vendorProfile = null;
+    this.deliveryCharges = 0;
+    this.orderOption = 'Current Day Order';
+    this.fldOrderType = 'Normal Delivery';
+    this.requestedDeliveryDate = this.today();
+    this.priceChangeOption = 'Get Confirmation';
+    this.upiQrDataUrl = '';
+    this.upiTransactionReference = '';
+    this.upiQrError = '';
+
+    this.loadVendorProfile();
+  }
+
+  private releaseCartVendorIfEmpty(): void {
+    if (this.cart.length) return;
+
+    this.profileRequest?.unsubscribe();
+    this.vendorId = 0;
+    this.vendorProfile = null;
+    this.deliveryCharges = 0;
+    this.orderOption = 'Current Day Order';
+    this.fldOrderType = 'Normal Delivery';
+    this.requestedDeliveryDate = this.today();
+    this.priceChangeOption = 'Get Confirmation';
+    this.showCheckout = false;
+    this.vendorFilter = 'all';
+
+    if (this.category !== 'All' && !this.categories.includes(this.category)) {
+      this.category = 'All';
+    }
+
+    this.upiQrDataUrl = '';
+    this.upiTransactionReference = '';
+    this.upiQrError = '';
+    this.upiQrLoading = false;
+  }
+
+  startNewBasket(): void {
+    this.cart = [];
+    this.quantityErrors = {};
+    this.pendingVendorSwitch = null;
+    this.releaseCartVendorIfEmpty();
+    void this.refreshUpiQr();
+    this.cdr.detectChanges();
+  }
+
+  confirmVendorSwitch(): void {
+    const pending = this.pendingVendorSwitch;
+    if (!pending) return;
+
+    this.pendingVendorSwitch = null;
+    this.unlockBackgroundScroll();
+
+    // Clear the old vendor's basket, then replay the customer's action.
+    this.cart = [];
+    this.quantityErrors = {};
+    this.releaseCartVendorIfEmpty();
+
+    if (pending.mode === 'flat') {
+      this.setFlatValue(pending.item, pending.raw);
+    } else {
+      this.setQuantity(pending.item, pending.raw);
+    }
+  }
+
+  cancelVendorSwitch(): void {
+    if (!this.pendingVendorSwitch) return;
+    this.pendingVendorSwitch = null;
+    this.unlockBackgroundScroll();
+    this.cdr.detectChanges();
+  }
+
+  scrollToDeliverySettings(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    document.getElementById('gbDeliverySettings')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
   }
 
   lineTotal(line: OrderCartLine): number {
@@ -1203,11 +1397,28 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    // 8. Find this inventory record in the cart.
-    if (!Number.isInteger(Number(item.fldId)) || Number(item.fldId) <= 0) {
-      this.toastr.error('Missing Daily Inventory ID in stock API response.');
+    // 8. Enforce the single-vendor basket rule before touching the cart.
+    const itemVendorId = this.vendorIdFor(item);
+
+    if (
+      amount > 0 &&
+      this.cart.length &&
+      this.cartVendorId !== itemVendorId
+    ) {
+      this.pendingVendorSwitch = {
+        item,
+        raw,
+        mode: 'flat'
+      };
+      this.lockBackgroundScroll();
+      this.cdr.detectChanges();
       return;
     }
+
+    if (amount > 0) {
+      this.lockCartVendor(item);
+    }
+
     const existingIndex = this.cart.findIndex(
       line => line.stock.fldId === item.fldId
     );
@@ -1219,6 +1430,7 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
         line => line.stock.fldId !== item.fldId
       );
 
+      this.releaseCartVendorIfEmpty();
       void this.refreshUpiQr();
       this.cdr.detectChanges();
 
@@ -1270,22 +1482,16 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
 
         next: (vendors: TblProfile[]) => {
 
-          this.vendorOptions = vendors.map(vendor => ({
-            fldId: vendor.fldId,
-            fldDescription: vendor.fldvVendorName?.trim() || 'Unnamed Vendor'
-          }));
+          this.vendorOptions = vendors
+            .map(vendor => ({
+              fldId: vendor.fldId,
+              fldDescription: vendor.fldvVendorName?.trim() || 'Unnamed Vendor'
+            }))
+            .sort((a, b) => a.fldDescription.localeCompare(b.fldDescription));
 
-          console.log(
-            'Loaded Vendors:',
-            this.vendorOptions
-          );
-
-          // Auto-select only when one vendor exists.
-          if (this.vendorOptions.length === 1) {
-            this.changeVendor(
-              this.vendorOptions[0].fldId
-            );
-          }
+          // Products come first: build one catalogue from every vendor.
+          // No vendor is selected or locked until the customer adds an item.
+          this.loadCatalog();
 
           this.cdr.detectChanges();
 
@@ -1297,6 +1503,8 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
             'Unable to load vendors:',
             err
           );
+
+          this.loading = false;
 
           this.toastr.error(
             'Unable to load vendor list.'
@@ -1621,6 +1829,10 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
 
     this.deliveryCharges = 0;
 
+    this.vendorFilter = 'all';
+
+    this.pendingVendorSwitch = null;
+
     this.searchText = '';
 
     this.category = 'All';
@@ -1759,6 +1971,11 @@ export class TblOrderShoppingComponent implements OnInit, OnChanges, OnDestroy {
   // Standard dialog behaviour: Escape closes the detail view.
   @HostListener('document:keydown.escape')
   onDialogEscape(): void {
+
+    if (this.pendingVendorSwitch) {
+      this.cancelVendorSwitch();
+      return;
+    }
 
     if (this.selectedPendingOrder) {
       this.closePendingOrderDetails();

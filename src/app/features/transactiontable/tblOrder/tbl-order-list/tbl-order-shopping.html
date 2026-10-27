@@ -557,36 +557,28 @@
           <i class="bi bi-bag-plus" aria-hidden="true"></i>
           {{ 'OrderShopping.NEW_ORDER_2' | translate }}</p>
         <h1 id="gbNewOrderTitle">{{ 'OrderShopping.BUILD_YOUR_VEGETABLE_BASKET' | translate }}</h1>
-        <p>{{ 'OrderShopping.SELECT_A_VENDOR_AND_DELIVERY_OPTION_THEN_ADD_FRESH_PRODUCE_TO_YOUR_CART' | translate }}</p>
+        <p>{{ 'OrderShopping.SHOP_PRODUCT_FIRST_HELP' | translate }}</p>
       </div>
       <span class="gb-hero-badge">
-        <i class="bi bi-shield-check" aria-hidden="true"></i>
-        {{ 'OrderShopping.FRESH_FROM_VERIFIED_LOCAL_VENDORS' | translate }}</span>
+        <i class="bi bi-shop-window" aria-hidden="true"></i>
+        {{ 'OrderShopping.ONE_VENDOR_PER_ORDER' | translate }}</span>
     </section>
 
-    <section class="gb-order-settings" *ngIf="!showCheckout" aria-labelledby="gbOrderSettingsTitle">
+    <!-- Rendered after the product grid: product-first shopping. -->
+    <ng-template #deliverySettings>
+    <section id="gbDeliverySettings" class="gb-order-settings" *ngIf="!showCheckout && cart.length > 0" aria-labelledby="gbOrderSettingsTitle">
       <div class="gb-settings-head">
         <div>
-          <h2 id="gbOrderSettingsTitle">{{ 'OrderShopping.ORDER_SETTINGS' | translate }}</h2>
-          <p>{{ 'OrderShopping.DELIVERY_CHARGES_AND_THE_MINIMUM_ORDER_VALUE_DEPEND_ON_THESE_CHOICES' | translate }}</p>
+          <h2 id="gbOrderSettingsTitle">{{ 'OrderShopping.DELIVERY_PREFERENCES' | translate }}</h2>
+          <p>{{ 'OrderShopping.DELIVERY_CHARGES_DEPEND_ON_YOUR_VENDOR' | translate }}</p>
         </div>
         <div class="gb-estimate" aria-live="polite">
           <i class="bi bi-clock-history" aria-hidden="true"></i>
-          <span>{{ ((deliveryEstimate | menuCaption:'OrderShopping') || ('OrderShopping.CHOOSE_A_VENDOR_TO_SEE_THE_DELIVERY_ESTIMATE' | translate)) }}</span>
+          <span>{{ ((deliveryEstimate | menuCaption:'OrderShopping') || ('OrderShopping.LOADING_VENDOR_SETTINGS' | translate)) }}</span>
         </div>
       </div>
 
       <div class="gb-settings-grid">
-        <div class="gb-field gb-field-vendor">
-          <label for="gbVendor">{{ 'OrderShopping.VENDOR' | translate }}</label>
-          <select id="gbVendor" class="gb-input" [ngModel]="vendorId" (ngModelChange)="changeVendor($event)">
-            <option [ngValue]="0">{{ 'OrderShopping.SELECT_A_VENDOR' | translate }}</option>
-            <option *ngFor="let vendor of vendorOptions" [ngValue]="vendor.fldId">
-               {{ vendor.fldDescription }} </option>
-          </select>
-          <small>{{ 'OrderShopping.STOCK_AND_PRICES_LOAD_FROM_THE_SELECTED_VENDOR' | translate }}</small>
-        </div>
-
         <fieldset class="gb-field">
           <legend>{{ 'OrderShopping.ORDER_TYPE' | translate }}</legend>
           <div class="gb-segmented">
@@ -601,7 +593,7 @@
               <span>{{ 'OrderShopping.ADVANCE' | translate }}</span>
             </label>
           </div>
-          <small *ngIf="!vendorProfile">{{ 'OrderShopping.SELECT_A_VENDOR_TO_CHECK_ADVANCE_ORDERING_AVAILABILITY' | translate }}</small>
+          <small *ngIf="!vendorProfile">{{ 'OrderShopping.LOADING_VENDOR_SETTINGS' | translate }}</small>
           <small *ngIf="vendorProfile && vendorProfile.fldvAllowAdvanceOrder !== true">
             {{ 'OrderShopping.ADVANCE_ORDERING_IS_NOT_ENABLED_FOR_THIS_VENDOR' | translate }}</small>
         </fieldset>
@@ -683,7 +675,7 @@
         <div class="gb-policy-empty" *ngIf="!vendorProfile">
           <i class="bi bi-info-circle" aria-hidden="true"></i>
           <div>
-            <strong>{{ 'OrderShopping.SELECT_A_VENDOR_TO_CONTINUE' | translate }}</strong>
+            <strong>{{ 'OrderShopping.LOADING_VENDOR_SETTINGS' | translate }}</strong>
             <p>{{ 'OrderShopping.MINIMUM_ORDER_VALUE_AND_DELIVERY_CONDITIONS_WILL_APPEAR_HERE' | translate }}</p>
           </div>
         </div>
@@ -731,6 +723,7 @@
         </ng-container>
       </div>
     </section>
+    </ng-template>
 
     <ng-container *ngIf="!showCheckout; else checkout">
 
@@ -745,18 +738,44 @@
             [attr.aria-pressed]="category === c" (click)="setCategory(c)">
              {{ (c | menuCaption:'OrderShopping') }} </button>
         </div>
+        <div class="gb-vendor-filters" role="group" [attr.aria-label]="'OrderShopping.FILTER_BY_VENDOR' | translate">
+          <span class="gb-vendor-filters-label">
+            <i class="bi bi-shop" aria-hidden="true"></i>
+            {{ 'OrderShopping.FILTER_BY_VENDOR' | translate }}
+          </span>
+          <button type="button" class="gb-vendor-chip" [class.active]="vendorFilter === 'all'"
+            [attr.aria-pressed]="vendorFilter === 'all'" (click)="setVendorFilter('all')">
+            {{ 'OrderShopping.ALL_VENDORS' | translate }}
+          </button>
+          <button type="button" class="gb-vendor-chip" *ngFor="let vendor of vendorOptions"
+            [class.active]="vendorFilter === vendor.fldId" [attr.aria-pressed]="vendorFilter === vendor.fldId"
+            (click)="setVendorFilter(vendor.fldId)">
+            {{ vendor.fldDescription }}
+            <span class="gb-vendor-chip-count">{{ vendorStockCount(vendor.fldId) }}</span>
+          </button>
+        </div>
       </section>
 
-      <div class="gb-catalog-heading" *ngIf="vendorId">
+      <div class="gb-basket-vendor" *ngIf="cart.length" role="status" aria-live="polite">
+        <span class="gb-basket-vendor-icon" aria-hidden="true">
+          <i class="bi bi-shop"></i>
+        </span>
+        <div class="gb-basket-vendor-copy">
+          <span class="gb-basket-vendor-eyebrow">{{ 'OrderShopping.YOUR_BASKET_VENDOR' | translate }}</span>
+          <strong>{{ cartVendorName }}</strong>
+          <small>{{ 'OrderShopping.SINGLE_VENDOR_BASKET_HELP' | translate }}</small>
+        </div>
+        <button type="button" class="gb-basket-vendor-change" (click)="startNewBasket()">
+          <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+          {{ 'OrderShopping.START_NEW_BASKET' | translate }}
+        </button>
+      </div>
+
+      <div class="gb-catalog-heading" *ngIf="!loading && stock.length > 0">
         <div>
           <h2>{{ 'OrderShopping.AVAILABLE_VEGETABLES' | translate }}</h2>
           <p>{{ ('OrderShopping.VALUE_VALUE_AVAILABLE' | translate:{p0: (visibleStock.length), p1: ((visibleStock.length === 1 ? ('OrderShopping.ITEM' | translate) : ('OrderShopping.ITEMS' | translate)))}) }}</p>
         </div>
-      </div>
-
-      <div class="gb-message" *ngIf="!vendorId">
-        <i class="bi bi-shop" aria-hidden="true"></i>
-        <p>{{ 'OrderShopping.SELECT_A_VENDOR_TO_LOAD_AVAILABLE_VEGETABLES' | translate }}</p>
       </div>
 
       <div class="gb-message" *ngIf="loading">
@@ -764,7 +783,12 @@
         <p>{{ 'OrderShopping.LOADING_AVAILABLE_VEGETABLES' | translate }}</p>
       </div>
 
-      <div class="gb-message" *ngIf="vendorId && !loading && visibleStock.length === 0">
+      <div class="gb-message" *ngIf="!loading && stock.length === 0">
+        <i class="bi bi-shop" aria-hidden="true"></i>
+        <p>{{ 'OrderShopping.NO_PRODUCTS_AVAILABLE' | translate }}</p>
+      </div>
+
+      <div class="gb-message" *ngIf="!loading && stock.length > 0 && visibleStock.length === 0">
         <i class="bi bi-search" aria-hidden="true"></i>
         <p>{{ 'OrderShopping.NO_AVAILABLE_VEGETABLES_MATCH_YOUR_SEARCH' | translate }}</p>
       </div>
@@ -775,6 +799,10 @@
             loading="lazy" (error)="onImageError($event)" />
 
           <div class="gb-product-info">
+            <span class="gb-product-vendor" [class.gb-product-vendor-current]="cart.length > 0 && cartVendorId === item.fldFKVendorId">
+              <i class="bi" [ngClass]="cart.length > 0 && cartVendorId === item.fldFKVendorId ? 'bi-check-circle-fill' : 'bi-shop'" aria-hidden="true"></i>
+              {{ vendorNameFor(item) }}
+            </span>
             <div class="gb-product-heading">
               <strong>{{ item.fldItemName }}</strong>
               <span class="gb-product-price">
@@ -830,6 +858,8 @@
         </article>
       </section>
 
+      <ng-container *ngTemplateOutlet="deliverySettings"></ng-container>
+
       <footer class="gb-footer" [attr.aria-label]="'OrderShopping.CART_SUMMARY' | translate">
         <div class="gb-footer-summary">
           <span class="gb-footer-cart-icon">
@@ -839,6 +869,13 @@
             <strong>₹{{ grandTotal | number:'1.2-2' }}</strong>
             <small>
               {{ ('OrderShopping.VALUE_VALUE_ITEM_TOTAL_VALUE' | translate:{p0: (cart.length), p1: ((cart.length === 1 ? ('OrderShopping.ITEM' | translate) : ('OrderShopping.ITEMS' | translate))), p2: (subtotal | number:'1.2-2')}) }}</small>
+            <span class="gb-footer-vendor" *ngIf="cart.length">
+              <i class="bi bi-shop" aria-hidden="true"></i>
+              {{ cartVendorName }}
+              <button type="button" (click)="scrollToDeliverySettings()">
+                {{ 'OrderShopping.DELIVERY_OPTIONS' | translate }}
+              </button>
+            </span>
           </div>
 
           <div class="gb-footer-progress"
@@ -873,7 +910,7 @@
               {{ 'OrderShopping.CHECKOUT' | translate }}</span>
             <h2 id="gbCheckoutTitle">{{ 'OrderShopping.REVIEW_YOUR_ORDER' | translate }}</h2>
             <p class="gb-checkout-subtitle">
-              {{ ('OrderShopping.VALUE_VALUE_FROM_VALUE' | translate:{p0: (cart.length), p1: ((cart.length === 1 ? ('OrderShopping.ITEM' | translate) : ('OrderShopping.ITEMS' | translate))), p2: ((vendorProfile?.fldFullName || ('OrderShopping.YOUR_SELECTED_VENDOR' | translate)))}) }}</p>
+              {{ ('OrderShopping.VALUE_VALUE_FROM_VALUE' | translate:{p0: (cart.length), p1: ((cart.length === 1 ? ('OrderShopping.ITEM' | translate) : ('OrderShopping.ITEMS' | translate))), p2: (cartVendorName || vendorProfile?.fldFullName || ('OrderShopping.YOUR_SELECTED_VENDOR' | translate))}) }}</p>
           </div>
           <div class="gb-checkout-title-actions">
             <button *ngIf="orderSaved" type="button" class="gb-btn gb-btn-primary"
@@ -1096,5 +1133,32 @@
       </section>
     </ng-template>
   </ng-container>
+
+  <!-- Single-vendor conflict dialog -->
+  <div class="gb-vendor-switch-backdrop" *ngIf="pendingVendorSwitch" (click)="cancelVendorSwitch()">
+    <div class="gb-vendor-switch-card" role="alertdialog" aria-modal="true"
+      aria-labelledby="gbVendorSwitchTitle" aria-describedby="gbVendorSwitchMessage"
+      (click)="$event.stopPropagation()">
+      <span class="gb-vendor-switch-icon" aria-hidden="true"><i class="bi bi-shop"></i></span>
+      <h2 id="gbVendorSwitchTitle">{{ 'OrderShopping.VENDOR_SWITCH_TITLE' | translate }}</h2>
+      <p id="gbVendorSwitchMessage">
+        {{ ('OrderShopping.VENDOR_SWITCH_BODY' | translate:{p0: cartVendorName, p1: pendingItemName, p2: pendingVendorName}) }}
+      </p>
+      <div class="gb-vendor-switch-current" aria-hidden="true">
+        <span><i class="bi bi-basket3"></i> {{ cartVendorName }}</span>
+        <i class="bi bi-arrow-right"></i>
+        <span><i class="bi bi-shop"></i> {{ pendingVendorName }}</span>
+      </div>
+      <div class="gb-vendor-switch-actions">
+        <button type="button" class="gb-vendor-switch-cancel" (click)="cancelVendorSwitch()">
+          {{ 'OrderShopping.KEEP_CURRENT_BASKET' | translate }}
+        </button>
+        <button type="button" class="gb-vendor-switch-confirm" (click)="confirmVendorSwitch()">
+          <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+          {{ 'OrderShopping.START_NEW_AND_ADD' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
 
 </div>

@@ -48,7 +48,8 @@
                         <span class="required">*</span>
                     </label>
 
-                    <div class="profile-user-types">
+                    <!-- Admin Add Profile: both types selectable -->
+                    <div class="profile-user-types" *ngIf="!isRegistration">
 
                         <!-- CUSTOMER -->
                         <label class="profile-radio">
@@ -73,7 +74,151 @@
 
                     </div>
 
+                    <!-- Public registration: locked to Customer -->
+                    <ng-container *ngIf="isRegistration">
+
+                        <div class="profile-user-types">
+
+                            <label class="profile-radio user-type-locked">
+
+                                <input type="radio" name="fldUserType" value="Customer"
+                                    [(ngModel)]="model.fldUserType" disabled />
+
+                                <i class="bi bi-person-check" aria-hidden="true"></i>
+                                Customer
+
+                            </label>
+
+                            <label class="profile-radio user-type-locked">
+
+                                <input type="radio" name="fldUserType" value="Vendor" disabled />
+
+                                <i class="bi bi-shop" aria-hidden="true"></i>
+                                Vendor
+
+                            </label>
+
+                        </div>
+
+                        <p class="user-type-note">
+
+                            <i class="bi bi-info-circle" aria-hidden="true"></i>
+
+                            <span>
+                                Registration is for customers only. Own a shop and want to sell on
+                                Green Basket?
+                            </span>
+
+                            <button type="button" class="user-type-contact-link"
+                                (click)="scrollToVendorEnquiry()">Contact us</button>
+
+                        </p>
+
+                    </ng-container>
+
                 </div>
+
+
+                <!-- =====================================================
+                     VENDOR CONTACT US (public registration only)
+                     ===================================================== -->
+                <section id="vendorEnquiryCard" class="vendor-enquiry-card" *ngIf="isRegistration">
+
+                    <h3 class="vendor-enquiry-heading">
+
+                        <i class="bi bi-shop-window" aria-hidden="true"></i>
+                        Own a shop? List with us
+
+                    </h3>
+
+                    <p class="vendor-enquiry-note">
+                        Share your shop details and our team will contact you to onboard your store.
+                    </p>
+
+                    <div class="vendor-enquiry-grid">
+
+                        <div class="vendor-enquiry-field">
+
+                            <label class="form-label" for="enquiryMobile">
+                                Mobile Number
+                                <span class="required">*</span>
+                            </label>
+
+                            <div class="profile-phone-group">
+
+                                <span class="profile-country-code">
+                                    +91
+                                </span>
+
+                                <input type="tel" id="enquiryMobile" class="form-control" name="enquiryMobile"
+                                    [(ngModel)]="vendorEnquiry.fldContactNumber"
+                                    [ngModelOptions]="{ standalone: true }" inputmode="numeric" maxlength="10"
+                                    pattern="[6-9][0-9]{9}" placeholder="Enter shop mobile number"
+                                    [disabled]="isSendingEnquiry" autocomplete="tel-national" />
+
+                            </div>
+
+                        </div>
+
+                        <div class="vendor-enquiry-field">
+
+                            <label class="form-label" for="enquiryShopName">
+                                Shop Name
+                                <span class="required">*</span>
+                            </label>
+
+                            <input type="text" id="enquiryShopName" class="form-control" name="enquiryShopName"
+                                [(ngModel)]="vendorEnquiry.fldShopName" [ngModelOptions]="{ standalone: true }"
+                                maxlength="150" placeholder="E.g. Sri Fresh Vegetables"
+                                [disabled]="isSendingEnquiry" />
+
+                        </div>
+
+                        <div class="vendor-enquiry-field">
+
+                            <label class="form-label" for="enquiryShopType">
+                                Shop Type
+                            </label>
+
+                            <select id="enquiryShopType" class="form-select" name="enquiryShopType"
+                                [(ngModel)]="vendorEnquiry.fldShopType" [ngModelOptions]="{ standalone: true }"
+                                [disabled]="isSendingEnquiry">
+
+                                <option *ngFor="let shopType of vendorShopTypes" [value]="shopType">
+                                    {{ shopType }}
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="vendor-enquiry-field vendor-enquiry-submit">
+
+                            <button type="button" class="btn-app vendor-enquiry-btn" (click)="submitVendorEnquiry()"
+                                [disabled]="isSendingEnquiry">
+
+                                <i class="bi bi-send" aria-hidden="true"></i>
+
+                                {{ isSendingEnquiry ? 'Sending...' : 'Send Request' }}
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <p class="vendor-enquiry-success" role="status" *ngIf="vendorEnquirySuccess">
+
+                        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                        {{ vendorEnquirySuccess }}
+
+                    </p>
+
+                    <p class="vendor-enquiry-error" role="alert" *ngIf="vendorEnquiryError">
+                        {{ vendorEnquiryError }}
+                    </p>
+
+                </section>
 
 
                 <!-- =================================================

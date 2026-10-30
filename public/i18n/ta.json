@@ -349,7 +349,7 @@
     "LOCAL_VENDOR": "உள்ளூர் விற்பனையாளர்"
   },
   "DailyInventoryList": {
-    "TODAY_S_VEGETABLES": "இன்றைய காய்கறிகள்",
+    "TODAY_S_VEGETABLES": "மொத்த பொருட்கள்",
     "LOADING_ALL_RECORDS": "அனைத்துப் பதிவுகளும் ஏற்றப்படுகின்றன",
     "ALL_RECORDS": "அனைத்துப் பதிவுகள்",
     "LOADING_ACTIVE_RECORDS": "செயலில் உள்ள பதிவுகள் ஏற்றப்படுகின்றன",
@@ -397,14 +397,14 @@
     "NO_RECORDS_MATCH_THE_FILTERS": "வடிகட்டிகளுக்குப் பொருந்தும் பதிவுகள் இல்லை."
   },
   "DailyInventoryAdd": {
-    "TODAY_S_VEGETABLES_STOCK_ENTRY": "இன்றைய காய்கறிகள் — இருப்புப் பதிவு",
+    "TODAY_S_VEGETABLES_STOCK_ENTRY": "மொத்த பொருட்கள் — இருப்பு பதிவு",
     "ENTER_NEW_STOCK_AND_SELLING_RATE_FOR_EACH_ITEM": "ஒவ்வொரு பொருளுக்கும் புதிய இருப்பையும் விற்பனை விலையையும் உள்ளிடவும்",
     "INVENTORY_DATE": "இருப்புத் தேதி",
     "SEARCH_VEGETABLES": "காய்கறிகளைத் தேடவும்...",
     "CHANGED_ONLY_VALUE": "மாற்றியவை மட்டும் ({{p0}})",
     "RELOAD_IS_DISABLED_WHILE_THERE_ARE_UNSAVED_CHANGES": "பதிவு செய்யாத மாற்றங்கள் இருக்கும்போது மீண்டும் ஏற்ற முடியாது",
     "REFRESH": "புதுப்பிக்கவும்",
-    "LOADING_TODAY_S_VEGETABLES": "இன்றைய காய்கறிகள் ஏற்றப்படுகின்றன...",
+    "LOADING_TODAY_S_VEGETABLES": "பொருட்கள் ஏற்றப்படுகின்றன...",
     "NO_ACTIVE_ITEMS_FOUND": "செயலில் உள்ள பொருட்கள் இல்லை.",
     "VEGETABLE": "காய்கறி",
     "AVAILABLE_STOCK": "கிடைக்கும் இருப்பு",
@@ -434,6 +434,15 @@
     "VALUE_CHANGED_ITEM_S": "{{p0}} பொருட்கள் மாற்றப்பட்டன",
     "SAVING": "பதிவு செய்யப்படுகிறது...",
     "SAVE": "பதிவு செய்யவும்",
-    "BACK": "திரும்பவும்"
+    "BACK": "திரும்பவும்",
+    "TODAY": "இன்று",
+    "TODAY_S_STOCK_VALUE": "இன்றைய இருப்பு: {{p0}}",
+    "FILTER_BY_CATEGORY": "வகையின் படி வடிகட்டவும்",
+    "INCREASE_NEW_STOCK_VALUE": "{{p0}} க்கான புதிய இருப்பை அதிகரிக்கவும்",
+    "DECREASE_NEW_STOCK_VALUE": "{{p0}} க்கான புதிய இருப்பைக் குறைக்கவும்",
+    "ITEM_TYPE": "பொருள் வகை",
+    "ALL_ITEM_TYPES": "அனைத்துப் பொருள் வகைகளும்",
+    "FILTER_BY_ITEM_TYPE": "பொருள் வகையின் படி வடிகட்டவும்",
+    "CLEAR_ITEM_TYPE_FILTER": "பொருள் வகை வடிகட்டியை நீக்கவும்"
   }
 }

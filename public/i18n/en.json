@@ -352,7 +352,7 @@
     "LOCAL_VENDOR": "Local vendor"
   },
   "DailyInventoryList": {
-    "TODAY_S_VEGETABLES": "Today's Vegetables",
+    "TODAY_S_VEGETABLES": "Total Items",
     "LOADING_ALL_RECORDS": "Loading All Records",
     "ALL_RECORDS": "All Records",
     "LOADING_ACTIVE_RECORDS": "Loading Active Records",
@@ -400,14 +400,14 @@
     "NO_RECORDS_MATCH_THE_FILTERS": "No records match the filters."
   },
   "DailyInventoryAdd": {
-    "TODAY_S_VEGETABLES_STOCK_ENTRY": "Today's Vegetables — Stock Entry",
+    "TODAY_S_VEGETABLES_STOCK_ENTRY": "Total Items — Stock Entry",
     "ENTER_NEW_STOCK_AND_SELLING_RATE_FOR_EACH_ITEM": "Enter new stock and selling rate for each item",
     "INVENTORY_DATE": "Inventory Date",
     "SEARCH_VEGETABLES": "Search vegetables...",
     "CHANGED_ONLY_VALUE": "Changed only ({{p0}})",
     "RELOAD_IS_DISABLED_WHILE_THERE_ARE_UNSAVED_CHANGES": "Reload is disabled while there are unsaved changes",
     "REFRESH": "Refresh",
-    "LOADING_TODAY_S_VEGETABLES": "Loading today's vegetables...",
+    "LOADING_TODAY_S_VEGETABLES": "Loading items...",
     "NO_ACTIVE_ITEMS_FOUND": "No active items found.",
     "VEGETABLE": "Vegetable",
     "AVAILABLE_STOCK": "Available Stock",
@@ -437,6 +437,15 @@
     "VALUE_CHANGED_ITEM_S": "{{p0}} changed item(s)",
     "SAVING": "Saving...",
     "SAVE": "Save",
-    "BACK": "Back"
+    "BACK": "Back",
+    "TODAY": "Today",
+    "TODAY_S_STOCK_VALUE": "Today's stock: {{p0}}",
+    "FILTER_BY_CATEGORY": "Filter by category",
+    "INCREASE_NEW_STOCK_VALUE": "Increase new stock for {{p0}}",
+    "DECREASE_NEW_STOCK_VALUE": "Decrease new stock for {{p0}}",
+    "ITEM_TYPE": "Item Type",
+    "ALL_ITEM_TYPES": "All Item Types",
+    "FILTER_BY_ITEM_TYPE": "Filter by item type",
+    "CLEAR_ITEM_TYPE_FILTER": "Clear item type filter"
   }
 }

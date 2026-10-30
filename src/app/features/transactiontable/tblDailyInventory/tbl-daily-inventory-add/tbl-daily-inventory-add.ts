@@ -1,21 +1,22 @@
 import { MenuCaptionPipe as GbMenuCaptionPipe } from '../../../../shared/pipes/menu-caption.pipe';
 import { TranslatePipe as GbPageTranslatePipe } from '@ngx-translate/core';
-import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { Subscription } from 'rxjs';
+import { PLATFORM_ID } from '@angular/core';
 import { environment } from '../../../../../environments/environment'; // Verify path in your project.
 import { TblDailyInventoryService } from '../services/tbl-daily-inventory';
+import { TblItemMasterService } from '../../../mastertables/tblItemMaster/services/tbl-item-master';
 
 import { StockEntryItem, StockEntryRow, DailyStockEntrySaveRow, DailyStockEntrySaveRequest } from '../models/tblDailyInventoryforStockEntry.model';
-import { ColumnFilterIconComponent } from '../../../../shared/components/column-filter-icon/column-filter-icon.component';
 
 @Component({
   selector: 'app-tbl-daily-inventory-add',
   standalone: true,
-  imports: [CommonModule, FormsModule, ColumnFilterIconComponent, GbPageTranslatePipe, GbMenuCaptionPipe],
+  imports: [CommonModule, FormsModule, GbPageTranslatePipe, GbMenuCaptionPipe],
   templateUrl: './tbl-daily-inventory-add.html',
   styleUrl: './tbl-daily-inventory-add.css',
 })
@@ -27,22 +28,59 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
   isSaving = false;
   searchText = '';
   showOnlyChanged = false;
-  columnFilters: Record<string, string> = {};
+  selectedCategory = '';
+  selectedItemType = '';
+  isMobileView = false;
+  private mediaQuery: MediaQueryList | null = null;
+  private readonly mobileBreakpointQuery = '(max-width: 767.98px)';
+  private onMediaChange = (event: MediaQueryListEvent): void => {
+    this.isMobileView = event.matches;
+  };
   private subscriptions = new Subscription();
+  // Stock API rows may not carry the item type; join it from item master by fldFKItemMasterId.
+  private itemTypeById = new Map<number, string>();
   readonly imageBaseUrl = environment.apiBaseUrl.trim().replace(/\/+$/, '').replace(/\/api$/i, '');
   fldInventoryDate = Date;
 
   constructor(
     private inventoryService: TblDailyInventoryService,
+    private itemMasterService: TblItemMasterService,
     private router: Router,
     private toastr: ToastrService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) { }
 
   ngOnInit(): void {
+    if (isPlatformBrowser(this.platformId) && typeof window.matchMedia === 'function') {
+      this.mediaQuery = window.matchMedia(this.mobileBreakpointQuery);
+      this.isMobileView = this.mediaQuery.matches;
+      this.mediaQuery.addEventListener('change', this.onMediaChange);
+    }
     this.loadStock();
+    this.loadItemTypes();
     // this.fldInventoryDate = this.getTodayDate();
     console.log("Inventory Loaded");
+  }
+
+  private loadItemTypes(): void {
+    this.subscriptions.add(
+      this.itemMasterService.getActiveTblItemMasters().subscribe({
+        next: items => {
+          this.itemTypeById = new Map(
+            items.map(item => [item.fldId, (item.fldItemType || '').trim()])
+          );
+          if (this.selectedItemType && !this.itemTypes.some(t => t.name === this.selectedItemType)) {
+            this.selectedItemType = '';
+          }
+          this.cdr.detectChanges();
+        },
+        error: err => {
+          // Without the lookup the dropdown simply stays hidden; stock entry keeps working.
+          console.warn('Item type lookup unavailable', err);
+        },
+      })
+    );
   }
 
   private localToday(): string {
@@ -111,17 +149,93 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
             this.loadedDate = this.inventoryDate;
             this.loading = false;
 
-            
+            // Drop the category selection if it no longer exists for this date.
+            if (this.selectedCategory &&
+              !this.rows.some(r => r.fldIsDisplay && this.categoryNameOf(r) === this.selectedCategory)) {
+              this.selectedCategory = '';
+            }
+
+            // Drop the item type selection if it no longer exists within the category.
+            if (this.selectedItemType && !this.itemTypes.some(t => t.name === this.selectedItemType)) {
+              this.selectedItemType = '';
+            }
 
             this.cdr.detectChanges();
           },
           error: err => {
             this.loading = false;
-            
+
+            this.cdr.detectChanges();
+
             this.toastr.error('Unable to load stock-entry items.');
           },
         })
     );
+  }
+
+  private categoryNameOf(row: StockEntryRow): string {
+    return (row.fldCategoryName || '').trim();
+  }
+
+  private typeNameOf(row: StockEntryRow): string {
+    const direct = (row.fldType || row.fldItemType || '').trim();
+    if (direct) return direct;
+    return this.itemTypeById.get(row.fldFKItemMasterId) ?? '';
+  }
+
+  get categories(): { name: string; count: number }[] {
+    const counts = new Map<string, number>();
+    for (const row of this.rows) {
+      if (!row.fldIsDisplay) continue;
+      const name = this.categoryNameOf(row);
+      if (!name) continue;
+      counts.set(name, (counts.get(name) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([name, count]) => ({ name, count }));
+  }
+
+  setCategory(name: string): void {
+    this.selectedCategory = name;
+    // Reset the cascaded item type filter if it does not exist in the new category.
+    if (this.selectedItemType && !this.itemTypes.some(t => t.name === this.selectedItemType)) {
+      this.selectedItemType = '';
+    }
+  }
+
+  setItemType(name: string): void {
+    this.selectedItemType = name;
+  }
+
+  get itemTypes(): { name: string; count: number }[] {
+    const counts = new Map<string, number>();
+    for (const row of this.rows) {
+      if (!row.fldIsDisplay) continue;
+      if (this.selectedCategory && this.categoryNameOf(row) !== this.selectedCategory) continue;
+      const name = this.typeNameOf(row);
+      if (!name) continue;
+      counts.set(name, (counts.get(name) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([name, count]) => ({ name, count }));
+  }
+
+  get itemTypeScopeCount(): number {
+    return this.rows.filter(r =>
+      r.fldIsDisplay &&
+      (!this.selectedCategory || this.categoryNameOf(r) === this.selectedCategory)
+    ).length;
+  }
+
+  get displayedCount(): number {
+    return this.rows.filter(r => r.fldIsDisplay).length;
+  }
+
+  clearAllFilters(): void {
+    this.searchText = '';
+    this.selectedItemType = '';
   }
 
   get visibleRows(): StockEntryRow[] {
@@ -133,6 +247,12 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
       // Display only rows marked as visible
       row.fldIsDisplay &&
 
+      // Category filter (chip bar)
+      (!this.selectedCategory || this.categoryNameOf(row) === this.selectedCategory) &&
+
+      // Item type filter (cascades from the selected category)
+      (!this.selectedItemType || this.typeNameOf(row) === this.selectedItemType) &&
+
       // Existing Changed Only filter
       (!this.showOnlyChanged || this.isChanged(row)) &&
 
@@ -142,30 +262,10 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
         row.fldItemNameTamil ?? '',
         row.fldItemNameUrdu ?? '',
         row.fldCategoryName
-      ].some(text => text.toLowerCase().includes(q))) &&
-
-      // Simple local column filters
-      this.matchesColumnFilter(row.fldItemName, 'fldItemName') &&
-      this.matchesColumnFilter(row.fldAvailableStock, 'fldAvailableStock') &&
-      this.matchesColumnFilter(row.fldNewStock, 'fldNewStock') &&
-      this.matchesColumnFilter(row.fldCurrentStock, 'fldCurrentStock') &&
-      this.matchesColumnFilter(row.fldSellingRate, 'fldSellingRate') &&
-      this.matchesColumnFilter(row.fldIsAvailable, 'fldIsAvailable')
+      ].some(text => text.toLowerCase().includes(q)))
 
     );
 
-  }
-
-  private matchesColumnFilter(value: unknown, key: string): boolean {
-    const filter = String(this.columnFilters[key] ?? '').trim().toLowerCase();
-
-    if (!filter) return true;
-
-    if (typeof value === 'boolean') {
-      return String(value) === filter;
-    }
-
-    return String(value ?? '').toLowerCase().includes(filter);
   }
 
   isChanged(row: StockEntryRow): boolean {
@@ -188,6 +288,26 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
 
   stockStep(row: StockEntryRow): number {
     return row.fldAllowFractionalQuantity ? (row.fldMinOrderQuantityStep || 0.1) : 1;
+  }
+
+  isEnteredToday(row: StockEntryRow): boolean {
+    return (Number(row.fldNewStock) || 0) > 0;
+  }
+
+  incrementStock(row: StockEntryRow): void {
+    const step = this.stockStep(row) || 1;
+    row.fldNewStock = this.roundToStep((Number(row.fldNewStock) || 0) + step);
+    this.quantityChanged(row);
+  }
+
+  decrementStock(row: StockEntryRow): void {
+    const step = this.stockStep(row) || 1;
+    row.fldNewStock = this.roundToStep(Math.max(0, (Number(row.fldNewStock) || 0) - step));
+    this.quantityChanged(row);
+  }
+
+  private roundToStep(value: number): number {
+    return Math.round(value * 1000) / 1000;
   }
 
   private invalidRow(row: StockEntryRow): string | null {
@@ -236,6 +356,9 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
       this.inventoryService.saveDailyStockEntry(payload).subscribe({
         next: () => {
           this.isSaving = false;
+
+          this.cdr.detectChanges();
+
           this.toastr.success(`${changed.length} item(s) saved successfully.`);
           if (closeAfterSave) {
             this.backToHome();
@@ -247,6 +370,9 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
         error: err => {
           this.isSaving = false;
           console.error('Stock entry save failed', err);
+
+          this.cdr.detectChanges();
+
           this.toastr.error(err?.error?.message || 'Unable to save daily stock.');
         },
       })
@@ -265,7 +391,13 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
     this.router.navigateByUrl('transactiontables/tblDailyInventory');
   }
 
-  ngOnDestroy(): void { this.subscriptions.unsubscribe(); }
+  ngOnDestroy(): void {
+    if (this.mediaQuery) {
+      this.mediaQuery.removeEventListener('change', this.onMediaChange);
+      this.mediaQuery = null;
+    }
+    this.subscriptions.unsubscribe();
+  }
 
   readonly imageFallbackUrl = 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><rect width="80" height="80" rx="8" fill="#f1f5f0"/><path d="M18 56l16-19 11 12 8-9 12 16z" fill="#92ad91"/><circle cx="52" cy="26" r="7" fill="#92ad91"/></svg>'

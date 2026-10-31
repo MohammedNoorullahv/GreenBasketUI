@@ -5919,6 +5919,7 @@ app-tbl-order-shopping .gb-footer {
 
 .gb-order-vendor {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   min-width: 0;
@@ -5938,6 +5939,25 @@ app-tbl-order-shopping .gb-footer {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.gb-order-customer-mobile {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #0b7a3b;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.gb-order-customer-mobile i {
+  font-size: 12px;
+}
+
+.gb-order-customer-mobile:hover {
+  text-decoration: underline;
 }
 
 .gb-order-meta-label {

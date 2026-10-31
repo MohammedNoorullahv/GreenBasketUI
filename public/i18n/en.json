@@ -126,6 +126,7 @@
     "ORDER": "Order",
     "ORDER_STATUS_VALUE": "Order status: {{p0}}",
     "PENDING": "Pending",
+    "CUSTOMER": "Customer",
     "VENDOR": "Vendor",
     "NOT_ASSIGNED": "Not assigned",
     "ORDER_TOTAL": "Order total",

@@ -123,6 +123,7 @@
     "ORDER": "آرڈر",
     "ORDER_STATUS_VALUE": "آرڈر کی حالت: {{p0}}",
     "PENDING": "زیرِ التوا",
+    "CUSTOMER": "گاہک",
     "VENDOR": "دکاندار",
     "NOT_ASSIGNED": "مقرر نہیں کیا گیا",
     "ORDER_TOTAL": "آرڈر کی کل رقم",

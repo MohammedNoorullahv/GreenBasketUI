@@ -475,6 +475,33 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
     return item.fldAllowFractionalQuantity ? (Number(item.fldMinOrderQuantityStep) || 0.1) : 1;
   }
 
+  // Fractional items get a decimal keypad/input mode; all other items stay
+  // whole-number only.
+  quantityInputMode(item: OrderStockItem): 'decimal' | 'numeric' {
+    return item.fldAllowFractionalQuantity ? 'decimal' : 'numeric';
+  }
+
+  onQuantityKeydown(event: KeyboardEvent, item: OrderStockItem): void {
+    if (item.fldAllowFractionalQuantity) return;
+
+    // A number input's step does not stop a decimal (or exponent) being
+    // typed, so block those characters for whole-number items.
+    if (['.', ',', 'e', 'E', '+', '-'].includes(event.key)) {
+      event.preventDefault();
+    }
+  }
+
+  onQuantityPaste(event: ClipboardEvent, item: OrderStockItem): void {
+    if (item.fldAllowFractionalQuantity) return;
+
+    const pasted = event.clipboardData?.getData('text')?.trim() ?? '';
+
+    if (pasted && !/^\d+$/.test(pasted)) {
+      event.preventDefault();
+      this.setQuantityError(item, 'Use a whole-number quantity for this item.');
+    }
+  }
+
   quantityFor(stockId: number): number {
 
     const line = this.cart.find(
@@ -565,6 +592,16 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
   onQuantityInput(item: OrderStockItem, raw: number | string): void {
     const quantity = Number(raw);
     const availableStock = Number(item.fldAvailableStock);
+
+    if (
+      raw !== '' &&
+      Number.isFinite(quantity) &&
+      !item.fldAllowFractionalQuantity &&
+      !Number.isInteger(quantity)
+    ) {
+      this.setQuantityError(item, 'Use a whole-number quantity for this item.');
+      return;
+    }
 
     if (
       raw !== '' &&
@@ -759,10 +796,11 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
 
   }
 
-  // The + and - buttons always adjust by one base unit.
+  // Move by the item's configured quantity step so fractional items can be
+  // adjusted without typing a decimal value.
   adjust(item: OrderStockItem, direction: -1 | 1): void {
-    const next = this.quantityFor(item.fldId) + direction;
-    this.setQuantity(item, Math.max(0, next));
+    const next = this.quantityFor(item.fldId) + direction * this.step(item);
+    this.setQuantity(item, Math.max(0, Math.round(next * 1000) / 1000));
   }
 
   remove(stockId: number): void {
@@ -2184,13 +2222,13 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (
-      !confirm(
-        `Update this order to "${nextStatus}"?`
-      )
-    ) {
-      return;
-    }
+    // if (
+    //   !confirm(
+    //     `Update this order to "${nextStatus}"?`
+    //   )
+    // ) {
+    //   return;
+    // }
 
     console.log("Order Id", order.fldOrderId, "Next Status :", nextStatus)
     this.updatingOrderId =

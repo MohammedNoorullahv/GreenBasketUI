@@ -811,16 +811,18 @@
           <div class="gb-quantity">
             <button type="button" [attr.aria-label]="('OrderShopping.DECREASE_VALUE' | translate:{p0: (item.fldItemName)})" (click)="adjust(item, -1)"
               [disabled]="quantityFor(item.fldId) <= 0">−</button>
-            <input [id]="'gbQty-' + item.fldId" type="number" inputmode="decimal" class="gb-quantity-input"
+            <input [id]="'gbQty-' + item.fldId" type="number" [attr.inputmode]="quantityInputMode(item)" class="gb-quantity-input"
               min="0" [class.gb-input-invalid]="hasQuantityError(item)"
               [attr.aria-invalid]="hasQuantityError(item)"
               [attr.aria-describedby]="hasQuantityError(item) ? 'gbQtyError-' + item.fldId : null"
               [max]="item.fldAvailableStock" [step]="step(item)" [value]="quantityFor(item.fldId)"
               [attr.aria-label]="('OrderShopping.QUANTITY_FOR_VALUE' | translate:{p0: (item.fldItemName)})"
+              (keydown)="onQuantityKeydown($event, item)"
+              (paste)="onQuantityPaste($event, item)"
               (input)="onQuantityInput(item, $any($event.target).value)"
               (change)="setQuantity(item, $any($event.target).value)" />
             <button type="button" [attr.aria-label]="('OrderShopping.INCREASE_VALUE' | translate:{p0: (item.fldItemName)})" (click)="adjust(item, 1)"
-              [disabled]="quantityFor(item.fldId) + 1 > item.fldAvailableStock">+</button>
+              [disabled]="quantityFor(item.fldId) + step(item) > item.fldAvailableStock">+</button>
           </div>
           <p class="gb-field-error" [id]="'gbQtyError-' + item.fldId" role="alert"
             *ngIf="quantityErrorFor(item) as error">
@@ -1007,18 +1009,20 @@
                     <div class="gb-quantity" *ngIf="!line.stock.fldAllowFlatRupeeValueBooking">
                       <button type="button" [attr.aria-label]="('OrderShopping.DECREASE_VALUE' | translate:{p0: (line.stock.fldItemName)})"
                         (click)="adjust(line.stock, -1)" [disabled]="line.quantity <= 0">−</button>
-                      <input type="number" inputmode="decimal" class="gb-quantity-input" min="0"
+                      <input type="number" [attr.inputmode]="quantityInputMode(line.stock)" class="gb-quantity-input" min="0"
                         [max]="line.stock.fldAvailableStock"
                         [class.gb-input-invalid]="hasQuantityError(line.stock)"
                         [attr.aria-invalid]="hasQuantityError(line.stock)"
                         [attr.aria-describedby]="hasQuantityError(line.stock) ? 'gbQtyError-' + line.stock.fldId : null"
                         [step]="step(line.stock)" [value]="line.quantity"
                         [attr.aria-label]="('OrderShopping.QUANTITY_FOR_VALUE' | translate:{p0: (line.stock.fldItemName)})"
+                        (keydown)="onQuantityKeydown($event, line.stock)"
+                        (paste)="onQuantityPaste($event, line.stock)"
                         (input)="onQuantityInput(line.stock, $any($event.target).value)"
                         (change)="setQuantity(line.stock, $any($event.target).value)" />
                       <button type="button" [attr.aria-label]="('OrderShopping.INCREASE_VALUE' | translate:{p0: (line.stock.fldItemName)})"
                         (click)="adjust(line.stock, 1)"
-                        [disabled]="line.quantity + 1 > line.stock.fldAvailableStock">+</button>
+                        [disabled]="line.quantity + step(line.stock) > line.stock.fldAvailableStock">+</button>
                     </div>
 
                     <p class="gb-field-error" [id]="'gbQtyError-' + line.stock.fldId" role="alert"

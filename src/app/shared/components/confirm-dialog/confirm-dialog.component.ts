@@ -50,7 +50,10 @@ let nextDialogId = 0;
         [attr.aria-labelledby]="titleId"
         [attr.aria-describedby]="messageId"
         (click)="$event.stopPropagation()">
-        <span class="gb-confirm-accent" aria-hidden="true"></span>
+        <span
+          class="gb-confirm-accent"
+          [ngClass]="tone === 'primary' ? 'gb-confirm-accent--primary' : 'gb-confirm-accent--danger'"
+          aria-hidden="true"></span>
 
         <button
           type="button"
@@ -62,7 +65,10 @@ let nextDialogId = 0;
         </button>
 
         <div class="gb-confirm-body">
-          <div class="gb-confirm-icon" aria-hidden="true">
+          <div
+            class="gb-confirm-icon"
+            [ngClass]="tone === 'primary' ? 'gb-confirm-icon--primary' : 'gb-confirm-icon--danger'"
+            aria-hidden="true">
             <i class="bi" [ngClass]="icon"></i>
           </div>
 
@@ -87,12 +93,13 @@ let nextDialogId = 0;
 
           <button
             type="button"
-            class="gb-confirm-btn gb-confirm-btn--danger"
+            class="gb-confirm-btn"
+            [ngClass]="tone === 'primary' ? 'gb-confirm-btn--primary' : 'gb-confirm-btn--danger'"
             [disabled]="busy"
             [attr.aria-busy]="busy"
             (click)="requestConfirm()">
             <span class="gb-confirm-spinner" *ngIf="busy" aria-hidden="true"></span>
-            <i class="bi bi-trash3" *ngIf="!busy" aria-hidden="true"></i>
+            <i class="bi" [ngClass]="confirmIcon" *ngIf="!busy" aria-hidden="true"></i>
             <span>{{ busy ? busyLabel : confirmLabel }}</span>
           </button>
         </div>
@@ -138,7 +145,14 @@ let nextDialogId = 0;
       .gb-confirm-accent {
         display: block;
         height: 5px;
+      }
+
+      .gb-confirm-accent--danger {
         background: linear-gradient(90deg, #d64545 0%, #ef7d6a 55%, #f6b3a0 100%);
+      }
+
+      .gb-confirm-accent--primary {
+        background: linear-gradient(90deg, #0a7d4b 0%, #2fa36c 55%, #7ccba0 100%);
       }
 
       .gb-confirm-close {
@@ -194,12 +208,22 @@ let nextDialogId = 0;
         width: 68px;
         height: 68px;
         margin: 0 auto 18px;
-        border: 1px solid #f7d2cc;
         border-radius: 50%;
+        font-size: 28px;
+      }
+
+      .gb-confirm-icon--danger {
+        border: 1px solid #f7d2cc;
         background: radial-gradient(circle at 32% 26%, #ffffff 0%, #fdeae6 48%, #fbd7d1 100%);
         color: #c93f3f;
-        font-size: 28px;
         box-shadow: 0 10px 24px rgba(201, 63, 63, 0.18);
+      }
+
+      .gb-confirm-icon--primary {
+        border: 1px solid #bfe4d0;
+        background: radial-gradient(circle at 32% 26%, #ffffff 0%, #e6f6ec 48%, #d2efde 100%);
+        color: #0a7d4b;
+        box-shadow: 0 10px 24px rgba(10, 125, 75, 0.18);
       }
 
       .gb-confirm-title {
@@ -304,6 +328,18 @@ let nextDialogId = 0;
       .gb-confirm-btn--danger:hover:not(:disabled) {
         background: linear-gradient(180deg, #c93d3d 0%, #a82a2a 100%);
         box-shadow: 0 10px 22px rgba(191, 52, 52, 0.32);
+      }
+
+      .gb-confirm-btn--primary {
+        border-color: #086a41;
+        background: linear-gradient(180deg, #0e8a54 0%, #0a7d4b 100%);
+        color: #ffffff;
+        box-shadow: 0 8px 18px rgba(10, 125, 75, 0.26);
+      }
+
+      .gb-confirm-btn--primary:hover:not(:disabled) {
+        background: linear-gradient(180deg, #0c7a4b 0%, #086a41 100%);
+        box-shadow: 0 10px 22px rgba(10, 125, 75, 0.32);
       }
 
       .gb-confirm-spinner {
@@ -444,6 +480,9 @@ export class ConfirmDialogComponent implements OnDestroy {
   @Input() cancelLabel = 'Cancel';
   @Input() busyLabel = 'Deleting…';
   @Input() icon = 'bi-trash3';
+  @Input() confirmIcon = 'bi-trash3';
+  /** 'danger' renders the destructive red theme, 'primary' the positive green theme. */
+  @Input() tone: 'danger' | 'primary' = 'danger';
   @Input() showWarning = true;
 
   @Output() confirmed = new EventEmitter<void>();

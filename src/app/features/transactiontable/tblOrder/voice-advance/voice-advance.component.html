@@ -1,4 +1,4 @@
-<section class="va" *ngIf="customer || vendor" aria-label="Voice ordering and advance requests">
+<section class="va" style="user-select: none;" [class.disabled]="isDisabled" aria-label="Voice ordering and advance requests">
  <details [open]="vendor">
   <summary><span>🎙</span> {{ customer ? 'Voice list & advance requests' : 'Advance requests awaiting review' }}</summary>
   <p class="notice" role="status" *ngIf="message">{{ message }}</p>

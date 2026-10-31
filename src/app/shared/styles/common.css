@@ -5733,6 +5733,36 @@ app-tbl-order-shopping .gb-footer {
   background: #fff5f5;
 }
 
+.gb-btn-icon {
+  min-width: 44px;
+  padding: 0 13px;
+  border-color: #cfe3d7;
+  background: #ffffff;
+  color: #14532d;
+}
+
+.gb-btn-icon:hover:not(:disabled) {
+  border-color: #a9cfb8;
+  background: #f2faf5;
+  color: #087d4b;
+}
+
+.gb-icon-spin {
+  animation: gb-icon-rotate .8s linear infinite;
+}
+
+@keyframes gb-icon-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gb-icon-spin {
+    animation: none;
+  }
+}
+
 .gb-btn:disabled,
 .gb-place-order-btn:disabled {
   opacity: .55;
@@ -6289,6 +6319,11 @@ app-tbl-order-shopping .gb-footer {
 
   .gb-order-actions .gb-btn {
     width: 100%;
+  }
+
+  .gb-order-actions .gb-btn.gb-btn-icon {
+    width: auto;
+    align-self: flex-end;
   }
 }
 

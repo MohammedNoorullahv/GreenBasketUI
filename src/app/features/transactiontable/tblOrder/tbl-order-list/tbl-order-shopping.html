@@ -327,6 +327,13 @@
               <i class="bi bi-receipt" aria-hidden="true"></i>
               {{ 'OrderShopping.VIEW_DETAILS' | translate }}</button>
 
+            <!-- PRINT ORDER DETAILS -->
+            <button type="button" class="gb-btn gb-btn-icon" title="Print order details" aria-label="Print order details"
+              [disabled]="printingOrderId === order.fldId" (click)="printPendingOrder(order)">
+              <i class="bi" [ngClass]="printingOrderId === order.fldId ? 'bi-arrow-repeat gb-icon-spin' : 'bi-printer'"
+                aria-hidden="true"></i>
+            </button>
+
             <!-- VENDOR: DENY PENDING ORDER -->
             <button *ngIf="isVendor && canDenyOrder(order)" type="button" class="gb-btn gb-btn-danger"
               [disabled]="updatingOrderId === order.fldId" (click)="canDenyOrder(order)">
@@ -1211,6 +1218,21 @@
               </div>
             </section>
           </aside>
+
+          <app-confirm-dialog
+            #placeOrderDialog
+            tone="primary"
+            title="Do you want to place this order?"
+            message="Your basket will be sent to the vendor for confirmation. You can track it anytime under Order History."
+            confirmLabel="Place Order"
+            cancelLabel="Cancel"
+            busyLabel="Placing order…"
+            icon="bi-bag-check"
+            confirmIcon="bi-bag-check"
+            [showWarning]="false"
+            (confirmed)="confirmPlaceOrder()">
+          </app-confirm-dialog>
+
         </div>
       </section>
     </ng-template>

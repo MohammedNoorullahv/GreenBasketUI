@@ -5,7 +5,7 @@ import { TranslatePipe as GbPageTranslatePipe } from '@ngx-translate/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectorRef, Component, HostListener, Input, OnDestroy,
-  OnInit, PLATFORM_ID, Inject
+  OnInit, PLATFORM_ID, Inject, ViewChild
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subscription, map, finalize, timeout, forkJoin, of, catchError } from 'rxjs';
@@ -20,6 +20,8 @@ import { TblProfileService } from '../../../mastertables/tblProfile/services/tbl
 import { TblOrderService } from '../services/tbl-order';
 import { TblPendingOrderDto } from '../models/tbl-pending-order.model';
 import { RouterLink } from '@angular/router';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { renderOrderReceipt } from './order-receipt';
 
 // Extend the API order-header DTO/entity/PrintOrder response with these fields.
 // The API must recompute these amounts from vendor policy before saving.
@@ -33,7 +35,7 @@ type OrderDeliveryRequest = Omit<OrderShoppingRequest, 'orderHeader'> & {
 @Component({
   selector: 'app-tbl-order-shopping',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, GbPageTranslatePipe, GbMenuCaptionPipe, VoiceAdvanceComponent],
+  imports: [CommonModule, FormsModule, RouterLink, GbPageTranslatePipe, GbMenuCaptionPipe, VoiceAdvanceComponent, ConfirmDialogComponent],
   templateUrl: './tbl-order-shopping.html',
   styleUrl: './tbl-order-shopping.css'
 })
@@ -44,6 +46,9 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
   @Input() vendorOptions: OrderVendorOption[] = [];
   @Input() deliveryCharges = 0; // MUST be calculated/validated from vendor policy on server.
   @Input() deliveryEstimate = 'Confirm with vendor';
+
+  @ViewChild('placeOrderDialog')
+  placeOrderDialog!: ConfirmDialogComponent;
 
   vendorId = 0;
   orderOption: 'Current Day Order' | 'Advance Order' = 'Current Day Order';
@@ -1643,11 +1648,24 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!confirm('Do you want to place this order?')) {
+    this.placeOrderDialog.show();
+
+  }
+
+  confirmPlaceOrder(): void {
+
+    const payload = this.requestPreview;
+
+    if (!payload) {
+      this.placeOrderDialog.close();
+      this.toastr.warning(
+        'Please select at least one vegetable.'
+      );
       return;
     }
 
     this.savingOrder = true;
+    this.placeOrderDialog.busy = true;
 
     this.orderService
       .addTblOrderwithDetail(payload)
@@ -1656,6 +1674,8 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
         next: () => {
 
           this.savingOrder = false;
+          this.placeOrderDialog.busy = false;
+          this.placeOrderDialog.close();
           this.orderSaved = true;
 
           this.toastr.success(
@@ -1674,6 +1694,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
         error: err => {
 
           this.savingOrder = false;
+          this.placeOrderDialog.busy = false;
 
           console.error(
             'Order save failed:',
@@ -1998,6 +2019,61 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
     this.unlockBackgroundScroll();
 
     this.cdr.detectChanges();
+
+  }
+
+  printingOrderId: number | null = null;
+
+  printPendingOrder(order: TblPendingOrderDto): void {
+
+    if (!isPlatformBrowser(this.platformId) || this.printingOrderId !== null) {
+      return;
+    }
+
+    // Open synchronously so the browser does not block the preview after an API call.
+    const preview = window.open('', '_blank', 'width=900,height=800');
+
+    if (!preview) {
+      this.toastr.error('Allow pop-ups for this site to print the order.');
+      return;
+    }
+
+    preview.opener = null;
+    preview.document.title = 'Order Receipt';
+    preview.document.body.textContent = 'Loading order details…';
+
+    if (order.pendingOrderdtls?.length) {
+      renderOrderReceipt(preview, order);
+      return;
+    }
+
+    // The list DTO arrived without saved items; fetch them before printing.
+    this.printingOrderId = order.fldId;
+
+    this.orderService
+      .getPrintOrder(this.userType || 'Vendor', this.profileId, order.fldOrderId)
+      .pipe(
+        timeout({ first: 15000 }),
+        finalize(() => {
+          this.printingOrderId = null;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: orders => {
+          const full = orders.find(o => Number(o.fldOrderId) === Number(order.fldOrderId));
+          if (!full) {
+            if (!preview.closed) preview.document.body.textContent = 'Receipt unavailable. Please try again.';
+            this.toastr.error('Order details are unavailable for printing.');
+            return;
+          }
+          if (!preview.closed) renderOrderReceipt(preview, { ...order, ...full });
+        },
+        error: () => {
+          if (!preview.closed) preview.document.body.textContent = 'Receipt unavailable. Please try again.';
+          this.toastr.error('Unable to load order details for printing. Please try again.');
+        }
+      });
 
   }
 

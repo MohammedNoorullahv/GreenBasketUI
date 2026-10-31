@@ -34,6 +34,7 @@ export class VoiceAdvanceComponent implements OnInit, OnChanges, OnDestroy {
  private requestId=''; private generation=0; private destroyed=false; private previousVendor=0;
  constructor(private api:VoiceAdvanceService,@Inject(PLATFORM_ID) private platform:object,private zone:NgZone,private cdr:ChangeDetectorRef) {}
  get customer(){return this.userType==='Customer';} get vendor(){return this.userType==='Vendor';}
+ get isDisabled(){return !this.customer && !this.vendor;}
  get tomorrow(){const d=new Date(); d.setDate(d.getDate()+1); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);}
  ngOnInit(){
   this.date=this.tomorrow;

@@ -216,7 +216,7 @@ export class LoginComponent {
           this.persistRememberedMobile(mobile);
 
           this.successMessage =
-            'OTP generated successfully. Enter your OTP or MPIN to continue.';
+            'Enter your MPIN to continue.';
 
           this.cdr.detectChanges();
 
@@ -238,22 +238,8 @@ export class LoginComponent {
 
   }
 
-  selectVerificationMethod(method: 'OTP' | 'MPIN'): void {
-    if (this.isLoading) return;
-    this.verificationMethod = method;
-    this.otp = '';
-    this.mpin = '';
-    this.showMPIN = false;
-    this.errorMessage = '';
-    this.successMessage = '';
-  }
-
   onMPINChange(value: string): void {
     this.mpin = value.replace(/\D/g, '').slice(0, this.mpinLength);
-  }
-
-  verifyOTP(): void {
-    this.verifyLogin();
   }
 
   verifyLogin(): void {
@@ -394,7 +380,7 @@ export class LoginComponent {
               ? `Invalid ${method}. Please try again.`
               : error.error?.message ||
               (error.status === 404 && method === 'MPIN'
-                ? 'MPIN login endpoint is unavailable. Please use OTP.'
+                ? 'MPIN verification is currently unavailable. Please try again later.'
                 : `${method} verification failed. Please try again.`);
 
           this.otp = '';
@@ -451,14 +437,6 @@ export class LoginComponent {
         break;
 
     }
-  }
-
-  onOTPChange(value: string): void {
-
-    this.otp = value
-      .replace(/\D/g, '')
-      .slice(0, 6);
-
   }
 
   onRememberMeChange(checked: boolean): void {

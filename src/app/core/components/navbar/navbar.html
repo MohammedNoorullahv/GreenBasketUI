@@ -88,7 +88,7 @@
 
         <!-- Navigation Menu Items -->
         <nav class="sidebar-menu">
-            <a class="menu-item" routerLink="/dashboard" routerLinkActive="active" (click)="isSidebarCollapsed = true">
+            <a *ngIf="isAdmin" class="menu-item" routerLink="/dashboard" routerLinkActive="active" (click)="isSidebarCollapsed = true">
                 <i class="bi bi-grid-1x2"></i> <span>Dashboard</span>
             </a>
 
@@ -152,23 +152,23 @@
                 <span>{{ 'MENU.ORDERS' | translate }}</span>
             </a>
 
-            <a *ngIf="isAdmin || isCustomer || isVendor" class="menu-item" routerLink="/concerns"
+            <a *ngIf="isAdmin" class="menu-item" routerLink="/concerns"
                 routerLinkActive="active" (click)="isSidebarCollapsed = true">
                 <i class="bi bi-exclamation-triangle"></i> <span>{{ 'MENU.CUSTOMER_CONCERNS' | translate }}</span>
             </a>
 
-            <a class="menu-item" routerLink="/propertyMaster" routerLinkActive="active"
+            <a *ngIf="isAdmin" class="menu-item" routerLink="/propertyMaster" routerLinkActive="active"
                 (click)="isSidebarCollapsed = true">
                 <i class="bi bi-gear"></i> <span>{{ 'MENU.APP_SETTINGS' | translate }}</span>
             </a>
 
-            <a class="menu-item" routerLink="/reports" routerLinkActive="active" (click)="isSidebarCollapsed = true">
+            <a *ngIf="isAdmin" class="menu-item" routerLink="/reports" routerLinkActive="active" (click)="isSidebarCollapsed = true">
                 <i class="bi bi-pie-chart"></i> <span>{{ 'MENU.REPORTS' | translate }}</span>
             </a>
 
             
 
-            <a class="menu-item" routerLink="/mastertables/tblFeedback" routerLinkActive="active-submenu" 
+            <a *ngIf="isAdmin || isCustomer || isVendor" class="menu-item" routerLink="/mastertables/tblFeedback" routerLinkActive="active-submenu" 
             (click)="isSidebarCollapsed = true">
                 <i class="bi bi-chat-square-text"></i> 
                 <span>{{ 'MENU.FEEDBACK' | translate }}</span>

@@ -52,6 +52,8 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
   requestedDeliveryDate = this.today();
   searchText = '';
   category = 'All';
+  // Grid shows image cards; list is a compact, no-image table-like view.
+  viewMode: 'grid' | 'list' = 'grid';
   // 'all' lets the customer browse every vendor before the basket is locked.
   vendorFilter: number | 'all' = 'all';
   stock: OrderStockItem[] = [];
@@ -165,6 +167,11 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
     // after hydration even when a valid profile exists in sessionStorage.
     if (!isPlatformBrowser(this.platformId)) {
       return;
+    }
+
+    // Compact list is the default on phones so more items fit on one screen.
+    if (window.matchMedia('(max-width: 640px)').matches) {
+      this.viewMode = 'list';
     }
 
     const profileLoaded =
@@ -405,7 +412,8 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
   }
 
   setVendorFilter(filter: number | 'all'): void {
-    this.vendorFilter = filter;
+    // There is no "All vendors" button, so tapping the active vendor clears the filter.
+    this.vendorFilter = filter !== 'all' && this.vendorFilter === filter ? 'all' : filter;
     if (this.category !== 'All' && !this.categories.includes(this.category)) {
       this.category = 'All';
     }
@@ -545,6 +553,12 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
   setCategory(category: string): void {
     this.category = category;
     this.clearHiddenQuantityErrors();
+    this.cdr.detectChanges();
+  }
+
+  setViewMode(mode: 'grid' | 'list'): void {
+    this.viewMode = mode;
+    this.cdr.detectChanges();
   }
 
   // Immediate feedback while the customer is still typing.
@@ -852,6 +866,13 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
       behavior: 'smooth',
       block: 'start'
     });
+  }
+
+  /** Returns to the shopping view so the delivery option (and charge) can be changed. */
+  editDeliveryOptions(): void {
+    this.showCheckout = false;
+    this.cdr.detectChanges();
+    this.scrollToDeliverySettings();
   }
 
   lineTotal(line: OrderCartLine): number {

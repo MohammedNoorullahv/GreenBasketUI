@@ -7,7 +7,9 @@ export interface TblDailyInventoryforStockEntry {
     fldFKItemId: number;
 
     fldCategoryName: string;
-    fldType: string;
+    // Item type may come from the stock API or be joined client-side from item master.
+    fldType?: string | null;
+    fldItemType?: string | null;
 
     fldItemName: string;
     fldItemNameTamil: string;

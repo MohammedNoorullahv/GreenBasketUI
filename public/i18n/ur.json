@@ -349,7 +349,7 @@
     "LOCAL_VENDOR": "مقامی دکاندار"
   },
   "DailyInventoryList": {
-    "TODAY_S_VEGETABLES": "آج کی سبزیاں",
+    "TODAY_S_VEGETABLES": "کل آئٹمز",
     "LOADING_ALL_RECORDS": "تمام ریکارڈز لوڈ ہو رہے ہیں",
     "ALL_RECORDS": "تمام ریکارڈز",
     "LOADING_ACTIVE_RECORDS": "فعال ریکارڈز لوڈ ہو رہے ہیں",
@@ -397,14 +397,14 @@
     "NO_RECORDS_MATCH_THE_FILTERS": "فلٹرز کے مطابق کوئی ریکارڈ نہیں ملا۔"
   },
   "DailyInventoryAdd": {
-    "TODAY_S_VEGETABLES_STOCK_ENTRY": "آج کی سبزیاں — اسٹاک کا اندراج",
+    "TODAY_S_VEGETABLES_STOCK_ENTRY": "کل آئٹمز — اسٹاک انٹری",
     "ENTER_NEW_STOCK_AND_SELLING_RATE_FOR_EACH_ITEM": "ہر شے کا نیا اسٹاک اور فروخت کی قیمت درج کریں",
     "INVENTORY_DATE": "اسٹاک کی تاریخ",
     "SEARCH_VEGETABLES": "سبزیاں تلاش کریں...",
     "CHANGED_ONLY_VALUE": "صرف تبدیل شدہ ({{p0}})",
     "RELOAD_IS_DISABLED_WHILE_THERE_ARE_UNSAVED_CHANGES": "غیر محفوظ تبدیلیوں کی موجودگی میں دوبارہ لوڈ نہیں کیا جا سکتا",
     "REFRESH": "تازہ کریں",
-    "LOADING_TODAY_S_VEGETABLES": "آج کی سبزیاں لوڈ ہو رہی ہیں...",
+    "LOADING_TODAY_S_VEGETABLES": "آئٹمز لوڈ ہو رہے ہیں...",
     "NO_ACTIVE_ITEMS_FOUND": "کوئی فعال شے نہیں ملی۔",
     "VEGETABLE": "سبزی",
     "AVAILABLE_STOCK": "دستیاب اسٹاک",
@@ -434,6 +434,15 @@
     "VALUE_CHANGED_ITEM_S": "{{p0}} اشیاء تبدیل کی گئیں",
     "SAVING": "محفوظ ہو رہا ہے...",
     "SAVE": "محفوظ کریں",
-    "BACK": "واپس"
+    "BACK": "واپس",
+    "TODAY": "آج",
+    "TODAY_S_STOCK_VALUE": "آج کا اسٹاک: {{p0}}",
+    "FILTER_BY_CATEGORY": "قسم کے مطابق فلٹر کریں",
+    "INCREASE_NEW_STOCK_VALUE": "{{p0}} کا نیا اسٹاک بڑھائیں",
+    "DECREASE_NEW_STOCK_VALUE": "{{p0}} کا نیا اسٹاک کم کریں",
+    "ITEM_TYPE": "آئٹم کی قسم",
+    "ALL_ITEM_TYPES": "تمام آئٹم کی اقسام",
+    "FILTER_BY_ITEM_TYPE": "آئٹم کی قسم کے مطابق فلٹر کریں",
+    "CLEAR_ITEM_TYPE_FILTER": "آئٹم قسم کا فلٹر صاف کریں"
   }
 }

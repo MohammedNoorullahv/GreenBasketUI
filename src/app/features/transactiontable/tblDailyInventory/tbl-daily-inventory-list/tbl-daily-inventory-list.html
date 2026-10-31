@@ -87,24 +87,24 @@
 		<ng-container *ngIf="tblDailyInventory$ | async as tbldailyinventorys">
 		<ng-container *ngIf="tbldailyinventorys | columnFilter:filters as filteredInventory">
 
-			<table class="data-table">
+			<table class="data-table" *ngIf="filteredInventory.length > 0">
 				<thead>
 					<tr>
 						<th *ngIf="removeMultipleItems">
 							{{ 'DailyInventoryList.SELECT' | translate }}</th>
-						<th class="col-technical"><span class="column-heading">{{ 'DailyInventoryList.ID' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th class="col-technical"><span class="column-heading">{{ 'DailyInventoryList.F_K_VENDOR_ID' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th class="col-technical"><span class="column-heading">{{ 'DailyInventoryList.F_K_ITEM_ID' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">{{ 'DailyInventoryList.VEGETABLE' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">{{ 'DailyInventoryList.UNIT' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">{{ 'DailyInventoryList.DATE' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">{{ 'DailyInventoryList.RATE' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">{{ 'DailyInventoryList.STOCK' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">{{ 'DailyInventoryList.INITIAL_STOCK' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
-						<th><span class="column-heading">{{ 'DailyInventoryList.AVAILABLE' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th *ngIf="isAdmin" class="col-technical"><span class="column-heading">{{ 'DailyInventoryList.ID' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th *ngIf="isAdmin" class="col-technical"><span class="column-heading">{{ 'DailyInventoryList.F_K_VENDOR_ID' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th *ngIf="isAdmin" class="col-technical"><span class="column-heading">{{ 'DailyInventoryList.F_K_ITEM_ID' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'DailyInventoryList.VEGETABLE' | translate }}<app-column-filter-icon *ngIf="isAdmin"></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'DailyInventoryList.UNIT' | translate }}<app-column-filter-icon *ngIf="isAdmin"></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'DailyInventoryList.DATE' | translate }}<app-column-filter-icon *ngIf="isAdmin"></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'DailyInventoryList.RATE' | translate }}<app-column-filter-icon *ngIf="isAdmin"></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'DailyInventoryList.STOCK' | translate }}<app-column-filter-icon *ngIf="isAdmin"></app-column-filter-icon></span></th>
+						<th *ngIf="isAdmin"><span class="column-heading">{{ 'DailyInventoryList.INITIAL_STOCK' | translate }}<app-column-filter-icon></app-column-filter-icon></span></th>
+						<th><span class="column-heading">{{ 'DailyInventoryList.AVAILABLE' | translate }}<app-column-filter-icon *ngIf="isAdmin"></app-column-filter-icon></span></th>
 						<th>{{ 'DailyInventoryList.ACTIONS' | translate }}</th>
 					</tr>
-					<tr class="column-filter-row">
+					<tr class="column-filter-row" *ngIf="isAdmin">
 						<th *ngIf="removeMultipleItems" class="col-filter-empty"></th>
 						<th>
 							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.ID' | translate" [attr.aria-label]="'DailyInventoryList.FILTER_BY_ID' | translate"
@@ -170,15 +170,15 @@
 
 						</td>
 
-						<td class="cell-code col-technical">{{ tbldailyinventory.fldId }}</td>
-						<td class="col-technical">{{ tbldailyinventory.fldFKVendorId }}</td>
-						<td class="col-technical">{{ tbldailyinventory.fldFKItemId }}</td>
+						<td *ngIf="isAdmin" class="cell-code col-technical">{{ tbldailyinventory.fldId }}</td>
+						<td *ngIf="isAdmin" class="col-technical">{{ tbldailyinventory.fldFKVendorId }}</td>
+						<td *ngIf="isAdmin" class="col-technical">{{ tbldailyinventory.fldFKItemId }}</td>
 						<td class="cell-primary">{{ tbldailyinventory.fldItemName }}</td>
 						<td>{{ tbldailyinventory.fldBaseUnit }}</td>
 						<td>{{ tbldailyinventory.fldInventoryDate }}</td>
 						<td class="cell-amount">₹{{ tbldailyinventory.fldSellingRate }}</td>
 						<td>{{ tbldailyinventory.fldAvailableStock }}</td>
-						<td>{{ tbldailyinventory.fldInitialStock }}</td>
+						<td *ngIf="isAdmin">{{ tbldailyinventory.fldInitialStock }}</td>
 						<td>
 							<span class="badge-pill"
 								[ngClass]="tbldailyinventory.fldIsAvailable ? 'badge-success' : 'badge-muted'">
@@ -204,7 +204,10 @@
 			</table>
 
 			<p class="grid-footnote" *ngIf="filteredInventory.length === 0">
-				 {{ (tbldailyinventorys.length === 0 ? ('DailyInventoryList.NO_RECORDS_FOUND' | translate) : ('DailyInventoryList.NO_RECORDS_MATCH_THE_FILTERS' | translate)) }} </p>
+				 {{ (tbldailyinventorys.length === 0 ? ('DailyInventoryList.NO_RECORDS_FOUND' | translate) : ('DailyInventoryList.NO_RECORDS_MATCH_THE_FILTERS' | translate)) }}
+				<button *ngIf="tbldailyinventorys.length > 0" type="button" class="column-filter-clear" (click)="filters = {}">
+					{{ 'DailyInventoryList.CLEAR' | translate }}</button>
+			</p>
 
 		</ng-container>
 		</ng-container>

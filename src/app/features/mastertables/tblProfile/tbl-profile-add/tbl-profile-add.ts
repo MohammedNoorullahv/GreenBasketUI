@@ -25,6 +25,7 @@ import { TblStreetMasterService } from '../../tblStreetMaster/services/tbl-stree
 import { TblProfile } from '../models/tblProfile.model';
 import { TblProfileAdd } from '../models/tblProfile-Add.model';
 import { TblProfileService } from '../services/tbl-profile';
+import { TblVendorEnquiryService } from '../../tblVendorEnquiry/services/tbl-vendor-enquiry';
 import { TblCityorTownMaster } from '../../tblCityorTownMaster/models/tblCityorTownMaster.model';
 import { TblCityorTownMasterService } from '../../tblCityorTownMaster/services/tbl-cityor-town-master';
 import { TblStreetMasterAdd } from '../../tblStreetMaster/models/tblStreetMaster-Add.model';
@@ -73,6 +74,36 @@ import { TblStreetMasterAdd } from '../../tblStreetMaster/models/tblStreetMaster
       .vendor-delivery-cell:nth-child(odd) { border-right: 0; }
       .vendor-delivery-cell + .vendor-delivery-cell { border-top: 1px solid #cbdcf1; }
       .vendor-delivery-card { padding: 10px; }
+    }
+
+    /* ---- Locked user type (public registration) ---- */
+    .user-type-locked { cursor: not-allowed; }
+    .user-type-locked input[type="radio"] { cursor: not-allowed; }
+    .user-type-note { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin: 8px 0 0; color: #5b6b7a; font-size: 13.5px; }
+    .user-type-note .bi-info-circle { color: #b45309; flex-shrink: 0; }
+    .user-type-contact-link { background: none; border: 0; padding: 2px 4px; color: #0b7a45; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; border-radius: 4px; }
+    .user-type-contact-link:hover { color: #085c34; }
+    .user-type-contact-link:focus-visible { outline: 3px solid rgba(11, 122, 69, .35); outline-offset: 2px; }
+
+    /* ---- Vendor contact us card (public registration) ---- */
+    .vendor-enquiry-card { grid-column: 1 / -1; min-width: 0; border: 1px solid #bfd9c8; border-radius: 12px; background: linear-gradient(180deg, #f2faf5 0%, #ffffff 75%); padding: 16px; margin: 6px 0 12px; }
+    .vendor-enquiry-heading { display: flex; align-items: center; gap: .5rem; margin: 0 0 4px; color: #14532d; font-size: 17px; font-weight: 700; }
+    .vendor-enquiry-heading .bi { color: #0b7a45; }
+    .vendor-enquiry-note { margin: 0 0 12px; color: #5b6b7a; font-size: 13.5px; }
+    .vendor-enquiry-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) minmax(0, .9fr) auto; gap: 12px; align-items: end; }
+    .vendor-enquiry-field { min-width: 0; }
+    .vendor-enquiry-field .form-control, .vendor-enquiry-field .form-select { width: 100%; min-width: 0; box-sizing: border-box; }
+    .vendor-enquiry-submit { display: flex; }
+    .vendor-enquiry-btn { min-height: 44px; white-space: nowrap; }
+    .vendor-enquiry-success { display: flex; align-items: center; gap: .4rem; margin: 12px 0 0; color: #0b7a45; font-size: 14px; font-weight: 600; }
+    .vendor-enquiry-error { margin: 12px 0 0; color: #b42318; font-size: 14px; font-weight: 600; }
+    @media (max-width: 860px) {
+      .vendor-enquiry-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+      .vendor-enquiry-submit { justify-content: flex-start; }
+    }
+    @media (max-width: 520px) {
+      .vendor-enquiry-grid { grid-template-columns: minmax(0, 1fr); }
+      .vendor-enquiry-card { padding: 12px; }
     }
   `],
 
@@ -191,6 +222,7 @@ export class TblProfileAddComponent implements OnDestroy {
   submitAction: 'SaveAndAddNew' | 'SaveAndClose' | 'exit' = 'exit'; // default to exit
   private addTblProfileSubscription?: Subscription;
   private addTblStreetMasterSubscription?: Subscription;
+  private vendorEnquirySubscription?: Subscription;
   @ViewChild('form') form!: NgForm;
   isSaving: boolean = false;
 
@@ -243,6 +275,7 @@ export class TblProfileAddComponent implements OnDestroy {
   constructor(private tblProfileService: TblProfileService,
     private tblStreetMasterService: TblStreetMasterService,
     private tblCityorTownMasterService: TblCityorTownMasterService,
+    private vendorEnquiryService: TblVendorEnquiryService,
     private router: Router, private toastr: ToastrService, private cdr: ChangeDetectorRef) {
     this.model = {
       fldId: 0,
@@ -556,6 +589,7 @@ export class TblProfileAddComponent implements OnDestroy {
     this.closeLocationMap();
     this.addTblProfileSubscription?.unsubscribe();
     this.addTblStreetMasterSubscription?.unsubscribe();
+    this.vendorEnquirySubscription?.unsubscribe();
   }
 
   isFormValid(form: any): boolean {
@@ -1074,6 +1108,69 @@ export class TblProfileAddComponent implements OnDestroy {
     this.model.fldPasswordHash = value
       .replace(/\D/g, '')
       .slice(0, 6);
+  }
+
+  readonly vendorShopTypes = ['Grocery', 'Snacks', 'Meat', 'Others'];
+  vendorEnquiry = { fldContactNumber: '', fldShopName: '', fldShopType: 'Grocery' };
+  isSendingEnquiry = false;
+  vendorEnquirySuccess = '';
+  vendorEnquiryError = '';
+
+  scrollToVendorEnquiry(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    document.getElementById('vendorEnquiryCard')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  submitVendorEnquiry(): void {
+    if (this.isSendingEnquiry) return;
+    this.vendorEnquirySuccess = '';
+    this.vendorEnquiryError = '';
+
+    const mobile = this.vendorEnquiry.fldContactNumber.trim();
+    const shopName = this.vendorEnquiry.fldShopName.trim();
+    if (!/^[6-9][0-9]{9}$/.test(mobile)) {
+      this.vendorEnquiryError = 'Enter a valid 10-digit mobile number starting with 6, 7, 8 or 9.';
+      this.cdr.detectChanges();
+      document.getElementById('enquiryMobile')?.focus();
+      return;
+    }
+    if (!shopName) {
+      this.vendorEnquiryError = 'Enter your shop name.';
+      this.cdr.detectChanges();
+      document.getElementById('enquiryShopName')?.focus();
+      return;
+    }
+
+    this.isSendingEnquiry = true;
+    this.vendorEnquirySubscription?.unsubscribe();
+    this.vendorEnquirySubscription = this.vendorEnquiryService
+      .createTblVendorEnquiry({
+        fldId: 0,
+        fldContactNumber: mobile,
+        fldShopName: shopName,
+        fldShopType: this.vendorEnquiry.fldShopType,
+        fldIsActive: true,
+        fldCreatedBy: 0,
+        fldCreatedDt: new Date(),
+      })
+      .subscribe({
+        next: () => {
+          this.isSendingEnquiry = false;
+          this.vendorEnquirySuccess =
+            'Request received! Our team will contact you shortly on your mobile number.';
+          this.vendorEnquiry = { fldContactNumber: '', fldShopName: '', fldShopType: 'Grocery' };
+          this.cdr.detectChanges();
+        },
+        error: err => {
+          this.isSendingEnquiry = false;
+          const body = err?.error as { detail?: string; message?: string; title?: string } | undefined;
+          this.vendorEnquiryError =
+            (typeof body === 'object' && (body?.detail || body?.message || body?.title)) ||
+            'Unable to send your request right now. Please try again later.';
+          this.cdr.detectChanges();
+        },
+      });
   }
 
 }

@@ -64,6 +64,9 @@ export class LoginComponent {
   readonly mpinLength = 6; // Match this to your backend MPIN policy.
   showMPIN = false;
 
+  rememberMe = false;
+  private readonly rememberedMobileKey = 'gbRememberedMobile';
+
   otpSent = false;
   isLoading = false;
 
@@ -115,6 +118,8 @@ export class LoginComponent {
 
     // Runs only in the browser after hydration; no storage access during SSR.
     afterNextRender(() => {
+      this.restoreRememberedMobile();
+
       try {
         if (sessionStorage.getItem(this.introSessionKey)) {
           this.introVideoCompleted = true;
@@ -206,8 +211,12 @@ export class LoginComponent {
           this.verificationMethod = 'MPIN';
           this.otpSent = true;
 
+          // Remember the number as soon as the challenge is created,
+          // without waiting for the user to finish verification.
+          this.persistRememberedMobile(mobile);
+
           this.successMessage =
-            'OTP generated successfully. Please enter your OTP.';
+            'OTP generated successfully. Enter your OTP or MPIN to continue.';
 
           this.cdr.detectChanges();
 
@@ -348,6 +357,14 @@ export class LoginComponent {
               JSON.stringify(response.profile)
             );
 
+            // A fresh login starts a fresh inactivity period.
+            sessionStorage.setItem(
+              'gbLastActivityAt',
+              String(Date.now())
+            );
+
+            this.persistRememberedMobile(mobile);
+
             void this.vendorNotifications.refreshSession();
 
           }
@@ -441,6 +458,61 @@ export class LoginComponent {
     this.otp = value
       .replace(/\D/g, '')
       .slice(0, 6);
+
+  }
+
+  onRememberMeChange(checked: boolean): void {
+
+    this.rememberMe = checked;
+
+    // Unchecking the option removes the saved number immediately.
+    if (!checked && isPlatformBrowser(this.platformId)) {
+      try {
+        sessionStorage.removeItem(this.rememberedMobileKey);
+      } catch {
+        // Storage can be blocked; login still works.
+      }
+    }
+
+  }
+
+  private restoreRememberedMobile(): void {
+
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    try {
+      const saved =
+        sessionStorage.getItem(this.rememberedMobileKey)?.trim() || '';
+
+      if (/^[6-9]\d{9}$/.test(saved)) {
+        this.mobileNumber = saved;
+        this.rememberMe = true;
+      }
+    } catch {
+      // Ignore unavailable storage and let the user type the number.
+    }
+
+    this.cdr.detectChanges();
+
+  }
+
+  private persistRememberedMobile(mobile: string): void {
+
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    try {
+      if (this.rememberMe) {
+        sessionStorage.setItem(this.rememberedMobileKey, mobile);
+      } else {
+        sessionStorage.removeItem(this.rememberedMobileKey);
+      }
+    } catch {
+      // The login itself must not fail because storage is unavailable.
+    }
 
   }
 

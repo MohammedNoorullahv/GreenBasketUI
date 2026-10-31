@@ -1,0 +1,47 @@
+<div
+  *ngIf="idle.warningOpen()"
+  class="idle-backdrop"
+  role="alertdialog"
+  aria-modal="true"
+  aria-labelledby="idle-title"
+  aria-describedby="idle-message">
+
+  <div class="idle-card">
+
+    <div class="idle-icon" aria-hidden="true">
+      <i class="bi bi-clock-history"></i>
+    </div>
+
+    <h2 id="idle-title">Are you still there?</h2>
+
+    <p id="idle-message" class="idle-message">
+      You have been inactive for a while. To keep your account secure, you will be signed out in
+      <strong>
+        {{ idle.secondsRemaining() }}
+        {{ idle.secondsRemaining() === 1 ? 'second' : 'seconds' }}
+      </strong>.
+      Any unsaved changes may be lost.
+    </p>
+
+    <div class="idle-actions">
+
+      <button
+        #stayButton
+        type="button"
+        class="idle-button idle-stay"
+        (click)="staySignedIn()">
+        Stay signed in
+      </button>
+
+      <button
+        type="button"
+        class="idle-button idle-logout"
+        (click)="logoutNow()">
+        Log out now
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

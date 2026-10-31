@@ -287,6 +287,10 @@ export class Navbar {
       'gbProfile'
     );
 
+    sessionStorage.removeItem(
+      'gbLastActivityAt'
+    );
+
     void this.vendorNotifications.refreshSession();
 
     this.router.navigateByUrl('/login');

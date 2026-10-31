@@ -7039,6 +7039,64 @@ app-tbl-order-shopping {
 }
 
 /* =========================================================
+   SIGN-IN - REMEMBER ME
+   ---------------------------------------------------------
+   Kept in the shared sheet so the sign-in component stays
+   within its component-style budget.
+   ========================================================= */
+
+.remember-me-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  text-align: left;
+}
+
+.remember-me {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #33463c;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.remember-me input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--gb-primary, #0b7a3b);
+  cursor: pointer;
+}
+
+.remember-me input:disabled {
+  cursor: not-allowed;
+}
+
+.remember-hint {
+  color: #82948a;
+  font-size: 11px;
+  line-height: 1.3;
+  text-align: right;
+}
+
+@media (max-width: 360px) {
+  .remember-me-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .remember-hint {
+    text-align: left;
+  }
+}
+
+/* =========================================================
    Local column filters for data tables
    ========================================================= */
 .data-table thead tr.column-filter-row th {

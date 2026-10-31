@@ -3,11 +3,12 @@ import { RouterOutlet } from '@angular/router';
 import { Navbar } from './core/components/navbar/navbar';
 import { Footer } from './core/components/footer/footer';
 import { Branding } from './core/components/branding/branding';
+import { IdleTimeoutComponent } from './core/components/idle-timeout/idle-timeout';
 
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Branding, Footer],
+  imports: [RouterOutlet, Branding, Footer, IdleTimeoutComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

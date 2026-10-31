@@ -196,16 +196,12 @@
 			</div>
 		</div>
 	</ng-template>
-  <div *ngIf="isDeleteDialogOpen" class="modal d-block" role="dialog" aria-modal="true"
-    aria-labelledby="itemDeleteTitle" style="background: rgba(0,0,0,.5)" (keydown.escape)="cancelDelete()">
-    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
-      <div class="modal-header"><h2 id="itemDeleteTitle" class="modal-title fs-5">Delete this item?</h2></div>
-      <div class="modal-body">Confirm deletion of {{ tblItemMaster?.fldItemName }}.</div>
-      <div class="modal-footer">
-        <button type="button" class="btn-app btn-dark" [disabled]="isSaving" (click)="cancelDelete()">Cancel</button>
-        <button type="button" class="btn-app btn-delete" [disabled]="isSaving" (click)="confirmDelete()">{{ isSaving ? 'Deleting...' : 'Delete Item' }}</button>
-      </div>
-    </div></div>
-  </div>
+  <app-confirm-dialog #deleteDialog
+    title="Delete this item?"
+    message="The selected item will be permanently removed from the item master."
+    confirmLabel="Delete Item"
+    (confirmed)="confirmDelete()"
+    (cancelled)="cancelDelete()">
+  </app-confirm-dialog>
 
 </div>

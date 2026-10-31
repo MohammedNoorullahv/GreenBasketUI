@@ -33,9 +33,12 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
 
   // FK combo sources (parent = TblProperty, type text must match a TblPropertyMaster FldDescription)
   tblPropertyCategoryName$?: Observable<TblProperty[]>;
+  tblPropertyItem$?: Observable<TblProperty[]>;
   tblPropertyItemType$?: Observable<TblProperty[]>;
   tblPropertyBaseUnit$?: Observable<TblProperty[]>;
   tblPropertyFractionalUnit$?: Observable<TblProperty[]>;
+
+  isSaving = false;
 
   @ViewChild('form') form!: NgForm;
   @ViewChild('deleteDialog') deleteDialog!: ConfirmDialogComponent;
@@ -50,6 +53,7 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.tblPropertyCategoryName$ = this.tblPropertySharedService.getPropertiesByType('Category Name');
+    this.tblPropertyItem$ = this.tblPropertySharedService.getPropertiesByType('Item');
     this.tblPropertyItemType$ = this.tblPropertySharedService.getPropertiesByType('Item Type');
     this.tblPropertyBaseUnit$ = this.tblPropertySharedService.getPropertiesByType('Base Unit');
     this.tblPropertyFractionalUnit$ = this.tblPropertySharedService.getPropertiesByType('Fractional Unit');
@@ -88,6 +92,12 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
     const selected = list.find(p => p.fldId === Number(id));
     this.tblItemMaster.fldFKCategoryName = selected ? selected.fldId : 0;
     this.tblItemMaster.fldCategoryName = selected ? selected.fldDescription : '';
+  }
+
+  onItemChange(id: number, list: TblProperty[]): void {
+    if (!this.tblItemMaster) { return; }
+    const selected = list.find(p => p.fldId === Number(id));
+    this.tblItemMaster.fldFKItem = selected ? selected.fldId : 0;
   }
 
   onItemTypeChange(id: number, list: TblProperty[]): void {
@@ -178,7 +188,7 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
 
   OnFormSubmit(form: NgForm): void {
 
-    if (this.isUploading) {
+    if (this.isSaving || this.isUploading) {
       return;
     }
 
@@ -198,9 +208,11 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
 
     const TblItemMasterUpdateRequest: TblItemMasterUpdate = this.buildUpdateRequest();
 
+    this.isSaving = true;
     this.editTblItemMasterSubscription = this.tblItemMasterService.updateTblItemMaster(TblItemMasterUpdateRequest)
       .subscribe({
         next: () => {
+          this.isSaving = false;
           this.toastr.success('Record updated successfully!', 'Success', {
             toastClass: 'ngx-toastr custom-toast'
           });
@@ -208,6 +220,8 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
           this.router.navigateByUrl('mastertables/tblItemMaster');
         },
         error: (err) => {
+          this.isSaving = false;
+
           const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';
 
           this.toastr.error(errorMsg, 'Error', {
@@ -267,11 +281,13 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.isSaving = true;
     this.deleteDialog.busy = true;
 
     this.deleteTblItemMasterSubscription = this.tblItemMasterService.deleteTblItemMaster(this.pendingDeleteRequest)
       .subscribe({
         next: (response) => {
+          this.isSaving = false;
           this.deleteDialog.busy = false;
           this.deleteDialog.close();
           this.pendingDeleteRequest = undefined;
@@ -285,6 +301,7 @@ export class TblItemMasterUpdateComponent implements OnInit, OnDestroy {
           }
         },
         error: (err) => {
+          this.isSaving = false;
           this.deleteDialog.busy = false;
 
           const errorMsg = err?.error?.message || err?.error || 'An unexpected error occurred';

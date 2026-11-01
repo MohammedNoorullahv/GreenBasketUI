@@ -81,3 +81,30 @@ export interface OrderShoppingRequest {
     value: number;
   }[];
 }
+
+
+export interface OrderStockItemofAllVendors {
+  vendor: {
+    FldId: number;
+    FldFKVendorId: number;
+    FldVendorName?: string | null;
+    FldStockItemCount: number;
+  };
+  StockItems: {
+  fldId: number;
+  fldFKVendorId: number;
+  fldFKItemId: number;
+  fldItemName: string;
+  fldItemNameTamil?: string | null;
+  fldCategoryName?: string | null;
+  fldItemImagePath?: string | null;
+  fldBaseUnit: string;
+  fldSellingRate: number;
+  fldAvailableStock: number;
+  fldAllowFractionalQuantity: boolean;
+  fldMinOrderQuantityStep: number;
+  fldIsAvailable: boolean;
+  fldIsActive: boolean;
+  fldAllowFlatRupeeValueBooking: boolean;
+  }[];
+}

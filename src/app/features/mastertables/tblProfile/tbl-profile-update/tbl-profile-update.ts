@@ -237,10 +237,10 @@ export class TblProfileUpdateComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (!this.model.fldGPSLocation?.trim()) {
-      this.toastr.warning('Please select your delivery location.');
-      return;
-    }
+    // if (!this.model.fldGPSLocation?.trim()) {
+    //   this.toastr.warning('Please select your delivery location.');
+    //   return;
+    // }
 
     if (!this.model.fldIsTermsAgreed) {
       this.toastr.warning('Please agree to the Terms & Conditions.');

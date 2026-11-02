@@ -6,7 +6,7 @@ import { TblDailyInventoryAdd } from '../models/tblDailyInventory-Add.model';
 import { TblDailyInventoryUpdate } from '../models/tblDailyInventory-Update.model';
 import { environment } from '../../../../../environments/environment';
 import { DailyStockEntrySaveRequest, TblDailyInventoryforStockEntry } from '../models/tblDailyInventoryforStockEntry.model';
-import { OrderStockItem } from '../../tblOrder/models/tbl-order-shopping.model';
+import { OrderStockItem, OrderStockItemofAllVendors } from '../../tblOrder/models/tbl-order-shopping.model';
 
 
 @Injectable({
@@ -74,6 +74,13 @@ export class TblDailyInventoryService {
   }
 
 
+  //https://localhost:7082/api/TblDailyInventory/GetAvailableStockForOrderofAllVendor
+  getAvailableStockForOrderofAllVendor(): Observable<OrderStockItemofAllVendors[]> {
+
+        return this.http.get<OrderStockItemofAllVendors[]>(
+      `${environment.apiBaseUrl}/api/TblDailyInventory/GetAvailableStockForOrderofAllVendor`);
+
+  }
   //POST
   addTblDailyInventory(model: TblDailyInventoryAdd): Observable<void> {
     return this.http.post<void>(`${environment.apiBaseUrl}/api/TblDailyInventory/CreateTblDailyInventory`, model);

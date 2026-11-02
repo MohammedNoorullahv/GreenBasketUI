@@ -8,11 +8,11 @@ import {
   OnInit, PLATFORM_ID, Inject, ViewChild
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Subscription, map, finalize, timeout, forkJoin, of, catchError } from 'rxjs';
+import { Subscription, map, finalize, timeout } from 'rxjs';
 import * as QRCode from 'qrcode';
 import { ToastrService } from 'ngx-toastr';
 import { environment } from '../../../../../environments/environment';
-import { TblDailyInventoryService } from '../../tblDailyInventory/services/tbl-daily-inventory';
+import { OrderCatalogService } from '../services/order-catalog.service';
 // import { OrderCartLine, OrderShoppingRequest, OrderStockItem, OrderVendorOption } from './tbl-order-shopping.model';
 import { TblProfile } from '../../../mastertables/tblProfile/models/tblProfile.model';
 import { OrderCartLine, OrderShoppingRequest, OrderStockItem, OrderVendorOption } from '../models/tbl-order-shopping.model';
@@ -136,7 +136,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
 
   updatingOrderId = 0;
 
-  constructor(private inventoryService: TblDailyInventoryService,
+  constructor(private catalogService: OrderCatalogService,
     private profileService: TblProfileService,
     private orderService: TblOrderService,
     private toastr: ToastrService, private cdr: ChangeDetectorRef,
@@ -276,88 +276,89 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
    * added to the basket, and the basket never contains more than one vendor.
    */
   loadCatalog(): void {
+    // Ignore duplicate triggers while the same catalogue request is running.
+    // A later explicit refresh still fetches current stock from the server.
+    if (this.loading || this.orderViewDestroyed) return;
 
     this.request?.unsubscribe();
-
-    this.stock = [];
     this.loading = true;
 
-    const vendors = this.vendorOptions;
+    this.request = this.catalogService
+      .getAvailableStockForOrderofAllVendor()
+      .pipe(
+        timeout({ first: 30000 }),
+        map(response => {
+          // A 204 / null response is an empty catalogue, not a loading loop.
+          const groups = response ?? [];
+          if (!Array.isArray(groups)) {
+            throw new Error('The catalogue API did not return a vendor array.');
+          }
 
-    if (!vendors.length) {
-      this.loading = false;
-      return;
-    }
+          const options: OrderVendorOption[] = [];
+          const stock: OrderStockItem[] = [];
 
-    let failedVendors = 0;
+          for (const group of groups) {
+            // fldId in the outer DTO is NOT the vendor profile ID.
+            const vendorId = Number(group?.fldFKVendorId);
+            if (!Number.isInteger(vendorId) || vendorId <= 0) {
+              throw new Error('The catalogue contains an invalid vendor ID.');
+            }
+            if (group.fldStockItems != null && !Array.isArray(group.fldStockItems)) {
+              throw new Error('The catalogue contains an invalid stock list.');
+            }
 
-    const requests = vendors.map(vendor =>
-      this.inventoryService
-        .getAvailableStockForOrder(vendor.fldId)
-        .pipe(
-          map(items => this.mapStockItems(items, vendor.fldId)),
-          catchError(err => {
-            failedVendors++;
-            console.error(
-              `Unable to load stock for vendor ${vendor.fldId}:`,
-              err
-            );
-            return of([] as OrderStockItem[]);
-          })
-        )
-    );
+            options.push({
+              fldId: vendorId,
+              fldDescription: group.fldVendorName?.trim() || 'Unnamed Vendor'
+            });
 
-    this.request = forkJoin(requests)
-      .pipe(finalize(() => {
-        this.loading = false;
-        this.cdr.detectChanges();
-      }))
+            stock.push(...this.mapStockItems(
+              (group.fldStockItems ?? []).map(item => ({
+                ...item,
+                // Keep every line tied to its enclosing vendor.
+                fldFKVendorId: vendorId
+              })),
+              vendorId
+            ));
+          }
+
+          return {
+            options: options.sort((a, b) =>
+              a.fldDescription.localeCompare(b.fldDescription)),
+            stock
+          };
+        }),
+        finalize(() => {
+          this.loading = false;
+          if (!this.orderViewDestroyed) this.cdr.detectChanges();
+        })
+      )
       .subscribe({
+        next: ({ options, stock }) => {
+          this.vendorOptions = options;
+          this.stock = stock;
 
-        next: (groups) => {
-
-          this.stock = groups.flat();
-
-          // A filter can outlive a refresh. Fall back to a state that is
-          // guaranteed to show products.
+          if (
+            this.vendorFilter !== 'all' &&
+            !options.some(vendor => vendor.fldId === this.vendorFilter)
+          ) {
+            this.vendorFilter = 'all';
+          }
           if (this.category !== 'All' && !this.categories.includes(this.category)) {
             this.category = 'All';
           }
 
-          if (
-            this.vendorFilter !== 'all' &&
-            !this.vendorOptions.some(vendor => vendor.fldId === this.vendorFilter)
-          ) {
-            this.vendorFilter = 'all';
-          }
-
-          if (failedVendors > 0 && failedVendors < vendors.length) {
-            this.toastr.warning(
-              'Some vendor catalogues could not be loaded. Refresh to see every product.'
-            );
-          }
-
-          this.cdr.detectChanges();
-
+          if (!this.orderViewDestroyed) this.cdr.detectChanges();
         },
-
-        error: (err) => {
-
+        error: err => {
           this.stock = [];
-
-          console.error(
-            'Unable to load stock:',
-            err
-          );
-
-          this.toastr.error(
-            'Unable to load available vegetables.'
-          );
-
+          this.vendorOptions = [];
+          this.vendorFilter = 'all';
+          this.category = 'All';
+          console.error('Unable to load vendor catalogue:', err);
+          this.toastr.error('Unable to load available products. Please try again.');
         }
-
       });
-
   }
 
   private mapStockItems(items: OrderStockItem[], vendorId: number): OrderStockItem[] {
@@ -1720,45 +1721,8 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
   }
 
   loadVendors(): void {
-
-    this.profileService
-      .getActiveLeanTblProfilesByUserType('Vendor')
-      .subscribe({
-
-        next: (vendors: TblProfile[]) => {
-
-          this.vendorOptions = vendors
-            .map(vendor => ({
-              fldId: vendor.fldId,
-              fldDescription: vendor.fldvVendorName?.trim() || 'Unnamed Vendor'
-            }))
-            .sort((a, b) => a.fldDescription.localeCompare(b.fldDescription));
-
-          // Products come first: build one catalogue from every vendor.
-          // No vendor is selected or locked until the customer adds an item.
-          this.loadCatalog();
-
-          this.cdr.detectChanges();
-
-        },
-
-        error: err => {
-
-          console.error(
-            'Unable to load vendors:',
-            err
-          );
-
-          this.loading = false;
-
-          this.toastr.error(
-            'Unable to load vendor list.'
-          );
-
-        }
-
-      });
-
+    // Existing callers now load vendor names and stock together in one GET.
+    this.loadCatalog();
   }
 
   saveOrder(): void {

@@ -1,0 +1,27 @@
+<div class="gb-scroll-wrap">
+  <!-- Scroll to top -->
+  <button
+    type="button"
+    class="gb-scroll-btn gb-scroll-top"
+    [class.show]="showTop"
+    (click)="scrollToTop()"
+    [attr.aria-label]="'Scroll to top'"
+    title="Scroll to top"
+  >
+    <i class="bi bi-chevron-up" aria-hidden="true"></i>
+    <span class="gb-scroll-label">Top</span>
+  </button>
+
+  <!-- Scroll to bottom -->
+  <button
+    type="button"
+    class="gb-scroll-btn gb-scroll-bottom"
+    [class.show]="showBottom"
+    (click)="scrollToBottom()"
+    [attr.aria-label]="'Scroll to bottom'"
+    title="Scroll to bottom"
+  >
+    <i class="bi bi-chevron-down" aria-hidden="true"></i>
+    <span class="gb-scroll-label">Bottom</span>
+  </button>
+</div>

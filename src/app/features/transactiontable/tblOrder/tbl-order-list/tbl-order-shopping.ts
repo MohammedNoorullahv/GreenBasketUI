@@ -21,6 +21,7 @@ import { TblOrderService } from '../services/tbl-order';
 import { TblPendingOrderDto } from '../models/tbl-pending-order.model';
 import { RouterLink } from '@angular/router';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { ScrollButtonsComponent } from '../../../../shared/components/scroll-buttons/scroll-buttons.component';
 import { renderOrderReceipt } from './order-receipt';
 
 // Extend the API order-header DTO/entity/PrintOrder response with these fields.
@@ -32,10 +33,34 @@ type OrderDeliveryRequest = Omit<OrderShoppingRequest, 'orderHeader'> & {
   };
 };
 
+
+/**
+ * An in-progress basket persisted so it survives idle timeouts, refreshes
+ * and re-login. Only the cart is stored; prices and availability are always
+ * re-validated against the server before saving.
+ */
+interface SavedCartState {
+  cart: OrderCartLine[];
+  vendorId: number;
+  customerId: number;
+  orderOption: 'Current Day Order' | 'Advance Order';
+  priceChangeOption: 'Auto Apply' | 'Get Confirmation';
+  fldOrderType:
+    | 'Self Pickup'
+    | 'Normal Delivery'
+    | 'Priority Delivery'
+    | 'Advance Delivery';
+  requestedDeliveryDate: string;
+  searchText: string;
+  category: string;
+  viewMode: 'grid' | 'list';
+  vendorFilter: number | 'all';
+}
+
 @Component({
   selector: 'app-tbl-order-shopping',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, GbPageTranslatePipe, GbMenuCaptionPipe, VoiceAdvanceComponent, ConfirmDialogComponent],
+  imports: [CommonModule, FormsModule, RouterLink, GbPageTranslatePipe, GbMenuCaptionPipe, VoiceAdvanceComponent, ConfirmDialogComponent, ScrollButtonsComponent],
   templateUrl: './tbl-order-shopping.html',
   styleUrl: './tbl-order-shopping.css'
 })
@@ -51,6 +76,9 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
   placeOrderDialog!: ConfirmDialogComponent;
 
   vendorId = 0;
+  // Key under which the in-progress basket is persisted so it survives idle
+  // timeouts, refreshes and re-login.
+  private readonly cartStorageKey = 'gbOrderCart';
   orderOption: 'Current Day Order' | 'Advance Order' = 'Current Day Order';
   // fldOrderType: 'Self Pickup' | 'Regular Delivery' | 'Priority Delivery' | 'Advance Delivery';
   priceChangeOption: 'Auto Apply' | 'Get Confirmation' = 'Get Confirmation';
@@ -204,6 +232,9 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
 
       this.customerId = this.profileId;
 
+      // Restore any basket saved before an idle timeout / refresh.
+      this.restoreSavedCart();
+
       this.checkPendingOrders();
 
       return;
@@ -213,12 +244,18 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
 
       this.vendorId = this.profileId;
 
+      // Restore any basket saved before an idle timeout / refresh.
+      this.restoreSavedCart();
+
       this.checkPendingOrders();
 
       return;
     }
 
     if (this.isAdmin) {
+
+      // Restore any basket saved before an idle timeout / refresh.
+      this.restoreSavedCart();
 
       this.checkPendingOrders();
 
@@ -754,6 +791,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
       );
 
       this.releaseCartVendorIfEmpty();
+      this.saveCartState();
       void this.refreshUpiQr();
       this.cdr.detectChanges();
 
@@ -796,6 +834,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
       this.cart
     );
 
+    this.saveCartState();
     void this.refreshUpiQr();
     this.cdr.detectChanges();
 
@@ -812,6 +851,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
     this.cart = this.cart.filter(line => line.stock.fldId !== stockId);
     this.clearQuantityErrorById(stockId);
     this.releaseCartVendorIfEmpty();
+    this.saveCartState();
     void this.refreshUpiQr();
     this.cdr.detectChanges();
   }
@@ -868,8 +908,138 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
     this.upiQrLoading = false;
   }
 
+  /** Persist the current basket so an idle timeout / refresh never loses it. */
+  private saveCartState(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    try {
+      const state: SavedCartState = {
+        cart: this.cart,
+        vendorId: this.vendorId,
+        customerId: this.customerId,
+        orderOption: this.orderOption,
+        priceChangeOption: this.priceChangeOption,
+        fldOrderType: this.fldOrderType,
+        requestedDeliveryDate: this.requestedDeliveryDate,
+        searchText: this.searchText,
+        category: this.category,
+        viewMode: this.viewMode,
+        vendorFilter: this.vendorFilter
+      };
+
+      localStorage.setItem(this.cartStorageKey, JSON.stringify(state));
+    } catch {
+      // Storage unavailable or quota exceeded; the basket lives in memory only.
+    }
+  }
+
+  private clearCartState(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    try {
+      localStorage.removeItem(this.cartStorageKey);
+    } catch {
+      // Ignore storage failures; logout / navigation still works.
+    }
+  }
+
+  /**
+   * Restore a previously persisted basket when the user returns after an
+   * idle timeout or refresh. Runs once at init while the cart is still empty.
+   */
+  private restoreSavedCart(): void {
+    if (this.cart.length > 0) {
+      return; // A basket is already being built in this session.
+    }
+
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    try {
+      const raw = localStorage.getItem(this.cartStorageKey);
+      if (!raw) {
+        return;
+      }
+
+      const state = JSON.parse(raw) as Partial<SavedCartState> | null;
+      if (!state || !Array.isArray(state.cart) || state.cart.length === 0) {
+        return;
+      }
+
+      // Only restore a basket that belongs to the logged-in user.
+      const storedCustomerId = Number(state.customerId || 0);
+      const storedVendorId = Number(state.vendorId || 0);
+      if (
+        this.isCustomer &&
+        storedCustomerId &&
+        storedCustomerId !== this.customerId
+      ) {
+        return;
+      }
+      if (this.isVendor && storedVendorId && storedVendorId !== this.vendorId) {
+        return;
+      }
+
+      const validLines = state.cart.every((line: unknown) =>
+        this.isSavedCartLine(line)
+      );
+      if (!validLines) {
+        return;
+      }
+
+      this.cart = state.cart as OrderCartLine[];
+
+      if (state.vendorId) this.vendorId = state.vendorId;
+      if (state.customerId) this.customerId = state.customerId;
+      if (state.orderOption) this.orderOption = state.orderOption;
+      if (state.priceChangeOption) this.priceChangeOption = state.priceChangeOption;
+      if (state.fldOrderType) this.fldOrderType = state.fldOrderType;
+      if (state.requestedDeliveryDate) {
+        this.requestedDeliveryDate = state.requestedDeliveryDate;
+      }
+      if (typeof state.searchText === 'string') {
+        this.searchText = state.searchText;
+      }
+      if (typeof state.category === 'string') {
+        this.category = state.category;
+      }
+      if (state.viewMode === 'grid' || state.viewMode === 'list') {
+        this.viewMode = state.viewMode;
+      }
+      if (state.vendorFilter !== undefined) {
+        this.vendorFilter = state.vendorFilter;
+      }
+
+      if (this.vendorId > 0 && !this.vendorProfile) {
+        this.loadVendorProfile();
+      }
+
+      this.cdr.detectChanges();
+    } catch {
+      // Corrupt stored basket; start with an empty one.
+    }
+  }
+
+  private isSavedCartLine(value: unknown): value is OrderCartLine {
+    const line = value as OrderCartLine | undefined;
+    return (
+      !!line &&
+      !!line.stock &&
+      typeof line.stock.fldId === 'number' &&
+      line.stock.fldId > 0 &&
+      typeof line.quantity === 'number' &&
+      Number.isFinite(line.quantity)
+    );
+  }
+
   startNewBasket(): void {
     this.cart = [];
+    this.clearCartState();
     this.quantityErrors = {};
     this.pendingVendorSwitch = null;
     this.releaseCartVendorIfEmpty();
@@ -886,6 +1056,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
 
     // Clear the old vendor's basket, then replay the customer's action.
     this.cart = [];
+    this.clearCartState();
     this.quantityErrors = {};
     this.releaseCartVendorIfEmpty();
 
@@ -908,6 +1079,14 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
     document.getElementById('gbDeliverySettings')?.scrollIntoView({
       behavior: 'smooth',
       block: 'start'
+    });
+  }
+
+  scrollToCart(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    document.getElementById('gbCartSummary')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest'
     });
   }
 
@@ -1495,6 +1674,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
       );
 
       this.releaseCartVendorIfEmpty();
+      this.saveCartState();
       void this.refreshUpiQr();
       this.cdr.detectChanges();
 
@@ -1533,6 +1713,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
     }
 
     console.log('Cart after flat value update:', this.cart);
+    this.saveCartState();
     void this.refreshUpiQr();
     this.cdr.detectChanges();
 
@@ -1677,6 +1858,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
           this.placeOrderDialog.busy = false;
           this.placeOrderDialog.close();
           this.orderSaved = true;
+          this.clearCartState();
 
           this.toastr.success(
             'Order placed successfully.'
@@ -1898,6 +2080,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
 
     // Clear previous shopping selection.
     this.cart = [];
+    this.clearCartState();
 
     this.stock = [];
 

@@ -2,14 +2,10 @@
     <!-- Mobile Header Bar: Only visible on small smartphone screens -->
     <header class="mobile-top-bar" *ngIf="hasSession">
 
-        <!-- Green Basket Icon -->
+        <!-- Green Basket Icon + Language Selector -->
         <div class="mobile-brand">
 
             <img src="/Images/Green Basket Light.jpg" alt="Green Basket" class="mobile-brand-logo" />
-
-        </div>
-
-        <div class="mobile-header-actions">
 
             <!-- Language Selection -->
             <div class="language-selector mobile-language-selector">
@@ -19,15 +15,19 @@
                 <select class="language-dropdown" [value]="selectedLanguage" (change)="onLanguageChange($event)"
                     aria-label="Select language">
 
-                    <option value="en">English</option>
+                    <option value="en">En</option>
 
-                    <option value="ta">தமிழ்</option>
+                    <option value="ta">Ta</option>
 
-                    <option value="ur">اردو</option>
+                    <option value="ur">Ur</option>
 
                 </select>
 
             </div>
+
+        </div>
+
+        <div class="mobile-header-actions">
 
             <!-- Existing Sidebar Toggle -->
             <button type="button" class="mobile-toggle-btn" (click)="toggleSidebar()" aria-label="Toggle menu">
@@ -74,11 +74,11 @@
                 <select class="language-dropdown" [value]="selectedLanguage" (change)="onLanguageChange($event)"
                     aria-label="Select language">
 
-                    <option value="en">English</option>
+                    <option value="en">En</option>
 
-                    <option value="ta">தமிழ்</option>
+                    <option value="ta">Ta</option>
 
-                    <option value="ur">اردو</option>
+                    <option value="ur">Ur</option>
 
                 </select>
 

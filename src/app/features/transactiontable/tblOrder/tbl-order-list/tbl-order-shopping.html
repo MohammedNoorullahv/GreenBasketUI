@@ -1,3 +1,35 @@
+<header class="gb-header" *ngIf="shoppingStarted">
+  <div class="gb-header-inner">
+    <div class="gb-brand">
+      <img class="gb-brand-logo" src="/Images/green-basket-logo-white.png" alt="" />
+      <div class="gb-brand-copy">
+        <span class="gb-brand-name">{{ 'OrderShopping.GREEN_BASKET' | translate }}</span>
+        <small>{{ 'OrderShopping.FRESH_VEGETABLES_FROM_LOCAL_VENDORS' | translate }}</small>
+      </div>
+    </div>
+
+    <div class="gb-header-actions">
+      <span class="gb-header-user" *ngIf="profileName">
+        <i class="bi bi-person-circle" aria-hidden="true"></i>
+        <span class="gb-header-user-name">{{ profileName }}</span>
+      </span>
+
+      <button type="button" class="gb-cart-pill" (click)="scrollToCart()"
+        [attr.aria-label]="('OrderShopping.VALUE_ITEMS_IN_CART' | translate:{p0: (cart.length)})">
+        <span class="gb-cart-pill-icon">
+          <i class="bi bi-cart3" aria-hidden="true"></i>
+          <span class="gb-cart-badge">{{ cart.length }}</span>
+        </span>
+        <span class="gb-cart-pill-copy">
+          <small>{{ 'OrderShopping.CART_SUMMARY' | translate }}</small>
+          <strong>₹{{ grandTotal | number:'1.2-2' }}</strong>
+        </span>
+        <i class="bi bi-chevron-right gb-cart-pill-arrow" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+</header>
+
 <app-voice-advance
   [vendorId]="vendorId" [customerId]="customerId" [userType]="userType"
   [stock]="stock" [advanceAllowed]="vendorProfile?.fldvAllowAdvanceOrder === true"
@@ -547,26 +579,6 @@
   </div>
 
   <ng-container *ngIf="shoppingStarted">
-    <header class="gb-header">
-      <div class="gb-brand">
-        <img class="gb-brand-logo" src="/Images/Green%20Basket%20Light.jpg" alt="" />
-        <div class="gb-brand-copy">
-          <span class="gb-brand-name">{{ 'OrderShopping.GREEN_BASKET' | translate }}</span>
-          <small>{{ 'OrderShopping.FRESH_VEGETABLES_FROM_LOCAL_VENDORS' | translate }}</small>
-        </div>
-      </div>
-      <div class="gb-header-actions">
-        <span class="gb-header-user" *ngIf="profileName">
-          <i class="bi bi-person-circle" aria-hidden="true"></i>
-           {{ profileName }} </span>
-        <div class="gb-cart-pill" role="status" aria-live="polite"
-          [attr.aria-label]="('OrderShopping.VALUE_ITEMS_IN_CART' | translate:{p0: (cart.length)})">
-          <i class="bi bi-cart3" aria-hidden="true"></i>
-          <span class="gb-cart-badge">{{ cart.length }}</span>
-        </div>
-      </div>
-    </header>
-
     <section class="gb-order-hero" *ngIf="!showCheckout" aria-labelledby="gbNewOrderTitle">
       <div>
         <button type="button" class="gb-back-link" (click)="backToMyOrders()">
@@ -756,7 +768,7 @@
         <div class="gb-search">
           <i class="bi bi-search" aria-hidden="true"></i>
           <input class="gb-input" type="search" [placeholder]="'OrderShopping.SEARCH_VEGETABLES' | translate" [attr.aria-label]="'OrderShopping.SEARCH_VEGETABLES_2' | translate"
-            [(ngModel)]="searchText" (ngModelChange)="clearHiddenQuantityErrors()" />
+            [(ngModel)]="searchText" (ngModelChange)="onSearchChange()" />
         </div>
         <div class="gb-categories" role="group" [attr.aria-label]="'OrderShopping.FILTER_BY_CATEGORY' | translate">
           <button type="button" *ngFor="let c of categories" [class.active]="category === c"
@@ -792,7 +804,7 @@
       <div class="gb-catalog-heading" *ngIf="!loading && stock.length > 0">
         <div>
           <h2>{{ (category === 'All' ? ('OrderShopping.ALL_ITEMS' | translate) : (category | menuCaption:'OrderShopping')) }}</h2>
-          <p>{{ ('OrderShopping.VALUE_VALUE_AVAILABLE' | translate:{p0: (visibleStock.length), p1: ((visibleStock.length === 1 ? ('OrderShopping.ITEM' | translate) : ('OrderShopping.ITEMS' | translate)))}) }}</p>
+          <p>{{ ('OrderShopping.SHOWING_VALUE_OF_VALUE_ITEMS' | translate:{p0: (displayedStock.length), p1: (visibleStock.length)}) }}</p>
         </div>
         <div class="gb-view-toggle" role="group" [attr.aria-label]="'OrderShopping.VIEW_LAYOUT' | translate">
           <span class="gb-view-toggle-label" aria-hidden="true">{{ 'OrderShopping.VIEW' | translate }}</span>
@@ -864,7 +876,7 @@
 
       <section class="gb-products" *ngIf="visibleStock.length > 0 && viewMode === 'grid'"
         [attr.aria-label]="category === 'All' ? ('OrderShopping.ALL_ITEMS' | translate) : (category | menuCaption:'OrderShopping')">
-        <article class="gb-product" *ngFor="let item of visibleStock">
+        <article class="gb-product" *ngFor="let item of displayedStock">
           <img class="gb-product-image" [src]="imageUrl(item.fldItemImagePath)" [alt]="item.fldItemName"
             loading="lazy" (error)="onImageError($event)" />
 
@@ -910,7 +922,7 @@
           <span>{{ 'OrderShopping.QUANTITY' | translate }}</span>
         </div>
 
-        <article class="gb-item-row" *ngFor="let item of visibleStock">
+        <article class="gb-item-row" *ngFor="let item of displayedStock">
           <div class="gb-item-row-info">
             <span class="gb-product-vendor" [class.gb-product-vendor-current]="cart.length > 0 && cartVendorId === item.fldFKVendorId">
               <i class="bi" [ngClass]="cart.length > 0 && cartVendorId === item.fldFKVendorId ? 'bi-check-circle-fill' : 'bi-shop'" aria-hidden="true"></i>
@@ -946,6 +958,34 @@
           </div>
         </article>
       </section>
+
+      <!-- Catalogue pagination: the sentinel appends the next page as the
+           customer scrolls; the button keeps the action keyboard-accessible. -->
+      <div class="gb-catalog-pagination" *ngIf="visibleStock.length > catalogPageSize">
+        <div class="gb-catalog-progress" aria-hidden="true">
+          <span [style.width.%]="stockLoadProgress"></span>
+        </div>
+
+        <p class="gb-catalog-status" role="status" aria-live="polite">
+          {{ ('OrderShopping.SHOWING_VALUE_OF_VALUE_ITEMS' | translate:{p0: (displayedStock.length), p1: (visibleStock.length)}) }}
+        </p>
+
+        <div class="gb-catalog-sentinel" *ngIf="hasMoreStock" gbInfiniteScroll
+          (gbInfiniteScrollLoad)="loadMoreStock()" aria-hidden="true">
+          <span class="gb-catalog-sentinel-dot"></span>
+          {{ 'OrderShopping.SCROLL_FOR_MORE' | translate }}
+        </div>
+
+        <button type="button" class="gb-load-more" *ngIf="hasMoreStock" (click)="loadMoreStock()">
+          <i class="bi bi-arrow-down-circle" aria-hidden="true"></i>
+          {{ ('OrderShopping.LOAD_MORE_ITEMS' | translate:{p0: (remainingStockCount)}) }}
+        </button>
+
+        <p class="gb-catalog-end" *ngIf="!hasMoreStock">
+          <i class="bi bi-check2-circle" aria-hidden="true"></i>
+          {{ ('OrderShopping.ALL_ITEMS_LOADED' | translate:{p0: (visibleStock.length)}) }}
+        </p>
+      </div>
 
       <ng-container *ngTemplateOutlet="deliverySettings"></ng-container>
 

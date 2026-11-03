@@ -15,9 +15,9 @@
   <div class="page-card stock-card">
     <div class="stock-toolbar">
       <input class="form-control stock-search" type="search" name="stockSearch" [placeholder]="'DailyInventoryAdd.SEARCH_VEGETABLES' | translate"
-        [(ngModel)]="searchText" />
+        [(ngModel)]="searchText" (ngModelChange)="resetPagination()" />
       <label class="stock-changed-filter">
-        <input type="checkbox" [(ngModel)]="showOnlyChanged" name="showOnlyChanged" />
+        <input type="checkbox" [(ngModel)]="showOnlyChanged" name="showOnlyChanged" (ngModelChange)="resetPagination()" />
         {{ ('DailyInventoryAdd.CHANGED_ONLY_VALUE' | translate:{p0: (changedCount)}) }}</label>
       <button type="button" class="btn-app btn-outline" (click)="loadStock()"
         [disabled]="loading || isSaving || changedCount > 0"
@@ -43,6 +43,7 @@
       </label>
       <select id="itemTypeFilter" class="stock-type-select" name="itemTypeFilter" [(ngModel)]="selectedItemType"
         [class.filter-active]="selectedItemType" [disabled]="loading || isSaving"
+        (ngModelChange)="resetPagination()"
         [attr.aria-label]="'DailyInventoryAdd.FILTER_BY_ITEM_TYPE' | translate">
         <option value="">
           {{ 'DailyInventoryAdd.ALL_ITEM_TYPES' | translate }} ({{ itemTypeScopeCount }})
@@ -198,6 +199,35 @@
           </div>
 
         </div>
+      </div>
+
+      <!-- Infinite-scroll pagination: sentinel appends the next page on scroll,
+           while the button keeps the action keyboard-accessible. -->
+      <div class="inventory-pagination" *ngIf="filteredInventoryCount > pageSize">
+        <div class="inventory-pagination-progress" aria-hidden="true">
+          <span [style.width.%]="inventoryLoadProgress"></span>
+        </div>
+
+        <p class="inventory-pagination-status" role="status" aria-live="polite">
+          {{ ('DailyInventoryAdd.SHOWING_VALUE_OF_VALUE_RECORDS' | translate:{p0: visibleRecordCount(filteredInventoryCount), p1: filteredInventoryCount}) }}
+        </p>
+
+        <div class="inventory-pagination-sentinel" *ngIf="hasMoreInventory"
+          gbInfiniteScroll (gbInfiniteScrollLoad)="showMoreInventory()" aria-hidden="true">
+          <i class="bi bi-chevron-double-down"></i>
+          {{ 'DailyInventoryAdd.SCROLL_FOR_MORE_RECORDS' | translate }}
+        </div>
+
+        <button *ngIf="hasMoreInventory" type="button"
+          class="btn-app btn-outline inventory-load-more" (click)="showMoreInventory()">
+          <i class="bi bi-arrow-down-circle" aria-hidden="true"></i>
+          {{ ('DailyInventoryAdd.LOAD_MORE_RECORDS' | translate:{p0: remainingInventoryCount}) }}
+        </button>
+
+        <p class="inventory-pagination-end" *ngIf="!hasMoreInventory">
+          <i class="bi bi-check2-circle" aria-hidden="true"></i>
+          {{ ('DailyInventoryAdd.ALL_RECORDS_LOADED' | translate:{p0: filteredInventoryCount}) }}
+        </p>
       </div>
 
       <div *ngIf="!loading && rows.length > 0 && visibleRows.length === 0" class="stock-message">

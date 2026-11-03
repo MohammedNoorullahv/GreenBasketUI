@@ -10,13 +10,14 @@ import { PLATFORM_ID } from '@angular/core';
 import { environment } from '../../../../../environments/environment'; // Verify path in your project.
 import { TblDailyInventoryService } from '../services/tbl-daily-inventory';
 import { TblItemMasterService } from '../../../mastertables/tblItemMaster/services/tbl-item-master';
+import { InfiniteScrollDirective } from '../../../../shared/directives/infinite-scroll.directive';
 
 import { StockEntryItem, StockEntryRow, DailyStockEntrySaveRow, DailyStockEntrySaveRequest } from '../models/tblDailyInventoryforStockEntry.model';
 
 @Component({
   selector: 'app-tbl-daily-inventory-add',
   standalone: true,
-  imports: [CommonModule, FormsModule, GbPageTranslatePipe, GbMenuCaptionPipe],
+  imports: [CommonModule, FormsModule, GbPageTranslatePipe, GbMenuCaptionPipe, InfiniteScrollDirective],
   templateUrl: './tbl-daily-inventory-add.html',
   styleUrl: './tbl-daily-inventory-add.css',
 })
@@ -41,6 +42,11 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
   private itemTypeById = new Map<number, string>();
   readonly imageBaseUrl = environment.apiBaseUrl.trim().replace(/\/+$/, '').replace(/\/api$/i, '');
   fldInventoryDate = Date;
+
+  // Stock entry items can grow to hundreds of rows. The table/cards render the first page
+  // and append another page whenever the sentinel nears the viewport bottom.
+  readonly pageSize = 25;
+  visibleCount = this.pageSize;
 
   constructor(
     private inventoryService: TblDailyInventoryService,
@@ -125,7 +131,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
                   fldIsAddMore: item.fldIsAddMore,
 
                   fldAvailableStock: availableStock,
-                  fldNewStock: newStock,
+                  fldNewStock: newStock === 0 ? null : newStock,
                   fldCurrentStock: currentStock,
                   fldSellingRate: sellingRate,
                   fldIsAvailable: isAvailable,
@@ -160,6 +166,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
               this.selectedItemType = '';
             }
 
+            this.resetPagination();
             this.cdr.detectChanges();
           },
           error: err => {
@@ -202,10 +209,12 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
     if (this.selectedItemType && !this.itemTypes.some(t => t.name === this.selectedItemType)) {
       this.selectedItemType = '';
     }
+    this.resetPagination();
   }
 
   setItemType(name: string): void {
     this.selectedItemType = name;
+    this.resetPagination();
   }
 
   get itemTypes(): { name: string; count: number }[] {
@@ -236,6 +245,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
   clearAllFilters(): void {
     this.searchText = '';
     this.selectedItemType = '';
+    this.resetPagination();
   }
 
   get visibleRows(): StockEntryRow[] {
@@ -263,8 +273,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
         row.fldItemNameUrdu ?? '',
         row.fldCategoryName
       ].some(text => text.toLowerCase().includes(q)))
-
-    );
+    ).slice(0, this.visibleCount);
 
   }
 
@@ -273,6 +282,64 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
   }
 
   get changedCount(): number { return this.rows.filter(r => this.isChanged(r)).length; }
+
+  /** Total number of rows matching current filters (before pagination). */
+  get filteredInventoryCount(): number {
+    const q = this.searchText.trim().toLowerCase();
+    return this.rows.filter(row =>
+      row.fldIsDisplay &&
+      (!this.selectedCategory || this.categoryNameOf(row) === this.selectedCategory) &&
+      (!this.selectedItemType || this.typeNameOf(row) === this.selectedItemType) &&
+      (!this.showOnlyChanged || this.isChanged(row)) &&
+      (!q || [
+        row.fldItemName,
+        row.fldItemNameTamil ?? '',
+        row.fldItemNameUrdu ?? '',
+        row.fldCategoryName
+      ].some(text => text.toLowerCase().includes(q)))
+    ).length;
+  }
+
+  /** Whether there are more inventory rows beyond the currently visible page. */
+  get hasMoreInventory(): boolean {
+    return this.visibleCount < this.filteredInventoryCount;
+  }
+
+  /** Number of inventory rows still not shown. */
+  get remainingInventoryCount(): number {
+    return Math.max(this.filteredInventoryCount - this.visibleCount, 0);
+  }
+
+  /** Load progress percentage for the progress bar. */
+  get inventoryLoadProgress(): number {
+    const total = this.filteredInventoryCount;
+    return total === 0
+      ? 0
+      : Math.min(100, (this.visibleRecordCount(total) / total) * 100);
+  }
+
+  /** Visible slice count capped at total (used by progress bar). */
+  visibleRecordCount(total: number): number {
+    return Math.min(this.visibleCount, total);
+  }
+
+  /** Appends the next page of inventory rows on scroll or from the fallback button. */
+  showMoreInventory(): void {
+    if (!this.hasMoreInventory) {
+      return;
+    }
+    this.visibleCount = Math.min(
+      this.visibleCount + this.pageSize,
+      this.filteredInventoryCount
+    );
+  }
+
+  /** Resets pagination to the first page. Call whenever filters or data change. */
+  resetPagination(): void {
+    this.visibleCount = this.pageSize;
+  }
+
+
 
   quantityChanged(row: StockEntryRow): void {
     row.quantityEdited = true;

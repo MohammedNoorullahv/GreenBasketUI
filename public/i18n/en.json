@@ -239,6 +239,11 @@
     "VALUE_VALUE_ITEM_TOTAL_VALUE": "{{p0}} {{p1}} · Item total ₹{{p2}}",
     "ADD_VALUE_MORE_FOR_THE_MINIMUM_ORDER": "Add ₹{{p0}} more for the minimum order",
     "CART_IS_EMPTY": "Cart is empty",
+    "CHECK_CART": "Check cart",
+    "SHOWING_VALUE_OF_VALUE_ITEMS": "Showing {{p0}} of {{p1}} items",
+    "SCROLL_FOR_MORE": "Keep scrolling to load more",
+    "LOAD_MORE_ITEMS": "Load more items ({{p0}} remaining)",
+    "ALL_ITEMS_LOADED": "All {{p0}} items loaded",
     "FIX_QUANTITY_ERRORS": "Fix quantity errors",
     "LOADING_VENDOR_SETTINGS": "Loading vendor settings…",
     "ADD_VALUE_MORE_2": "Add ₹{{p0}} more",
@@ -365,6 +370,9 @@
     "FILTER": "Filter",
     "EXPORT_CSV": "Export CSV",
     "SHOWING_VALUE_OF_VALUE_RECORDS": "Showing {{p0}} of {{p1}} Records",
+    "SCROLL_FOR_MORE_RECORDS": "Keep scrolling to load more records",
+    "LOAD_MORE_RECORDS": "Load more records ({{p0}} remaining)",
+    "ALL_RECORDS_LOADED": "All {{p0}} records loaded",
     "SELECT": "Select",
     "ID": "Id",
     "F_K_VENDOR_ID": "F K Vendor Id",
@@ -447,6 +455,10 @@
     "ITEM_TYPE": "Item Type",
     "ALL_ITEM_TYPES": "All Item Types",
     "FILTER_BY_ITEM_TYPE": "Filter by item type",
-    "CLEAR_ITEM_TYPE_FILTER": "Clear item type filter"
+    "CLEAR_ITEM_TYPE_FILTER": "Clear item type filter",
+    "SHOWING_VALUE_OF_VALUE_RECORDS": "Showing {{p0}} of {{p1}} records",
+    "SCROLL_FOR_MORE_RECORDS": "Keep scrolling to load more records",
+    "LOAD_MORE_RECORDS": "Load more records ({{p0}} remaining)",
+    "ALL_RECORDS_LOADED": "All {{p0}} records loaded"
   }
 }

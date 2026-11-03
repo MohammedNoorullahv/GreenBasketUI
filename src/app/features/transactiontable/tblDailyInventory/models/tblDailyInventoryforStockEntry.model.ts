@@ -18,7 +18,7 @@ export interface TblDailyInventoryforStockEntry {
     fldInventoryDate: Date;
     fldSellingRate: number;
     fldAvailableStock: number;
-    fldNewStock: number;
+    fldNewStock: number | null;
     fldCurrentStock: number;
     fldInitialStock: number;
 

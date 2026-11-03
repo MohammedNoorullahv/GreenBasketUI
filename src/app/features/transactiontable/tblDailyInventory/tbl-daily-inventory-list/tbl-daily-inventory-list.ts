@@ -14,11 +14,12 @@ import { ColumnFilterIconComponent } from '../../../../shared/components/column-
 import { ColumnFilterPipe } from '../../../../shared/pipes/column-filter.pipe';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { ScrollButtonsComponent } from '../../../../shared/components/scroll-buttons/scroll-buttons.component';
+import { InfiniteScrollDirective } from '../../../../shared/directives/infinite-scroll.directive';
 import { Console } from 'node:console';
 
 @Component({
   selector: 'app-tbl-daily-inventory-list',
-  imports: [AsyncPipe, CommonModule, RouterLink, FormsModule, ColumnFilterPipe, ColumnFilterIconComponent, GbPageTranslatePipe, GbMenuCaptionPipe, ConfirmDialogComponent, ScrollButtonsComponent],
+  imports: [AsyncPipe, CommonModule, RouterLink, FormsModule, ColumnFilterPipe, ColumnFilterIconComponent, GbPageTranslatePipe, GbMenuCaptionPipe, ConfirmDialogComponent, ScrollButtonsComponent, InfiniteScrollDirective],
   templateUrl: './tbl-daily-inventory-list.html',
   styleUrl: './tbl-daily-inventory-list.css',
 })
@@ -29,6 +30,11 @@ export class TblDailyInventoryListComponent implements OnInit {
   submitAction: 'Load All' | 'Active Only' = 'Active Only'; // default to Load All
   filters: Record<string, string> = {};
   isAdmin: boolean = false;
+
+  // Inventory can grow to hundreds of rows. The table renders the first page
+  // and appends another page whenever the sentinel nears the viewport bottom.
+  readonly pageSize = 25;
+  visibleCount = this.pageSize;
 
   removeMultipleItems: boolean = false;
 
@@ -65,6 +71,8 @@ export class TblDailyInventoryListComponent implements OnInit {
   }
 
   OnFormSubmit(action: string): void {
+    this.resetPagination();
+
     if (action === 'Load All') {
       this.actionType = "Load All";
       this.tblDailyInventory$ = this.tblDailyInventoryService.getAllTblDailyInventorys();
@@ -79,6 +87,46 @@ export class TblDailyInventoryListComponent implements OnInit {
 
     // Clear previous selections whenever mode changes
     this.selectedInventoryIds = [];
+  }
+
+  /** Visible slices and pagination helpers used by the table template. */
+  visibleRecordCount(total: number): number {
+    return Math.min(this.visibleCount, total);
+  }
+
+  hasMoreInventory(total: number): boolean {
+    return this.visibleCount < total;
+  }
+
+  remainingInventoryCount(total: number): number {
+    return Math.max(total - this.visibleCount, 0);
+  }
+
+  inventoryLoadProgress(total: number): number {
+    return total === 0
+      ? 0
+      : Math.min(100, (this.visibleRecordCount(total) / total) * 100);
+  }
+
+  showMoreInventory(): void {
+    this.visibleCount += this.pageSize;
+  }
+
+  onInventoryFilterChange(): void {
+    this.resetPagination();
+  }
+
+  clearInventoryFilters(): void {
+    this.filters = {};
+    this.resetPagination();
+  }
+
+  resetPagination(): void {
+    this.visibleCount = this.pageSize;
+  }
+
+  trackByInventoryId(_index: number, inventory: TblDailyInventory): number {
+    return inventory.fldId;
   }
 
   onInventorySelectionChange(

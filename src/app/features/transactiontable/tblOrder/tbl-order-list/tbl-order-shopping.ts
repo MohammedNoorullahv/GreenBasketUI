@@ -22,6 +22,7 @@ import { TblPendingOrderDto } from '../models/tbl-pending-order.model';
 import { RouterLink } from '@angular/router';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { ScrollButtonsComponent } from '../../../../shared/components/scroll-buttons/scroll-buttons.component';
+import { InfiniteScrollDirective } from '../../../../shared/directives/infinite-scroll.directive';
 import { renderOrderReceipt } from './order-receipt';
 
 // Extend the API order-header DTO/entity/PrintOrder response with these fields.
@@ -60,7 +61,7 @@ interface SavedCartState {
 @Component({
   selector: 'app-tbl-order-shopping',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, GbPageTranslatePipe, GbMenuCaptionPipe, VoiceAdvanceComponent, ConfirmDialogComponent, ScrollButtonsComponent],
+  imports: [CommonModule, FormsModule, RouterLink, GbPageTranslatePipe, GbMenuCaptionPipe, VoiceAdvanceComponent, ConfirmDialogComponent, ScrollButtonsComponent, InfiniteScrollDirective],
   templateUrl: './tbl-order-shopping.html',
   styleUrl: './tbl-order-shopping.css'
 })
@@ -90,6 +91,11 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
   // 'all' lets the customer browse every vendor before the basket is locked.
   vendorFilter: number | 'all' = 'all';
   stock: OrderStockItem[] = [];
+  // The catalogue can contain hundreds of products. Render a small first page
+  // and append the next page as the customer scrolls, instead of creating all
+  // product cards at once.
+  readonly catalogPageSize = 25;
+  catalogVisibleCount = this.catalogPageSize;
   cart: OrderCartLine[] = [];
   // Holds an attempted line while we ask the customer to replace their
   // current single-vendor basket.
@@ -337,6 +343,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
         next: ({ options, stock }) => {
           this.vendorOptions = options;
           this.stock = stock;
+          this.resetCatalogPagination();
 
           if (
             this.vendorFilter !== 'all' &&
@@ -355,6 +362,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
           this.vendorOptions = [];
           this.vendorFilter = 'all';
           this.category = 'All';
+          this.resetCatalogPagination();
           console.error('Unable to load vendor catalogue:', err);
           this.toastr.error('Unable to load available products. Please try again.');
         }
@@ -424,6 +432,47 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
     return this.searchText.trim() ? rankStock(this.searchText, eligible, eligible.length) : eligible;
   }
 
+  /** Products currently rendered in the grid/list (the first page and beyond). */
+  get displayedStock(): OrderStockItem[] {
+    return this.visibleStock.slice(0, this.catalogVisibleCount);
+  }
+
+  get hasMoreStock(): boolean {
+    return this.catalogVisibleCount < this.visibleStock.length;
+  }
+
+  get remainingStockCount(): number {
+    return Math.max(this.visibleStock.length - this.catalogVisibleCount, 0);
+  }
+
+  get stockLoadProgress(): number {
+    const total = this.visibleStock.length;
+    return total === 0
+      ? 0
+      : Math.min(100, (this.displayedStock.length / total) * 100);
+  }
+
+  /** Appends the next catalogue page on scroll or from the fallback button. */
+  loadMoreStock(): void {
+    if (!this.hasMoreStock) {
+      return;
+    }
+
+    this.catalogVisibleCount = Math.min(
+      this.catalogVisibleCount + this.catalogPageSize,
+      this.visibleStock.length
+    );
+  }
+
+  private resetCatalogPagination(): void {
+    this.catalogVisibleCount = this.catalogPageSize;
+  }
+
+  onSearchChange(): void {
+    this.resetCatalogPagination();
+    this.clearHiddenQuantityErrors();
+  }
+
   get cartVendorId(): number {
     const lineVendorId = Number(this.cart[0]?.stock.fldFKVendorId);
     return Number.isFinite(lineVendorId) && lineVendorId > 0 ? lineVendorId : this.vendorId;
@@ -460,6 +509,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
     if (this.category !== 'All' && !this.categories.includes(this.category)) {
       this.category = 'All';
     }
+    this.resetCatalogPagination();
     this.clearHiddenQuantityErrors();
     this.cdr.detectChanges();
   }
@@ -622,6 +672,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
 
   setCategory(category: string): void {
     this.category = category;
+    this.resetCatalogPagination();
     this.clearHiddenQuantityErrors();
     this.cdr.detectChanges();
   }
@@ -2049,6 +2100,8 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
     this.stock = [];
 
     this.quantityErrors = {};
+
+    this.resetCatalogPagination();
 
     this.vendorId = 0;
 

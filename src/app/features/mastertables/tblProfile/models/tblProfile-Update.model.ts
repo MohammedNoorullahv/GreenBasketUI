@@ -37,6 +37,9 @@ export interface TblProfileUpdate {
     fldvRDChargesWaiverValue?: number;
     fldvPDMinBillValue?: number;
     fldvPDChargesWaiverValue?: number;
+	fldvWeeklyOff?: string | null;
+	fldvOrderBookingStartTime: string | null;
+	fldvOrderBookingEndTime: string | null;
 
 	fldEmailId?: string | null;
     fldPasswordHash?: string | null;

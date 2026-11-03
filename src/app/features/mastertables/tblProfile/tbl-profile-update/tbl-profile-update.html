@@ -168,13 +168,13 @@
 
                         <input [type]="showPassword ? 'text' : 'password'" id="fldPasswordHash" class="form-control"
                             name="fldPasswordHash" [(ngModel)]="model.fldPasswordHash"
-                            (ngModelChange)="onMPINChange($event)" inputmode="numeric"
-                            minlength="6" maxlength="6" pattern="[0-9]{6}"
-                            autocomplete="new-password" placeholder="Enter 6-digit MPIN"
+                            (ngModelChange)="onMPINChange($event)" inputmode="numeric" minlength="6" maxlength="6"
+                            pattern="[0-9]{6}" autocomplete="new-password" placeholder="Enter 6-digit MPIN"
                             #mpinField="ngModel" [disabled]="isSaving" required />
 
                         <button type="button" class="profile-password-eye" [disabled]="isSaving"
-                            [attr.aria-label]="showPassword ? 'Hide MPIN' : 'Show MPIN'" (click)="showPassword = !showPassword">
+                            [attr.aria-label]="showPassword ? 'Hide MPIN' : 'Show MPIN'"
+                            (click)="showPassword = !showPassword">
 
                             <i *ngIf="!showPassword" class="bi bi-eye"></i>
                             <i *ngIf="showPassword" class="bi bi-eye-slash"></i>
@@ -182,11 +182,11 @@
                         </button>
 
                         <div class="text-danger profile-validation"
-                        *ngIf="mpinField.invalid && (mpinField.touched || mpinField.dirty)">
-                        MPIN must contain exactly 6 digits.
-                    </div>
+                            *ngIf="mpinField.invalid && (mpinField.touched || mpinField.dirty)">
+                            MPIN must contain exactly 6 digits.
+                        </div>
 
-                </div>
+                    </div>
 
                 </div>
 
@@ -531,133 +531,204 @@
 
                     </div>
 
+                    <section class="vendor-delivery-card" aria-labelledby="vendorBookingHeading">
+                        <h3 id="vendorBookingHeading" class="vendor-delivery-heading">
+                            Order Booking Availability
+                        </h3>
 
-<section class="vendor-delivery-card" aria-labelledby="deliveryADHeading">
-<h3 id="deliveryADHeading" class="vendor-delivery-heading">Advance Delivery Options</h3>
-<label class="profile-radio vendor-delivery-toggle"><input type="checkbox" name="fldvAllowAdvanceOrder" [(ngModel)]="model.fldvAllowAdvanceOrder" /> Allow Advance Orders</label>
-<div class="vendor-delivery-grid">
-<div class="vendor-delivery-cell">
-  <label class="form-label" for="fldvADMinBillValue">Min Bill Value (₹)</label>
-  <input type="number" id="fldvADMinBillValue" name="fldvADMinBillValue" class="form-control"
-    [(ngModel)]="model.fldvADMinBillValue" min="0" step="0.01" placeholder="0.00" #controlfldvADMinBillValue="ngModel" />
-  <div class="text-danger profile-validation"
-    *ngIf="controlfldvADMinBillValue.invalid && (controlfldvADMinBillValue.touched || controlfldvADMinBillValue.dirty)">
-    Please enter a valid non-negative amount.
-  </div>
-</div>
-<div class="vendor-delivery-cell">
-  <label class="form-label" for="fldvADChargesWaiverValue">Waiver Bill Value (₹)</label>
-  <input type="number" id="fldvADChargesWaiverValue" name="fldvADChargesWaiverValue" class="form-control"
-    [(ngModel)]="model.fldvADChargesWaiverValue" min="0" step="0.01" placeholder="0.00" #controlfldvADChargesWaiverValue="ngModel" />
-  <div class="text-danger profile-validation"
-    *ngIf="controlfldvADChargesWaiverValue.invalid && (controlfldvADChargesWaiverValue.touched || controlfldvADChargesWaiverValue.dirty)">
-    Please enter a valid non-negative amount.
-  </div>
-</div>
-<div class="vendor-delivery-cell">
-  <label class="form-label" for="fldvADCharges">Delivery Charges (₹)</label>
-  <input type="number" id="fldvADCharges" name="fldvADCharges" class="form-control"
-    [(ngModel)]="model.fldvADCharges" min="0" step="0.01" placeholder="0.00" #controlfldvADCharges="ngModel" />
-  <div class="text-danger profile-validation"
-    *ngIf="controlfldvADCharges.invalid && (controlfldvADCharges.touched || controlfldvADCharges.dirty)">
-    Please enter a valid non-negative amount.
-  </div>
-</div>
-<div class="vendor-delivery-cell">
-  <label class="form-label" for="fldvADEndTime">End Time</label>
-  <input type="time" id="fldvADEndTime" name="fldvADEndTime" class="form-control"
-    [(ngModel)]="model.fldvADEndTime"  #controlfldvADEndTime="ngModel" />
-  <div class="text-danger profile-validation"
-    *ngIf="controlfldvADEndTime.invalid && (controlfldvADEndTime.touched || controlfldvADEndTime.dirty)">
-    Please enter a valid value.
-  </div>
-</div>
-</div>
-</section>
-<section class="vendor-delivery-card" aria-labelledby="deliveryRDHeading">
-<h3 id="deliveryRDHeading" class="vendor-delivery-heading">Regular Delivery Options</h3>
-<p class="vendor-delivery-note">Regular delivery settings</p>
-<div class="vendor-delivery-grid">
-<div class="vendor-delivery-cell">
-  <label class="form-label" for="fldvRDMinBillValue">Min Bill Value (₹)</label>
-  <input type="number" id="fldvRDMinBillValue" name="fldvRDMinBillValue" class="form-control"
-    [(ngModel)]="model.fldvRDMinBillValue" min="0" step="0.01" placeholder="0.00" #controlfldvRDMinBillValue="ngModel" />
-  <div class="text-danger profile-validation"
-    *ngIf="controlfldvRDMinBillValue.invalid && (controlfldvRDMinBillValue.touched || controlfldvRDMinBillValue.dirty)">
-    Please enter a valid non-negative amount.
-  </div>
-</div>
-<div class="vendor-delivery-cell">
-  <label class="form-label" for="fldvRDChargesWaiverValue">Waiver Bill Value (₹)</label>
-  <input type="number" id="fldvRDChargesWaiverValue" name="fldvRDChargesWaiverValue" class="form-control"
-    [(ngModel)]="model.fldvRDChargesWaiverValue" min="0" step="0.01" placeholder="0.00" #controlfldvRDChargesWaiverValue="ngModel" />
-  <div class="text-danger profile-validation"
-    *ngIf="controlfldvRDChargesWaiverValue.invalid && (controlfldvRDChargesWaiverValue.touched || controlfldvRDChargesWaiverValue.dirty)">
-    Please enter a valid non-negative amount.
-  </div>
-</div>
-<div class="vendor-delivery-cell">
-  <label class="form-label" for="fldvRDCharges">Delivery Charges (₹)</label>
-  <input type="number" id="fldvRDCharges" name="fldvRDCharges" class="form-control"
-    [(ngModel)]="model.fldvRDCharges" min="0" step="0.01" placeholder="0.00" #controlfldvRDCharges="ngModel" />
-  <div class="text-danger profile-validation"
-    *ngIf="controlfldvRDCharges.invalid && (controlfldvRDCharges.touched || controlfldvRDCharges.dirty)">
-    Please enter a valid non-negative amount.
-  </div>
-</div>
-<div class="vendor-delivery-cell">
-  <label class="form-label" for="fldvRegularDeliveryStartTime">Start Time</label>
-  <input type="time" id="fldvRegularDeliveryStartTime" name="fldvRegularDeliveryStartTime" class="form-control"
-    [(ngModel)]="model.fldvRegularDeliveryStartTime"  #controlfldvRegularDeliveryStartTime="ngModel" />
-  <div class="text-danger profile-validation"
-    *ngIf="controlfldvRegularDeliveryStartTime.invalid && (controlfldvRegularDeliveryStartTime.touched || controlfldvRegularDeliveryStartTime.dirty)">
-    Please enter a valid value.
-  </div>
-</div>
-</div>
-</section>
-<section class="vendor-delivery-card" aria-labelledby="deliveryPDHeading">
-<h3 id="deliveryPDHeading" class="vendor-delivery-heading">Priority Delivery Options</h3>
-<label class="profile-radio vendor-delivery-toggle"><input type="checkbox" name="fldvAcceptingPriortyOrder" [(ngModel)]="model.fldvAcceptingPriortyOrder" /> Accept Priority Orders</label>
-<div class="vendor-delivery-grid">
-<div class="vendor-delivery-cell">
-  <label class="form-label" for="fldvPDMinBillValue">Min Bill Value (₹)</label>
-  <input type="number" id="fldvPDMinBillValue" name="fldvPDMinBillValue" class="form-control"
-    [(ngModel)]="model.fldvPDMinBillValue" min="0" step="0.01" placeholder="0.00" #controlfldvPDMinBillValue="ngModel" />
-  <div class="text-danger profile-validation"
-    *ngIf="controlfldvPDMinBillValue.invalid && (controlfldvPDMinBillValue.touched || controlfldvPDMinBillValue.dirty)">
-    Please enter a valid non-negative amount.
-  </div>
-</div>
-<div class="vendor-delivery-cell">
-  <label class="form-label" for="fldvPDChargesWaiverValue">Waiver Bill Value (₹)</label>
-  <input type="number" id="fldvPDChargesWaiverValue" name="fldvPDChargesWaiverValue" class="form-control"
-    [(ngModel)]="model.fldvPDChargesWaiverValue" min="0" step="0.01" placeholder="0.00" #controlfldvPDChargesWaiverValue="ngModel" />
-  <div class="text-danger profile-validation"
-    *ngIf="controlfldvPDChargesWaiverValue.invalid && (controlfldvPDChargesWaiverValue.touched || controlfldvPDChargesWaiverValue.dirty)">
-    Please enter a valid non-negative amount.
-  </div>
-</div>
-<div class="vendor-delivery-cell">
-  <label class="form-label" for="fldvPDCharges">Delivery Charges (₹)</label>
-  <input type="number" id="fldvPDCharges" name="fldvPDCharges" class="form-control"
-    [(ngModel)]="model.fldvPDCharges" min="0" step="0.01" placeholder="0.00" #controlfldvPDCharges="ngModel" />
-  <div class="text-danger profile-validation"
-    *ngIf="controlfldvPDCharges.invalid && (controlfldvPDCharges.touched || controlfldvPDCharges.dirty)">
-    Please enter a valid non-negative amount.
-  </div>
-</div>
-<div class="vendor-delivery-cell">
-  <label class="form-label" for="fldvPDDuration">Delivery Duration</label>
-  <input type="text" id="fldvPDDuration" name="fldvPDDuration" class="form-control"
-    [(ngModel)]="model.fldvPDDuration" maxlength="50" placeholder="E.g. 30 Minutes" #controlfldvPDDuration="ngModel" />
-  <div class="text-danger profile-validation"
-    *ngIf="controlfldvPDDuration.invalid && (controlfldvPDDuration.touched || controlfldvPDDuration.dirty)">
-    Please enter a valid value.
-  </div>
-</div>
-</div>
-</section>
+                        <div class="vendor-delivery-grid">
+
+                            <div class="vendor-delivery-cell">
+                                <label class="form-label" for="fldvOrderBookingStartTime">
+                                    Booking Start Time
+                                </label>
+
+                                <input type="time" id="fldvOrderBookingStartTime" name="fldvOrderBookingStartTime"
+                                    class="form-control" [ngModel]="model.fldvOrderBookingStartTime"
+                                    (ngModelChange)="model.fldvOrderBookingStartTime = $event || null" step="60" />
+                            </div>
+
+                            <div class="vendor-delivery-cell">
+                                <label class="form-label" for="fldvOrderBookingEndTime">
+                                    Booking End Time
+                                </label>
+
+                                <input type="time" id="fldvOrderBookingEndTime" name="fldvOrderBookingEndTime"
+                                    class="form-control" [ngModel]="model.fldvOrderBookingEndTime"
+                                    (ngModelChange)="model.fldvOrderBookingEndTime = $event || null" step="60" />
+                            </div>
+
+                            <div class="vendor-delivery-cell">
+                                <label class="form-label" for="fldvWeeklyOff">
+                                    Weekly Off
+                                </label>
+
+                                <select id="fldvWeeklyOff" name="fldvWeeklyOff" class="form-select"
+                                    [(ngModel)]="model.fldvWeeklyOff">
+
+                                    <option value="">No Weekly Off</option>
+                                    <option value="Sunday">Sunday</option>
+                                    <option value="Monday">Monday</option>
+                                    <option value="Tuesday">Tuesday</option>
+                                    <option value="Wednesday">Wednesday</option>
+                                    <option value="Thursday">Thursday</option>
+                                    <option value="Friday">Friday</option>
+                                    <option value="Saturday">Saturday</option>
+                                </select>
+                            </div>
+
+                        </div>
+
+                        <p class="vendor-delivery-note">
+                            Times are in Indian Standard Time (IST).
+                            If either time is blank, no booking-time restriction applies.
+                            Orders are unavailable on the selected weekly off.
+                        </p>
+                    </section>
+
+                    <section class="vendor-delivery-card" aria-labelledby="deliveryADHeading">
+                        <h3 id="deliveryADHeading" class="vendor-delivery-heading">Advance Delivery Options</h3>
+                        <label class="profile-radio vendor-delivery-toggle"><input type="checkbox"
+                                name="fldvAllowAdvanceOrder" [(ngModel)]="model.fldvAllowAdvanceOrder" /> Allow Advance
+                            Orders</label>
+                        <div class="vendor-delivery-grid">
+                            <div class="vendor-delivery-cell">
+                                <label class="form-label" for="fldvADMinBillValue">Min Bill Value (₹)</label>
+                                <input type="number" id="fldvADMinBillValue" name="fldvADMinBillValue"
+                                    class="form-control" [(ngModel)]="model.fldvADMinBillValue" min="0" step="0.01"
+                                    placeholder="0.00" #controlfldvADMinBillValue="ngModel" />
+                                <div class="text-danger profile-validation"
+                                    *ngIf="controlfldvADMinBillValue.invalid && (controlfldvADMinBillValue.touched || controlfldvADMinBillValue.dirty)">
+                                    Please enter a valid non-negative amount.
+                                </div>
+                            </div>
+                            <div class="vendor-delivery-cell">
+                                <label class="form-label" for="fldvADChargesWaiverValue">Waiver Bill Value (₹)</label>
+                                <input type="number" id="fldvADChargesWaiverValue" name="fldvADChargesWaiverValue"
+                                    class="form-control" [(ngModel)]="model.fldvADChargesWaiverValue" min="0"
+                                    step="0.01" placeholder="0.00" #controlfldvADChargesWaiverValue="ngModel" />
+                                <div class="text-danger profile-validation"
+                                    *ngIf="controlfldvADChargesWaiverValue.invalid && (controlfldvADChargesWaiverValue.touched || controlfldvADChargesWaiverValue.dirty)">
+                                    Please enter a valid non-negative amount.
+                                </div>
+                            </div>
+                            <div class="vendor-delivery-cell">
+                                <label class="form-label" for="fldvADCharges">Delivery Charges (₹)</label>
+                                <input type="number" id="fldvADCharges" name="fldvADCharges" class="form-control"
+                                    [(ngModel)]="model.fldvADCharges" min="0" step="0.01" placeholder="0.00"
+                                    #controlfldvADCharges="ngModel" />
+                                <div class="text-danger profile-validation"
+                                    *ngIf="controlfldvADCharges.invalid && (controlfldvADCharges.touched || controlfldvADCharges.dirty)">
+                                    Please enter a valid non-negative amount.
+                                </div>
+                            </div>
+                            <div class="vendor-delivery-cell">
+                                <label class="form-label" for="fldvADEndTime">End Time</label>
+                                <input type="time" id="fldvADEndTime" name="fldvADEndTime" class="form-control"
+                                    [(ngModel)]="model.fldvADEndTime" #controlfldvADEndTime="ngModel" />
+                                <div class="text-danger profile-validation"
+                                    *ngIf="controlfldvADEndTime.invalid && (controlfldvADEndTime.touched || controlfldvADEndTime.dirty)">
+                                    Please enter a valid value.
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="vendor-delivery-card" aria-labelledby="deliveryRDHeading">
+                        <h3 id="deliveryRDHeading" class="vendor-delivery-heading">Regular Delivery Options</h3>
+                        <p class="vendor-delivery-note">Regular delivery settings</p>
+                        <div class="vendor-delivery-grid">
+                            <div class="vendor-delivery-cell">
+                                <label class="form-label" for="fldvRDMinBillValue">Min Bill Value (₹)</label>
+                                <input type="number" id="fldvRDMinBillValue" name="fldvRDMinBillValue"
+                                    class="form-control" [(ngModel)]="model.fldvRDMinBillValue" min="0" step="0.01"
+                                    placeholder="0.00" #controlfldvRDMinBillValue="ngModel" />
+                                <div class="text-danger profile-validation"
+                                    *ngIf="controlfldvRDMinBillValue.invalid && (controlfldvRDMinBillValue.touched || controlfldvRDMinBillValue.dirty)">
+                                    Please enter a valid non-negative amount.
+                                </div>
+                            </div>
+                            <div class="vendor-delivery-cell">
+                                <label class="form-label" for="fldvRDChargesWaiverValue">Waiver Bill Value (₹)</label>
+                                <input type="number" id="fldvRDChargesWaiverValue" name="fldvRDChargesWaiverValue"
+                                    class="form-control" [(ngModel)]="model.fldvRDChargesWaiverValue" min="0"
+                                    step="0.01" placeholder="0.00" #controlfldvRDChargesWaiverValue="ngModel" />
+                                <div class="text-danger profile-validation"
+                                    *ngIf="controlfldvRDChargesWaiverValue.invalid && (controlfldvRDChargesWaiverValue.touched || controlfldvRDChargesWaiverValue.dirty)">
+                                    Please enter a valid non-negative amount.
+                                </div>
+                            </div>
+                            <div class="vendor-delivery-cell">
+                                <label class="form-label" for="fldvRDCharges">Delivery Charges (₹)</label>
+                                <input type="number" id="fldvRDCharges" name="fldvRDCharges" class="form-control"
+                                    [(ngModel)]="model.fldvRDCharges" min="0" step="0.01" placeholder="0.00"
+                                    #controlfldvRDCharges="ngModel" />
+                                <div class="text-danger profile-validation"
+                                    *ngIf="controlfldvRDCharges.invalid && (controlfldvRDCharges.touched || controlfldvRDCharges.dirty)">
+                                    Please enter a valid non-negative amount.
+                                </div>
+                            </div>
+                            <div class="vendor-delivery-cell">
+                                <label class="form-label" for="fldvRegularDeliveryStartTime">Start Time</label>
+                                <input type="time" id="fldvRegularDeliveryStartTime" name="fldvRegularDeliveryStartTime"
+                                    class="form-control" [(ngModel)]="model.fldvRegularDeliveryStartTime"
+                                    #controlfldvRegularDeliveryStartTime="ngModel" />
+                                <div class="text-danger profile-validation"
+                                    *ngIf="controlfldvRegularDeliveryStartTime.invalid && (controlfldvRegularDeliveryStartTime.touched || controlfldvRegularDeliveryStartTime.dirty)">
+                                    Please enter a valid value.
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="vendor-delivery-card" aria-labelledby="deliveryPDHeading">
+                        <h3 id="deliveryPDHeading" class="vendor-delivery-heading">Priority Delivery Options</h3>
+                        <label class="profile-radio vendor-delivery-toggle"><input type="checkbox"
+                                name="fldvAcceptingPriortyOrder" [(ngModel)]="model.fldvAcceptingPriortyOrder" /> Accept
+                            Priority Orders</label>
+                        <div class="vendor-delivery-grid">
+                            <div class="vendor-delivery-cell">
+                                <label class="form-label" for="fldvPDMinBillValue">Min Bill Value (₹)</label>
+                                <input type="number" id="fldvPDMinBillValue" name="fldvPDMinBillValue"
+                                    class="form-control" [(ngModel)]="model.fldvPDMinBillValue" min="0" step="0.01"
+                                    placeholder="0.00" #controlfldvPDMinBillValue="ngModel" />
+                                <div class="text-danger profile-validation"
+                                    *ngIf="controlfldvPDMinBillValue.invalid && (controlfldvPDMinBillValue.touched || controlfldvPDMinBillValue.dirty)">
+                                    Please enter a valid non-negative amount.
+                                </div>
+                            </div>
+                            <div class="vendor-delivery-cell">
+                                <label class="form-label" for="fldvPDChargesWaiverValue">Waiver Bill Value (₹)</label>
+                                <input type="number" id="fldvPDChargesWaiverValue" name="fldvPDChargesWaiverValue"
+                                    class="form-control" [(ngModel)]="model.fldvPDChargesWaiverValue" min="0"
+                                    step="0.01" placeholder="0.00" #controlfldvPDChargesWaiverValue="ngModel" />
+                                <div class="text-danger profile-validation"
+                                    *ngIf="controlfldvPDChargesWaiverValue.invalid && (controlfldvPDChargesWaiverValue.touched || controlfldvPDChargesWaiverValue.dirty)">
+                                    Please enter a valid non-negative amount.
+                                </div>
+                            </div>
+                            <div class="vendor-delivery-cell">
+                                <label class="form-label" for="fldvPDCharges">Delivery Charges (₹)</label>
+                                <input type="number" id="fldvPDCharges" name="fldvPDCharges" class="form-control"
+                                    [(ngModel)]="model.fldvPDCharges" min="0" step="0.01" placeholder="0.00"
+                                    #controlfldvPDCharges="ngModel" />
+                                <div class="text-danger profile-validation"
+                                    *ngIf="controlfldvPDCharges.invalid && (controlfldvPDCharges.touched || controlfldvPDCharges.dirty)">
+                                    Please enter a valid non-negative amount.
+                                </div>
+                            </div>
+                            <div class="vendor-delivery-cell">
+                                <label class="form-label" for="fldvPDDuration">Delivery Duration</label>
+                                <input type="text" id="fldvPDDuration" name="fldvPDDuration" class="form-control"
+                                    [(ngModel)]="model.fldvPDDuration" maxlength="50" placeholder="E.g. 30 Minutes"
+                                    #controlfldvPDDuration="ngModel" />
+                                <div class="text-danger profile-validation"
+                                    *ngIf="controlfldvPDDuration.invalid && (controlfldvPDDuration.touched || controlfldvPDDuration.dirty)">
+                                    Please enter a valid value.
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
                     <!-- =============================================
                          COVERED RADIUS
@@ -782,14 +853,12 @@
              ===================================================== -->
         <div class="page-actions-bar profile-actions">
 
-            <button type="button" class="btn-app btn-save" [disabled]="isSaving"
-                (click)="OnFormSubmit(form)">
+            <button type="button" class="btn-app btn-save" [disabled]="isSaving" (click)="OnFormSubmit(form)">
                 <i class="bi bi-floppy"></i>
                 {{ isSaving ? 'Saving...' : 'Save' }}
             </button>
 
-            <button type="button" class="btn-app btn-back" [disabled]="isSaving"
-                (click)="backToHome()">
+            <button type="button" class="btn-app btn-back" [disabled]="isSaving" (click)="backToHome()">
                 <i class="bi bi-arrow-left"></i>
                 Back
             </button>

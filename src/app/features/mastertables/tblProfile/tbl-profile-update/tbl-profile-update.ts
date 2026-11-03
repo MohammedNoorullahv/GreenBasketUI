@@ -148,6 +148,16 @@ export class TblProfileUpdateComponent implements OnInit, OnDestroy {
                 this.model.fldvRDChargesWaiverValue ??= 0;
                 this.model.fldvPDMinBillValue ??= 0;
                 this.model.fldvPDChargesWaiverValue ??= 0;
+
+                this.model.fldvOrderBookingStartTime =
+                  this.model.fldvOrderBookingStartTime ?? null;
+
+                this.model.fldvOrderBookingEndTime =
+                  this.model.fldvOrderBookingEndTime ?? null;
+
+                this.model.fldvWeeklyOff =
+                  this.model.fldvWeeklyOff ?? '';
+
                 // Do not display or filter a stored hash into an MPIN.
                 // A value that is not a six-digit MPIN must be re-entered.
                 if (!/^\d{6}$/.test(this.model.fldPasswordHash ?? '')) {
@@ -340,6 +350,9 @@ export class TblProfileUpdateComponent implements OnInit, OnDestroy {
       fldEmailId: this.model.fldEmailId ?? '',
       fldPasswordHash: this.model.fldPasswordHash ?? '',
       fldvVendorName: this.model.fldvVendorName ?? '',
+      fldvOrderBookingEndTime: this.model.fldvOrderBookingEndTime ?? '',
+      fldvOrderBookingStartTime: this.model.fldvOrderBookingStartTime ?? '',
+      fldvWeeklyOff: this.model.fldvWeeklyOff ?? '',
     };
 
     this.editTblProfileSubscription =
@@ -926,4 +939,11 @@ export class TblProfileUpdateComponent implements OnInit, OnDestroy {
     }
   }
 
+  private toApiTime(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    return value.length === 5 ? `${value}:00` : value;
+  }
 }

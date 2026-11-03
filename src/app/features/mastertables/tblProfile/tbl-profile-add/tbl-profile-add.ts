@@ -173,8 +173,8 @@ export class TblProfileAddComponent implements OnDestroy {
         const label = labels[name] || name.replace(/^fldv?/, '').replace(/([a-z])([A-Z])/g, '$1 $2');
         const message = name === 'fldPasswordHash' ? 'MPIN must contain exactly six digits.'
           : control.errors?.['required'] ? `${label} is required.`
-          : control.errors?.['email'] ? 'Enter a valid email address.'
-          : `${label}: check the entered value and permitted range.`;
+            : control.errors?.['email'] ? 'Enter a valid email address.'
+              : `${label}: check the entered value and permitted range.`;
         add(name, message);
       }
     }
@@ -299,6 +299,9 @@ export class TblProfileAddComponent implements OnDestroy {
       fldIsActive: true,
       fldCreatedBy: 0,
       fldCreatedDt: new Date(),
+      fldvWeeklyOff: null,
+      fldvOrderBookingStartTime: null,
+      fldvOrderBookingEndTime: null,
     };
     this.modelsm = {
       fldId: 0,
@@ -334,6 +337,14 @@ export class TblProfileAddComponent implements OnDestroy {
     });
   }
 
+  private toApiTime(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    return value.length === 5 ? `${value}:00` : value;
+  }
+
   OnFormSubmit(form: NgForm, action: 'SaveAndAddNew' | 'SaveAndClose'): void {
 
     if (this.isSaving) {
@@ -363,12 +374,7 @@ export class TblProfileAddComponent implements OnDestroy {
     if (!this.model.fldDoorNo?.trim()) {
       return;
     }
-
-    console.log("2. New street Name", this.newStreetName);
-    console.log("3. Existing Old Street Id", this.model.fldFKStreetId);
-    console.log("4. City / Town Id", this.selectedCityorTownId);
-
-
+  
     if (this.manualStreetEntry) {
 
       if (
@@ -427,17 +433,10 @@ export class TblProfileAddComponent implements OnDestroy {
           .subscribe({
             next: (response) => {
 
-              console.log("5. Street Master Response After Saving", response);
-
               // Newly created Street ID
               this.model.fldFKStreetId = response.fldId;
               // New Street Name
               this.model.fldStreetName = response.fldStreetName;
-
-              console.log(
-                "6. New Street ID assigned to Profile",
-                this.model.fldFKStreetId
-              );
 
               // NOW save Profile
               this.saveProfile();
@@ -497,56 +496,49 @@ export class TblProfileAddComponent implements OnDestroy {
 
   private saveProfile(): void {
 
-    console.log(
-      "7. BEFORE Profile API - Street ID:",
-      this.model.fldFKStreetId
-    );
-
-
-
     const saveRequest: Observable<unknown> = this.isRegistration
       ? this.registrationHttp.post(
-          `${environment.apiBaseUrl}/api/TblProfile/RegisterProfile`, this.model)
+        `${environment.apiBaseUrl}/api/TblProfile/RegisterProfile`, this.model)
       : this.tblProfileService.addTblProfile(this.model);
     this.addTblProfileSubscription = saveRequest.subscribe({
 
-          next: (response) => {
+      next: (response) => {
 
-            this.isSaving = false;
+        this.isSaving = false;
 
-            this.toastr.success(
-              'Record saved successfully!',
-              'Success',
-              {
-                toastClass: 'ngx-toastr custom-toast'
-              }
-            );
-
-            if (this.isRegistration) {
-              void this.router.navigateByUrl('/login');
-              return;
-            }
-            if (this.submitAction === 'SaveAndAddNew') {
-
-              this.resetForm();
-              this.cdr.detectChanges();
-
-            } else {
-
-              this.router.navigateByUrl(
-                'mastertables/tblProfile'
-              );
-            }
-          },
-
-          error: (err) => {
-
-            this.isSaving = false;
-
-            this.showSaveError(err);
+        this.toastr.success(
+          'Record saved successfully!',
+          'Success',
+          {
+            toastClass: 'ngx-toastr custom-toast'
           }
+        );
 
-        });
+        if (this.isRegistration) {
+          void this.router.navigateByUrl('/login');
+          return;
+        }
+        if (this.submitAction === 'SaveAndAddNew') {
+
+          this.resetForm();
+          this.cdr.detectChanges();
+
+        } else {
+
+          this.router.navigateByUrl(
+            'mastertables/tblProfile'
+          );
+        }
+      },
+
+      error: (err) => {
+
+        this.isSaving = false;
+
+        this.showSaveError(err);
+      }
+
+    });
   }
 
   resetForm() {
@@ -572,6 +564,9 @@ export class TblProfileAddComponent implements OnDestroy {
       fldIsActive: true,
       fldCreatedBy: 0,
       fldCreatedDt: new Date(),
+      fldvWeeklyOff: null,
+      fldvOrderBookingStartTime: null,
+      fldvOrderBookingEndTime: null,
     },
       setTimeout(() => {
         const firstInput = document.getElementById('fldDescription');
@@ -1086,16 +1081,7 @@ export class TblProfileAddComponent implements OnDestroy {
       // Existing Street Name
       this.model.fldStreetName =
         selectedStreet.fldStreetName;
-
-      console.log(
-        'Selected Street ID:',
-        this.model.fldFKStreetId
-      );
-
-      console.log(
-        'Selected Street Name:',
-        this.model.fldStreetName
-      );
+      
 
     } else {
 

@@ -1,12 +1,12 @@
 {
-  "name": "GreenBasketUI",
-  "short_name": "GreenBasketUI",
+  "name": "Green Basket",
+  "short_name": "Green Basket",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",
   "icons": [
     {
-      "src": "icons/icon-72x72.png",
+      "src": "icons/green-basket-light.jpg",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "maskable any"

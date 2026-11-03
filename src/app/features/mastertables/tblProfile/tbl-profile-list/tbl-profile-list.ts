@@ -140,8 +140,12 @@ export class TblProfileListComponent implements OnInit {
       fldvRDChargesWaiverValue: profile.fldvRDChargesWaiverValue ?? 0,
       fldvPDMinBillValue: profile.fldvPDMinBillValue ?? 0,
       fldvPDChargesWaiverValue: profile.fldvPDChargesWaiverValue ?? 0,
+      fldvOrderBookingEndTime: profile.fldvOrderBookingEndTime ?? '',
+      fldvOrderBookingStartTime: profile.fldvOrderBookingStartTime ?? '',
+      fldvWeeklyOff: profile.fldvWeeklyOff ?? '',
       fldEmailId: profile.fldEmailId ?? '',
       fldPasswordHash: profile.fldPasswordHash ?? '',
+
     };
     this.deleteDialog.show();
   }

@@ -19,12 +19,14 @@
     <!-- =====================================================
          PROFILE FORM
          ===================================================== -->
-    <section id="registrationErrors" class="registration-errors" *ngIf="validationErrors.length"
-        role="alert" aria-live="assertive" tabindex="-1">
+    <section id="registrationErrors" class="registration-errors" *ngIf="validationErrors.length" role="alert"
+        aria-live="assertive" tabindex="-1">
         <strong>Please correct the following:</strong>
-        <ul><li *ngFor="let error of validationErrors">
-            <button type="button" (click)="focusField(error.field)">{{ error.message }}</button>
-        </li></ul>
+        <ul>
+            <li *ngFor="let error of validationErrors">
+                <button type="button" (click)="focusField(error.field)">{{ error.message }}</button>
+            </li>
+        </ul>
     </section>
 
     <form #form="ngForm" novalidate>
@@ -95,9 +97,10 @@
                         </span>
 
                         <input type="tel" id="fldContactNumber" class="form-control" name="fldContactNumber"
-                            [(ngModel)]="model.fldContactNumber" inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10" placeholder="Enter phone number"
-                            required />
-                    <p class="registration-field-error" *ngIf="fieldError('fldContactNumber')">{{ fieldError('fldContactNumber') }}</p>
+                            [(ngModel)]="model.fldContactNumber" inputmode="numeric" pattern="[6-9][0-9]{9}"
+                            maxlength="10" placeholder="Enter phone number" required />
+                        <p class="registration-field-error" *ngIf="fieldError('fldContactNumber')">{{
+                            fieldError('fldContactNumber') }}</p>
 
                     </div>
 
@@ -160,7 +163,8 @@
 
                     <input type="email" id="fldEmailId" class="form-control" name="fldEmailId"
                         [(ngModel)]="model.fldEmailId" email maxlength="150" placeholder="Enter email address" />
-                    <p class="registration-field-error" *ngIf="fieldError('fldEmailId')">{{ fieldError('fldEmailId') }}</p>
+                    <p class="registration-field-error" *ngIf="fieldError('fldEmailId')">{{ fieldError('fldEmailId') }}
+                    </p>
 
                 </div>
 
@@ -184,7 +188,8 @@
                             name="fldPasswordHash" [(ngModel)]="model.fldPasswordHash"
                             (ngModelChange)="onMPINChange($event)" inputmode="numeric" minlength="6" maxlength="6"
                             pattern="[0-9]{6}" placeholder="Enter 6-digit MPIN" #mpinField="ngModel" required />
-                    <p class="registration-field-error" *ngIf="fieldError('fldPasswordHash')">{{ fieldError('fldPasswordHash') }}</p>
+                        <p class="registration-field-error" *ngIf="fieldError('fldPasswordHash')">{{
+                            fieldError('fldPasswordHash') }}</p>
 
                         <div *ngIf="mpinField.invalid && (mpinField.touched || mpinField.dirty)" class="text-danger">
                             MPIN must contain exactly 6 digits.
@@ -215,7 +220,8 @@
 
                     <input type="text" id="fldFullName" class="form-control" name="fldFullName"
                         [(ngModel)]="model.fldFullName" maxlength="150" placeholder="Enter full name" required />
-                    <p class="registration-field-error" *ngIf="fieldError('fldFullName')">{{ fieldError('fldFullName') }}</p>
+                    <p class="registration-field-error" *ngIf="fieldError('fldFullName')">{{ fieldError('fldFullName')
+                        }}</p>
 
                     <div class="text-danger profile-validation" *ngIf="
                             form.controls['fldFullName']?.touched &&
@@ -265,7 +271,8 @@
 
                     <input type="text" id="fldDoorNo" class="form-control" name="fldDoorNo"
                         [(ngModel)]="model.fldDoorNo" maxlength="20" placeholder="Enter door number" required />
-                    <p class="registration-field-error" *ngIf="fieldError('fldDoorNo')">{{ fieldError('fldDoorNo') }}</p>
+                    <p class="registration-field-error" *ngIf="fieldError('fldDoorNo')">{{ fieldError('fldDoorNo') }}
+                    </p>
 
                     <div class="text-danger profile-validation" *ngIf="
                             form.controls['fldDoorNo']?.touched &&
@@ -308,7 +315,8 @@
                         </option>
 
                     </select>
-                    <p class="registration-field-error" *ngIf="fieldError('fldFKStreetId')">{{ fieldError('fldFKStreetId') }}</p>
+                    <p class="registration-field-error" *ngIf="fieldError('fldFKStreetId')">{{
+                        fieldError('fldFKStreetId') }}</p>
 
 
                     <!-- =============================================
@@ -340,7 +348,8 @@
                                 </option>
 
                             </select>
-                    <p class="registration-field-error" *ngIf="fieldError('selectedCityorTownId')">{{ fieldError('selectedCityorTownId') }}</p>
+                            <p class="registration-field-error" *ngIf="fieldError('selectedCityorTownId')">{{
+                                fieldError('selectedCityorTownId') }}</p>
 
                         </div>
 
@@ -358,7 +367,8 @@
                             <input type="text" id="newStreetName" name="newStreetName" class="form-control"
                                 [(ngModel)]="newStreetName" maxlength="100" placeholder="Enter new street name"
                                 required />
-                    <p class="registration-field-error" *ngIf="fieldError('newStreetName')">{{ fieldError('newStreetName') }}</p>
+                            <p class="registration-field-error" *ngIf="fieldError('newStreetName')">{{
+                                fieldError('newStreetName') }}</p>
 
                         </div>
 
@@ -486,7 +496,8 @@
                             <input type="text" id="fldvVendorName" class="form-control" name="fldvVendorName"
                                 [(ngModel)]="model.fldvVendorName" maxlength="150"
                                 placeholder="Enter vendor / shop name" required />
-                    <p class="registration-field-error" *ngIf="fieldError('fldvVendorName')">{{ fieldError('fldvVendorName') }}</p>
+                            <p class="registration-field-error" *ngIf="fieldError('fldvVendorName')">{{
+                                fieldError('fldvVendorName') }}</p>
 
 
                             <div class="text-danger profile-validation" *ngIf="
@@ -499,6 +510,61 @@
                             </div>
 
                         </div>
+
+                        <section class="vendor-delivery-card" aria-labelledby="vendorBookingHeading">
+                            <h3 id="vendorBookingHeading" class="vendor-delivery-heading">
+                                Order Booking Availability
+                            </h3>
+
+                            <div class="vendor-delivery-grid">
+
+                                <div class="vendor-delivery-cell">
+                                    <label class="form-label" for="fldvOrderBookingStartTime">
+                                        Booking Start Time
+                                    </label>
+
+                                    <input type="time" id="fldvOrderBookingStartTime" name="fldvOrderBookingStartTime"
+                                        class="form-control" [ngModel]="model.fldvOrderBookingStartTime"
+                                        (ngModelChange)="model.fldvOrderBookingStartTime = $event || null" step="60" />
+                                </div>
+
+                                <div class="vendor-delivery-cell">
+                                    <label class="form-label" for="fldvOrderBookingEndTime">
+                                        Booking End Time
+                                    </label>
+
+                                    <input type="time" id="fldvOrderBookingEndTime" name="fldvOrderBookingEndTime"
+                                        class="form-control" [ngModel]="model.fldvOrderBookingEndTime"
+                                        (ngModelChange)="model.fldvOrderBookingEndTime = $event || null" step="60" />
+                                </div>
+
+                                <div class="vendor-delivery-cell">
+                                    <label class="form-label" for="fldvWeeklyOff">
+                                        Weekly Off
+                                    </label>
+
+                                    <select id="fldvWeeklyOff" name="fldvWeeklyOff" class="form-select"
+                                        [(ngModel)]="model.fldvWeeklyOff">
+
+                                        <option value="">No Weekly Off</option>
+                                        <option value="Sunday">Sunday</option>
+                                        <option value="Monday">Monday</option>
+                                        <option value="Tuesday">Tuesday</option>
+                                        <option value="Wednesday">Wednesday</option>
+                                        <option value="Thursday">Thursday</option>
+                                        <option value="Friday">Friday</option>
+                                        <option value="Saturday">Saturday</option>
+                                    </select>
+                                </div>
+
+                            </div>
+
+                            <p class="vendor-delivery-note">
+                                Times are in Indian Standard Time (IST).
+                                If either time is blank, no booking-time restriction applies.
+                                Orders are unavailable on the selected weekly off.
+                            </p>
+                        </section>
 
 
                         <section class="vendor-delivery-card" aria-labelledby="deliveryADHeading">
@@ -550,6 +616,7 @@
                                 </div>
                             </div>
                         </section>
+
                         <section class="vendor-delivery-card" aria-labelledby="deliveryRDHeading">
                             <h3 id="deliveryRDHeading" class="vendor-delivery-heading">Regular Delivery Options</h3>
                             <p class="vendor-delivery-note">Regular delivery settings</p>
@@ -598,6 +665,7 @@
                                 </div>
                             </div>
                         </section>
+
                         <section class="vendor-delivery-card" aria-labelledby="deliveryPDHeading">
                             <h3 id="deliveryPDHeading" class="vendor-delivery-heading">Priority Delivery Options</h3>
                             <label class="profile-radio vendor-delivery-toggle"><input type="checkbox"
@@ -749,7 +817,8 @@
 
                     <input type="checkbox" id="fldIsTermsAgreed" name="fldIsTermsAgreed"
                         [(ngModel)]="model.fldIsTermsAgreed" required />
-                    <p class="registration-field-error" *ngIf="fieldError('fldIsTermsAgreed')">{{ fieldError('fldIsTermsAgreed') }}</p>
+                    <p class="registration-field-error" *ngIf="fieldError('fldIsTermsAgreed')">{{
+                        fieldError('fldIsTermsAgreed') }}</p>
 
 
                     <label for="fldIsTermsAgreed">
@@ -806,7 +875,8 @@
 
 <div *ngIf="showLocationMap" class="profile-map-overlay">
 
-    <div class="profile-map-modal" role="dialog" (keydown)="onMapKeydown($event)" aria-modal="true" aria-label="Select delivery location">
+    <div class="profile-map-modal" role="dialog" (keydown)="onMapKeydown($event)" aria-modal="true"
+        aria-label="Select delivery location">
 
 
         <!-- =====================================================
@@ -823,7 +893,8 @@
             </h3>
 
 
-            <button type="button" id="closeRegistrationMap" class="profile-map-close" aria-label="Close map" (click)="closeLocationMap(); focusField('deliveryLocationButton')">
+            <button type="button" id="closeRegistrationMap" class="profile-map-close" aria-label="Close map"
+                (click)="closeLocationMap(); focusField('deliveryLocationButton')">
 
                 <i class="bi bi-x-lg"></i>
 

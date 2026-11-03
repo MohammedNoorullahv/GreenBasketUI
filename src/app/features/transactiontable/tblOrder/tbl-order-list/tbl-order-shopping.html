@@ -878,6 +878,12 @@
               <span class="gb-product-price">
                  ₹{{ item.fldSellingRate | number:'1.2-2' }} <small>/ {{ item.fldBaseUnit }}</small>
               </span>
+              <button *ngIf="cart.length > 0" type="button" class="gb-check-cart"
+                [title]="'OrderShopping.CHECK_CART' | translate"
+                [attr.aria-label]="'OrderShopping.CHECK_CART' | translate"
+                (click)="scrollToCart()">
+                <i class="bi bi-cart3" aria-hidden="true"></i>
+              </button>
             </div>
 
             <small class="gb-product-alt" *ngIf="item.fldItemNameTamil">{{ item.fldItemNameTamil }}</small>
@@ -913,6 +919,12 @@
             <div class="gb-item-row-title">
               <strong>{{ item.fldItemName }}</strong>
               <small class="gb-product-alt" *ngIf="item.fldItemNameTamil">{{ item.fldItemNameTamil }}</small>
+              <button *ngIf="cart.length > 0" type="button" class="gb-check-cart"
+                [title]="'OrderShopping.CHECK_CART' | translate"
+                [attr.aria-label]="'OrderShopping.CHECK_CART' | translate"
+                (click)="scrollToCart()">
+                <i class="bi bi-cart3" aria-hidden="true"></i>
+              </button>
             </div>
             <div class="gb-product-chips">
               <span class="gb-chip">
@@ -937,7 +949,7 @@
 
       <ng-container *ngTemplateOutlet="deliverySettings"></ng-container>
 
-      <footer class="gb-footer" [attr.aria-label]="'OrderShopping.CART_SUMMARY' | translate">
+      <footer id="gbCartSummary" class="gb-footer" [attr.aria-label]="'OrderShopping.CART_SUMMARY' | translate">
         <div class="gb-footer-summary">
           <span class="gb-footer-cart-icon">
             <i class="bi bi-cart3" aria-hidden="true"></i>
@@ -1264,5 +1276,8 @@
       </div>
     </div>
   </div>
+
+  <!-- Floating scroll navigation for long product lists -->
+  <gb-scroll-buttons></gb-scroll-buttons>
 
 </div>

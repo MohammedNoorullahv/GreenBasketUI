@@ -118,6 +118,10 @@ export class LoginComponent {
 
     // Runs only in the browser after hydration; no storage access during SSR.
     afterNextRender(() => {
+      // Already authenticated? Return to the user's screen instead of
+      // showing the login screen again on refresh / return.
+      this.restoreSessionRedirect();
+
       this.restoreRememberedMobile();
 
       try {
@@ -461,8 +465,25 @@ export class LoginComponent {
     }
 
     try {
-      const saved =
-        sessionStorage.getItem(this.rememberedMobileKey)?.trim() || '';
+      // Remember me must outlive a single browser session, so the number is
+      // kept in localStorage. sessionStorage (used by older builds) is
+      // migrated once and then cleared.
+      let saved =
+        localStorage.getItem(this.rememberedMobileKey)?.trim() || '';
+
+      if (!/^[6-9]\d{9}$/.test(saved)) {
+        const sessionSaved =
+          sessionStorage.getItem(this.rememberedMobileKey)?.trim() || '';
+        if (/^[6-9]\d{9}$/.test(sessionSaved)) {
+          saved = sessionSaved;
+          try {
+            localStorage.setItem(this.rememberedMobileKey, saved);
+            sessionStorage.removeItem(this.rememberedMobileKey);
+          } catch {
+            // Keep using the sessionStorage value; login still works.
+          }
+        }
+      }
 
       if (/^[6-9]\d{9}$/.test(saved)) {
         this.mobileNumber = saved;
@@ -483,13 +504,65 @@ export class LoginComponent {
     }
 
     try {
+      // Remember me is meant to outlive a single browser session, so the
+      // number is kept in localStorage. The access token stays in
+      // sessionStorage and is cleared by idle timeout / logout.
       if (this.rememberMe) {
-        sessionStorage.setItem(this.rememberedMobileKey, mobile);
+        localStorage.setItem(this.rememberedMobileKey, mobile);
+        sessionStorage.removeItem(this.rememberedMobileKey);
       } else {
+        localStorage.removeItem(this.rememberedMobileKey);
         sessionStorage.removeItem(this.rememberedMobileKey);
       }
     } catch {
       // The login itself must not fail because storage is unavailable.
+    }
+
+  }
+
+  /** If a session is already valid, skip the login screen on return / refresh. */
+  private restoreSessionRedirect(): void {
+
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    try {
+      const token = sessionStorage.getItem('gbAccessToken')?.trim();
+      const profileRaw = sessionStorage.getItem('gbProfile');
+      if (!token || !profileRaw) {
+        return;
+      }
+
+      const profile = JSON.parse(profileRaw);
+      const userType = profile?.fldUserType;
+      if (!userType) {
+        return;
+      }
+
+      switch (userType) {
+
+        case 'Vendor':
+        case 'Customer':
+          this.router.navigateByUrl(
+            '/transactiontables/tblOrder',
+            { replaceUrl: true }
+          );
+          break;
+
+        case 'Admin':
+          this.router.navigateByUrl(
+            '/mastertables/tblProfile',
+            { replaceUrl: true }
+          );
+          break;
+
+        default:
+          // Unknown role: stay on the login screen.
+          return;
+      }
+    } catch {
+      // Stored session is corrupt; fall through to the normal login flow.
     }
 
   }

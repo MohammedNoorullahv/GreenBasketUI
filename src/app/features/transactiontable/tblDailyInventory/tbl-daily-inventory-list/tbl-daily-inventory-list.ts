@@ -13,11 +13,12 @@ import { FormsModule } from '@angular/forms';
 import { ColumnFilterIconComponent } from '../../../../shared/components/column-filter-icon/column-filter-icon.component';
 import { ColumnFilterPipe } from '../../../../shared/pipes/column-filter.pipe';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { ScrollButtonsComponent } from '../../../../shared/components/scroll-buttons/scroll-buttons.component';
 import { Console } from 'node:console';
 
 @Component({
   selector: 'app-tbl-daily-inventory-list',
-  imports: [AsyncPipe, CommonModule, RouterLink, FormsModule, ColumnFilterPipe, ColumnFilterIconComponent, GbPageTranslatePipe, GbMenuCaptionPipe, ConfirmDialogComponent],
+  imports: [AsyncPipe, CommonModule, RouterLink, FormsModule, ColumnFilterPipe, ColumnFilterIconComponent, GbPageTranslatePipe, GbMenuCaptionPipe, ConfirmDialogComponent, ScrollButtonsComponent],
   templateUrl: './tbl-daily-inventory-list.html',
   styleUrl: './tbl-daily-inventory-list.css',
 })

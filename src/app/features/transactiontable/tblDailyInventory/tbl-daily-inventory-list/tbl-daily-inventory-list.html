@@ -71,7 +71,7 @@
 			<div class="page-header-right">
 				<ng-container *ngIf="tblDailyInventory$ | async as tbldailyinventorys">
 					<span class="pagination-info">
-						{{ ('DailyInventoryList.SHOWING_VALUE_OF_VALUE_RECORDS' | translate:{p0: ((tbldailyinventorys | columnFilter:filters).length), p1: (tbldailyinventorys.length)}) }}</span>
+						{{ ('DailyInventoryList.SHOWING_VALUE_OF_VALUE_RECORDS' | translate:{p0: (visibleRecordCount((tbldailyinventorys | columnFilter:filters).length)), p1: ((tbldailyinventorys | columnFilter:filters).length)}) }}</span>
 				</ng-container>
 
 				<button type="button" class="pager-btn" disabled>
@@ -108,57 +108,57 @@
 						<th *ngIf="removeMultipleItems" class="col-filter-empty"></th>
 						<th>
 							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.ID' | translate" [attr.aria-label]="'DailyInventoryList.FILTER_BY_ID' | translate"
-								[(ngModel)]="filters['fldId']" />
+								[(ngModel)]="filters['fldId']" (ngModelChange)="onInventoryFilterChange()" />
 						</th>
 						<th>
 							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.VENDOR_ID' | translate"
-								[attr.aria-label]="'DailyInventoryList.FILTER_BY_VENDOR_ID' | translate" [(ngModel)]="filters['fldFKVendorId']" />
+								[attr.aria-label]="'DailyInventoryList.FILTER_BY_VENDOR_ID' | translate" [(ngModel)]="filters['fldFKVendorId']" (ngModelChange)="onInventoryFilterChange()" />
 						</th>
 						<th>
 							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.ITEM_ID' | translate"
-								[attr.aria-label]="'DailyInventoryList.FILTER_BY_ITEM_ID' | translate" [(ngModel)]="filters['fldFKItemId']" />
+								[attr.aria-label]="'DailyInventoryList.FILTER_BY_ITEM_ID' | translate" [(ngModel)]="filters['fldFKItemId']" (ngModelChange)="onInventoryFilterChange()" />
 						</th>
 						<th>
 							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.VEGETABLE' | translate"
-								[attr.aria-label]="'DailyInventoryList.FILTER_BY_VEGETABLE' | translate" [(ngModel)]="filters['fldItemName']" />
+								[attr.aria-label]="'DailyInventoryList.FILTER_BY_VEGETABLE' | translate" [(ngModel)]="filters['fldItemName']" (ngModelChange)="onInventoryFilterChange()" />
 						</th>
 						<th>
 							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.UNIT' | translate"
-								[attr.aria-label]="'DailyInventoryList.FILTER_BY_UNIT' | translate" [(ngModel)]="filters['fldBaseUnit']" />
+								[attr.aria-label]="'DailyInventoryList.FILTER_BY_UNIT' | translate" [(ngModel)]="filters['fldBaseUnit']" (ngModelChange)="onInventoryFilterChange()" />
 						</th>
 						<th>
 							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.DATE' | translate"
-								[attr.aria-label]="'DailyInventoryList.FILTER_BY_INVENTORY_DATE' | translate" [(ngModel)]="filters['fldInventoryDate']" />
+								[attr.aria-label]="'DailyInventoryList.FILTER_BY_INVENTORY_DATE' | translate" [(ngModel)]="filters['fldInventoryDate']" (ngModelChange)="onInventoryFilterChange()" />
 						</th>
 						<th>
 							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.RATE_2' | translate"
-								[attr.aria-label]="'DailyInventoryList.FILTER_BY_SELLING_RATE' | translate" [(ngModel)]="filters['fldSellingRate']" />
+								[attr.aria-label]="'DailyInventoryList.FILTER_BY_SELLING_RATE' | translate" [(ngModel)]="filters['fldSellingRate']" (ngModelChange)="onInventoryFilterChange()" />
 						</th>
 						<th>
 							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.STOCK' | translate"
-								[attr.aria-label]="'DailyInventoryList.FILTER_BY_AVAILABLE_STOCK' | translate" [(ngModel)]="filters['fldAvailableStock']" />
+								[attr.aria-label]="'DailyInventoryList.FILTER_BY_AVAILABLE_STOCK' | translate" [(ngModel)]="filters['fldAvailableStock']" (ngModelChange)="onInventoryFilterChange()" />
 						</th>
 						<th>
 							<input class="column-filter-input" type="text" [placeholder]="'DailyInventoryList.INITIAL' | translate"
-								[attr.aria-label]="'DailyInventoryList.FILTER_BY_INITIAL_STOCK' | translate" [(ngModel)]="filters['fldInitialStock']" />
+								[attr.aria-label]="'DailyInventoryList.FILTER_BY_INITIAL_STOCK' | translate" [(ngModel)]="filters['fldInitialStock']" (ngModelChange)="onInventoryFilterChange()" />
 						</th>
 						<th>
 							<select class="column-filter-input" [attr.aria-label]="'DailyInventoryList.FILTER_BY_AVAILABILITY' | translate"
-								[(ngModel)]="filters['fldIsAvailable']">
+								[(ngModel)]="filters['fldIsAvailable']" (ngModelChange)="onInventoryFilterChange()">
 								<option value="">{{ 'DailyInventoryList.ALL' | translate }}</option>
 								<option value="true">{{ 'DailyInventoryList.YES' | translate }}</option>
 								<option value="false">{{ 'DailyInventoryList.NO' | translate }}</option>
 							</select>
 						</th>
 						<th class="col-filter-empty">
-							<button type="button" class="column-filter-clear" (click)="filters = {}">
+							<button type="button" class="column-filter-clear" (click)="clearInventoryFilters()">
 								{{ 'DailyInventoryList.CLEAR' | translate }}</button>
 						</th>
 					</tr>
 				</thead>
 
 				<tbody>
-					<tr *ngFor="let tbldailyinventory of filteredInventory">
+					<tr *ngFor="let tbldailyinventory of (filteredInventory | slice:0:visibleCount); trackBy: trackByInventoryId">
 						
 						<!-- MULTIPLE SELECTION -->
 						<td *ngIf="removeMultipleItems">
@@ -203,9 +203,38 @@
 
 			</table>
 
+			<!-- Pagination footer: the sentinel appends the next page on scroll,
+			     while the button keeps the action keyboard-accessible. -->
+			<div class="inventory-pagination" *ngIf="filteredInventory.length > pageSize">
+				<div class="inventory-pagination-progress" aria-hidden="true">
+					<span [style.width.%]="inventoryLoadProgress(filteredInventory.length)"></span>
+				</div>
+
+				<p class="inventory-pagination-status" role="status" aria-live="polite">
+					{{ ('DailyInventoryList.SHOWING_VALUE_OF_VALUE_RECORDS' | translate:{p0: (visibleRecordCount(filteredInventory.length)), p1: (filteredInventory.length)}) }}
+				</p>
+
+				<div class="inventory-pagination-sentinel" *ngIf="hasMoreInventory(filteredInventory.length)"
+					gbInfiniteScroll (gbInfiniteScrollLoad)="showMoreInventory()" aria-hidden="true">
+					<i class="bi bi-chevron-double-down"></i>
+					{{ 'DailyInventoryList.SCROLL_FOR_MORE_RECORDS' | translate }}
+				</div>
+
+				<button *ngIf="hasMoreInventory(filteredInventory.length)" type="button"
+					class="btn-app btn-outline inventory-load-more" (click)="showMoreInventory()">
+					<i class="bi bi-arrow-down-circle" aria-hidden="true"></i>
+					{{ ('DailyInventoryList.LOAD_MORE_RECORDS' | translate:{p0: (remainingInventoryCount(filteredInventory.length))}) }}
+				</button>
+
+				<p class="inventory-pagination-end" *ngIf="!hasMoreInventory(filteredInventory.length)">
+					<i class="bi bi-check2-circle" aria-hidden="true"></i>
+					{{ ('DailyInventoryList.ALL_RECORDS_LOADED' | translate:{p0: (filteredInventory.length)}) }}
+				</p>
+			</div>
+
 			<p class="grid-footnote" *ngIf="filteredInventory.length === 0">
 				 {{ (tbldailyinventorys.length === 0 ? ('DailyInventoryList.NO_RECORDS_FOUND' | translate) : ('DailyInventoryList.NO_RECORDS_MATCH_THE_FILTERS' | translate)) }}
-				<button *ngIf="tbldailyinventorys.length > 0" type="button" class="column-filter-clear" (click)="filters = {}">
+				<button *ngIf="tbldailyinventorys.length > 0" type="button" class="column-filter-clear" (click)="clearInventoryFilters()">
 					{{ 'DailyInventoryList.CLEAR' | translate }}</button>
 			</p>
 

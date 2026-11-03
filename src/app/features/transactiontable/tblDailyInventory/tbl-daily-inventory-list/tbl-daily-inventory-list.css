@@ -1,0 +1,134 @@
+:host {
+  display: block;
+}
+
+/* Keep column labels visible while the long inventory table scrolls inside
+   the app's main content area. */
+.page-card .data-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background-clip: padding-box;
+  box-shadow: 0 2px 0 rgba(255, 255, 255, .08);
+}
+
+/* -------------------------------------------------------------------------
+   Infinite-scroll footer
+   ------------------------------------------------------------------------- */
+
+.inventory-pagination {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #e1ede6;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbf9 100%);
+  box-shadow: 0 3px 12px rgba(16, 74, 46, .04);
+}
+
+.inventory-pagination-progress {
+  width: min(100%, 420px);
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e6f1ea;
+}
+
+.inventory-pagination-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #0b7a3b, #51b97b);
+  transition: width .3s ease;
+}
+
+.inventory-pagination-status {
+  margin: 0;
+  color: #496557;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.inventory-pagination-sentinel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #6b8175;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.inventory-pagination-sentinel i {
+  color: #51b97b;
+  font-size: 13px;
+  animation: inventory-scroll-hint 1.8s ease-in-out infinite;
+}
+
+@keyframes inventory-scroll-hint {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+.inventory-load-more {
+  min-height: 42px;
+  border-radius: 999px;
+  padding: 9px 20px;
+  font-weight: 800;
+}
+
+.inventory-load-more i {
+  font-size: 16px;
+}
+
+.inventory-pagination-end {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  color: #3f6a52;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.inventory-pagination-end i {
+  color: #0b7a3b;
+  font-size: 15px;
+}
+
+@media (max-width: 640px) {
+  .inventory-pagination {
+    padding: 14px 12px;
+  }
+
+  .inventory-load-more {
+    width: 100%;
+  }
+
+  .inventory-pagination-status,
+  .inventory-pagination-end {
+    font-size: 11.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inventory-pagination-progress > span {
+    transition: none;
+  }
+
+  .inventory-pagination-sentinel i {
+    animation: none;
+  }
+}

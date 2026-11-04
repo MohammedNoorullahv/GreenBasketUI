@@ -88,7 +88,9 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
   category = 'All';
   // Grid shows image cards; list is a compact, no-image table-like view.
   viewMode: 'grid' | 'list' = 'grid';
-  // 'all' lets the customer browse every vendor before the basket is locked.
+  // Exactly one vendor is always selected. The first vendor becomes the
+  // default as soon as the catalogue loads; switching vendors replaces the
+  // selection instead of returning to a mixed vendor view.
   vendorFilter: number | 'all' = 'all';
   stock: OrderStockItem[] = [];
   // The catalogue can contain hundreds of products. Render a small first page
@@ -277,9 +279,10 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
   /**
    * Product-first shopping.
    *
-   * The catalogue is built from every active vendor so the customer can pick
-   * products immediately. The vendor is locked only when the first line is
-   * added to the basket, and the basket never contains more than one vendor.
+   * The catalogue is built from every active vendor, but exactly one vendor is
+   * selected at a time (the first vendor by default) so only that vendor's
+   * products are listed. Switching vendors replaces the selection, and the
+   * basket never contains more than one vendor.
    */
   loadCatalog(): void {
     // Ignore duplicate triggers while the same catalogue request is running.
@@ -345,12 +348,11 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
           this.stock = stock;
           this.resetCatalogPagination();
 
-          if (
-            this.vendorFilter !== 'all' &&
-            !options.some(vendor => vendor.fldId === this.vendorFilter)
-          ) {
-            this.vendorFilter = 'all';
-          }
+          // Keep a still-valid selection; otherwise default to the first
+          // vendor so the initial load never shows a mixed vendor list.
+          this.vendorFilter = options.some(vendor => vendor.fldId === this.vendorFilter)
+            ? this.vendorFilter
+            : (options.length > 0 ? options[0].fldId : 'all');
           if (this.category !== 'All' && !this.categories.includes(this.category)) {
             this.category = 'All';
           }
@@ -504,8 +506,10 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
   }
 
   setVendorFilter(filter: number | 'all'): void {
-    // There is no "All vendors" button, so tapping the active vendor clears the filter.
-    this.vendorFilter = filter !== 'all' && this.vendorFilter === filter ? 'all' : filter;
+    // Vendor chips are an exclusive selection: exactly one vendor stays
+    // active so only that vendor's items are ever listed.
+    if (filter === 'all' || this.vendorFilter === filter) return;
+    this.vendorFilter = filter;
     if (this.category !== 'All' && !this.categories.includes(this.category)) {
       this.category = 'All';
     }
@@ -948,7 +952,8 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
     this.requestedDeliveryDate = this.today();
     this.priceChangeOption = 'Get Confirmation';
     this.showCheckout = false;
-    this.vendorFilter = 'all';
+    // Stay single-vendor: re-select the first vendor instead of a mixed view.
+    this.vendorFilter = this.vendorOptions.length > 0 ? this.vendorOptions[0].fldId : 'all';
 
     if (this.category !== 'All' && !this.categories.includes(this.category)) {
       this.category = 'All';
@@ -1139,6 +1144,15 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
     document.getElementById('gbCartSummary')?.scrollIntoView({
       behavior: 'smooth',
       block: 'nearest'
+    });
+  }
+
+  /** Quick-access jump from the floating buttons: bring the brief cart into view. */
+  scrollToCartReview(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    document.getElementById('gbCartSummary')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
     });
   }
 

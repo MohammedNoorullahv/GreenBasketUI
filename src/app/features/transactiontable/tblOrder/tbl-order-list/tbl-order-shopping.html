@@ -762,6 +762,20 @@
     </section>
     </ng-template>
 
+    <!-- Quick access: jump straight to the delivery options / cart review
+         sections without scrolling through the whole catalogue. -->
+    <div class="gb-quick-access" *ngIf="!showCheckout && cart.length > 0" role="group"
+      [attr.aria-label]="'OrderShopping.QUICK_ACCESS' | translate">
+      <button type="button" class="gb-quick-btn" (click)="scrollToDeliverySettings()">
+        <i class="bi bi-truck" aria-hidden="true"></i>
+        <span class="gb-quick-label">{{ 'OrderShopping.DELIVERY_OPTION' | translate }}</span>
+      </button>
+      <button type="button" class="gb-quick-btn" (click)="scrollToCartReview()">
+        <i class="bi bi-cart3" aria-hidden="true"></i>
+        <span class="gb-quick-label">{{ 'OrderShopping.REVIEW_CART' | translate }}</span>
+      </button>
+    </div>
+
     <ng-container *ngIf="!showCheckout; else checkout">
 
       <section class="gb-catalog-toolbar" [attr.aria-label]="'OrderShopping.FIND_VEGETABLES' | translate">

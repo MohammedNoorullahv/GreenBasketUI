@@ -4829,6 +4829,96 @@ app-tbl-order-shopping .gb-footer {
   outline-offset: 2px;
 }
 
+/* -------- Quick access: floating delivery options / cart review buttons -------- */
+
+.gb-quick-access {
+  position: fixed;
+  right: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 950;
+}
+
+.gb-quick-btn {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid #087d4b;
+  background: #ffffff;
+  color: #087d4b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  box-shadow: 0 8px 20px rgba(8, 125, 75, .20);
+  transition: background-color .18s ease, color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+
+.gb-quick-btn:hover,
+.gb-quick-btn:focus-visible {
+  background: #087d4b;
+  color: #ffffff;
+  box-shadow: 0 12px 28px rgba(8, 125, 75, .32);
+  transform: translateY(-2px);
+}
+
+/* Peek-out label, mirroring the floating scroll buttons. */
+.gb-quick-label {
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 700;
+  color: #143a2a;
+  background: #ffffff;
+  padding: 3px 9px;
+  border-radius: 5px;
+  border: 1px solid #dce9e2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .2s ease, visibility .2s ease;
+}
+
+.gb-quick-btn:hover .gb-quick-label,
+.gb-quick-btn:focus-visible .gb-quick-label {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Keep the floating buttons clear of content on small screens. */
+@media (max-width: 640px) {
+  .gb-quick-access {
+    right: 12px;
+    gap: 8px;
+  }
+
+  .gb-quick-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gb-quick-btn {
+    transition: background-color .15s ease, color .15s ease;
+  }
+
+  .gb-quick-btn:hover {
+    transform: none;
+  }
+}
+
 /* ---------------- Single-vendor conflict dialog ---------------- */
 
 .gb-vendor-switch-backdrop {
@@ -5495,20 +5585,36 @@ app-tbl-order-shopping .gb-footer {
 
   /* Single-column checkout: surface the bill immediately below the items
      so the summary is never buried at the end of the page. */
+  /* Single-column (mobile) checkout order: review the items, confirm the
+     delivery address, choose payment, and finish on the bill summary with
+     the Place order button as the natural last step of the page. */
   .gb-checkout-main,
   .gb-checkout-aside {
     display: contents;
+  }
+
+  /* Mobile: the items flow with the page instead of living in a nested
+     scroll box, so a drag over an item never traps the scroll – the
+     customer can always swipe straight down to the bill summary and the
+     Place order button. */
+  .gb-checkout-items-scroll {
+    max-height: none;
+    padding-right: 0;
+    margin-right: 0;
+    overflow: visible;
+    overscroll-behavior: auto;
+    scroll-snap-type: none;
   }
 
   .gb-checkout-main > .gb-checkout-card:first-child {
     order: 1;
   }
 
-  .gb-checkout-aside > .gb-bill {
+  .gb-checkout-main > .gb-checkout-card {
     order: 2;
   }
 
-  .gb-checkout-main > .gb-checkout-card {
+  .gb-checkout-aside > .gb-bill {
     order: 3;
   }
 
@@ -5779,11 +5885,6 @@ app-tbl-order-shopping .gb-footer {
   .gb-checkout-card {
     padding: 16px;
     border-radius: 16px;
-  }
-
-  .gb-checkout-items-scroll {
-    max-height: clamp(200px, 46vh, 420px);
-    max-height: clamp(200px, 46dvh, 420px);
   }
 
   .gb-checkout-item {

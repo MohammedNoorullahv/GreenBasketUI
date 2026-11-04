@@ -126,6 +126,7 @@ const CAPTIONS: Record<string, Record<string, string>> = {
     "Back to My Orders": "BACK_TO_MY_ORDERS",
     "New order": "NEW_ORDER_2",
     "Build your vegetable basket": "BUILD_YOUR_VEGETABLE_BASKET",
+    "Green Basket – Place Your Order": "BUILD_YOUR_VEGETABLE_BASKET",
     "Select a vendor and delivery option, then add fresh produce to your cart.": "SELECT_A_VENDOR_AND_DELIVERY_OPTION_THEN_ADD_FRESH_PRODUCE_TO_YOUR_CART",
     "Fresh from verified local vendors": "FRESH_FROM_VERIFIED_LOCAL_VENDORS",
     "Order settings": "ORDER_SETTINGS",
@@ -368,6 +369,9 @@ const CAPTIONS: Record<string, Record<string, string>> = {
     "{{p0}} changed item(s)": "VALUE_CHANGED_ITEM_S",
     "Saving...": "SAVING",
     "Save": "SAVE",
+    "All vendors": "ALL_VENDORS",
+    "Filter by vendor": "FILTER_BY_VENDOR",
+    "Review unsaved changes": "REVIEW_UNSAVED_CHANGES",
     "Back": "BACK"
   }
 };

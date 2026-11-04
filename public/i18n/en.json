@@ -175,7 +175,8 @@
     "VALUE_ITEMS_IN_CART": "{{p0}} items in cart",
     "BACK_TO_MY_ORDERS": "Back to My Orders",
     "NEW_ORDER_2": "New order",
-    "BUILD_YOUR_VEGETABLE_BASKET": "Build your vegetable basket",
+    "BUILD_YOUR_VEGETABLE_BASKET": "Green Basket – Place Your Order",
+    "QUICK_ACCESS": "Quick cart actions",
     "SELECT_A_VENDOR_AND_DELIVERY_OPTION_THEN_ADD_FRESH_PRODUCE_TO_YOUR_CART": "Select a vendor and delivery option, then add fresh produce to your cart.",
     "FRESH_FROM_VERIFIED_LOCAL_VENDORS": "Fresh from verified local vendors",
     "ORDER_SETTINGS": "Order settings",
@@ -464,6 +465,9 @@
     "SHOWING_VALUE_OF_VALUE_RECORDS": "Showing {{p0}} of {{p1}} records",
     "SCROLL_FOR_MORE_RECORDS": "Keep scrolling to load more records",
     "LOAD_MORE_RECORDS": "Load more records ({{p0}} remaining)",
-    "ALL_RECORDS_LOADED": "All {{p0}} records loaded"
+    "ALL_RECORDS_LOADED": "All {{p0}} records loaded",
+    "ALL_VENDORS": "All vendors",
+    "FILTER_BY_VENDOR": "Filter by vendor",
+    "REVIEW_UNSAVED_CHANGES": "Review unsaved changes"
   }
 }

@@ -24,6 +24,30 @@
         [title]="'DailyInventoryAdd.RELOAD_IS_DISABLED_WHILE_THERE_ARE_UNSAVED_CHANGES' | translate">{{ 'DailyInventoryAdd.REFRESH' | translate }}</button>
     </div>
 
+    <!-- Vendor selection leads the screen: the stock list below always
+         shows the selected vendor's items only. -->
+    <div class="stock-vendor-bar" *ngIf="!loading && vendorOptions.length > 1" role="group"
+      [attr.aria-label]="'DailyInventoryAdd.FILTER_BY_VENDOR' | translate">
+      <i class="bi bi-shop stock-vendor-bar-icon" aria-hidden="true"></i>
+      <button type="button" class="stock-vendor-chip" [class.active]="selectedVendor === 'all'"
+        [attr.aria-pressed]="selectedVendor === 'all'" (click)="setVendor('all')">
+        {{ 'DailyInventoryAdd.ALL_VENDORS' | translate }}
+        <span class="chip-count">{{ rows.length }}</span>
+      </button>
+      <button type="button" class="stock-vendor-chip"
+        *ngFor="let vendor of vendorOptions; trackBy: trackByVendorId"
+        [class.active]="selectedVendor === vendor.fldId"
+        [attr.aria-pressed]="selectedVendor === vendor.fldId"
+        (click)="setVendor(vendor.fldId)">
+        {{ vendor.fldDescription }}
+        <span class="chip-count">{{ vendor.itemCount }}</span>
+        <span class="chip-count chip-changed" *ngIf="vendor.changedCount > 0"
+          [title]="('DailyInventoryAdd.VALUE_CHANGED_ITEM_S' | translate:{p0: (vendor.changedCount)})">
+          {{ vendor.changedCount }}
+        </span>
+      </button>
+    </div>
+
     <div class="stock-category-bar" *ngIf="!loading && rows.length > 0" role="group"
       [attr.aria-label]="'DailyInventoryAdd.FILTER_BY_CATEGORY' | translate">
       <button type="button" class="stock-category-chip" [class.active]="selectedCategory === ''" (click)="setCategory('')">
@@ -88,6 +112,7 @@
                     <div class="stock-item-name">{{ row.fldItemName }}</div>
                     <div class="stock-item-tamil" *ngIf="row.fldItemNameTamil">{{ row.fldItemNameTamil }}</div>
                     <div class="stock-item-unit">{{ row.fldBaseUnit }}</div>
+                    <div class="stock-item-vendor" *ngIf="selectedVendor === 'all' && vendorNameOf(row)">{{ vendorNameOf(row) }}</div>
                   </div>
                 </div>
               </td>
@@ -140,6 +165,7 @@
               <div class="stock-item-name">{{ row.fldItemName }}</div>
               <div class="stock-item-tamil" *ngIf="row.fldItemNameTamil">{{ row.fldItemNameTamil }}</div>
               <div class="stock-item-unit">{{ row.fldBaseUnit }}</div>
+              <div class="stock-item-vendor" *ngIf="selectedVendor === 'all' && vendorNameOf(row)">{{ vendorNameOf(row) }}</div>
             </div>
             <span *ngIf="isEnteredToday(row)" class="stock-today-badge"
               [title]="('DailyInventoryAdd.TODAY_S_STOCK_VALUE' | translate:{p0: row.fldNewStock})">
@@ -240,7 +266,7 @@
 
   </div>
 
-  <div class="page-actions-bar stock-actions">
+  <div class="page-actions-bar stock-actions" id="stockActionsBar">
     <span class="stock-save-count">{{ ('DailyInventoryAdd.VALUE_CHANGED_ITEM_S' | translate:{p0: (changedCount)}) }}</span>
     <!-- <button type="button" class="btn-app btn-save" (click)="save(false)"
       [disabled]="loading || isSaving || changedCount === 0">
@@ -262,4 +288,17 @@
     <button type="button" class="btn-app btn-dark" (click)="backToHome()" [disabled]="isSaving">
       <i class="bi bi-arrow-left"></i> {{ 'DailyInventoryAdd.BACK' | translate }}</button>
   </div>
+
+  <!-- Floating save button: appears while there are unsaved changes and
+       jumps straight to the save actions bar below the entry list. -->
+  <button type="button" class="stock-save-fab" *ngIf="changedCount > 0 && !isSaving"
+    (click)="scrollToSaveActions()"
+    [title]="('DailyInventoryAdd.VALUE_CHANGED_ITEM_S' | translate:{p0: (changedCount)})
+      + ' – ' + ('DailyInventoryAdd.REVIEW_UNSAVED_CHANGES' | translate)"
+    [attr.aria-label]="('DailyInventoryAdd.VALUE_CHANGED_ITEM_S' | translate:{p0: (changedCount)})
+      + ' – ' + ('DailyInventoryAdd.REVIEW_UNSAVED_CHANGES' | translate)">
+    <i class="bi bi-floppy" aria-hidden="true"></i>
+    <span class="stock-save-fab-badge" aria-hidden="true">{{ changedCount }}</span>
+    <span class="stock-save-fab-label">{{ 'DailyInventoryAdd.REVIEW_UNSAVED_CHANGES' | translate }}</span>
+  </button>
 </div>

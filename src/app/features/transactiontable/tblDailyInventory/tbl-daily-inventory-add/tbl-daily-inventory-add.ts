@@ -11,8 +11,9 @@ import { environment } from '../../../../../environments/environment'; // Verify
 import { TblDailyInventoryService } from '../services/tbl-daily-inventory';
 import { TblItemMasterService } from '../../../mastertables/tblItemMaster/services/tbl-item-master';
 import { InfiniteScrollDirective } from '../../../../shared/directives/infinite-scroll.directive';
+import { OrderCatalogService } from '../../tblOrder/services/order-catalog.service';
 
-import { StockEntryItem, StockEntryRow, DailyStockEntrySaveRow, DailyStockEntrySaveRequest } from '../models/tblDailyInventoryforStockEntry.model';
+import { StockEntryItem, StockEntryRow, StockVendorOption, DailyStockEntrySaveRow, DailyStockEntrySaveRequest } from '../models/tblDailyInventoryforStockEntry.model';
 
 @Component({
   selector: 'app-tbl-daily-inventory-add',
@@ -29,6 +30,13 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
   isSaving = false;
   searchText = '';
   showOnlyChanged = false;
+  // Vendor selection leads the screen: exactly one vendor's rows are shown at
+  // a time ('all' is available), defaulting to the first vendor on first load.
+  vendorOptions: StockVendorOption[] = [];
+  selectedVendor: number | 'all' = 'all';
+  private vendorChosenByUser = false;
+  // Vendor display names come from the order-catalogue API; rows only carry ids.
+  private vendorNameById = new Map<number, string>();
   selectedCategory = '';
   selectedItemType = '';
   isMobileView = false;
@@ -51,6 +59,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
   constructor(
     private inventoryService: TblDailyInventoryService,
     private itemMasterService: TblItemMasterService,
+    private orderCatalogService: OrderCatalogService,
     private router: Router,
     private toastr: ToastrService,
     private cdr: ChangeDetectorRef,
@@ -65,6 +74,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
     }
     this.loadStock();
     this.loadItemTypes();
+    this.loadVendorNames();
     // this.fldInventoryDate = this.getTodayDate();
     console.log("Inventory Loaded");
   }
@@ -155,18 +165,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
             this.loadedDate = this.inventoryDate;
             this.loading = false;
 
-            // Drop the category selection if it no longer exists for this date.
-            if (this.selectedCategory &&
-              !this.rows.some(r => r.fldIsDisplay && this.categoryNameOf(r) === this.selectedCategory)) {
-              this.selectedCategory = '';
-            }
-
-            // Drop the item type selection if it no longer exists within the category.
-            if (this.selectedItemType && !this.itemTypes.some(t => t.name === this.selectedItemType)) {
-              this.selectedItemType = '';
-            }
-
-            this.resetPagination();
+            this.rebuildVendorOptions();
             this.cdr.detectChanges();
           },
           error: err => {
@@ -178,6 +177,105 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
           },
         })
     );
+  }
+
+  /** Fetches vendor display names to label the vendor chips; ids come from the stock rows. */
+  private loadVendorNames(): void {
+    this.subscriptions.add(
+      this.orderCatalogService.getAvailableStockForOrderofAllVendor().subscribe({
+        next: groups => {
+          this.vendorNameById = new Map(
+            (groups ?? []).map(group => [Number(group?.fldFKVendorId), (group?.fldVendorName || '').trim()])
+          );
+          this.rebuildVendorOptions();
+          this.cdr.detectChanges();
+        },
+        error: err => {
+          // Names are cosmetic; the vendor ids from the stock rows still scope the list.
+          console.warn('Vendor name lookup unavailable', err);
+        },
+      })
+    );
+  }
+
+  /** Rebuilds the vendor chips and (re)validates the current selection. */
+  private rebuildVendorOptions(): void {
+    const counts = new Map<number, { total: number; changed: number }>();
+    for (const row of this.rows) {
+      const vendorId = Number(row.fldFKVendorId);
+      const entry = counts.get(vendorId) ?? { total: 0, changed: 0 };
+      entry.total += 1;
+      if (this.isChanged(row)) entry.changed += 1;
+      counts.set(vendorId, entry);
+    }
+
+    this.vendorOptions = [...counts.entries()]
+      .map(([fldId, count]) => ({
+        fldId,
+        fldDescription: this.vendorNameById.get(fldId) || `Vendor ${fldId}`,
+        itemCount: count.total,
+        changedCount: count.changed
+      }))
+      .sort((a, b) => a.fldDescription.localeCompare(b.fldDescription));
+
+    // Drop the selection if that vendor no longer has stock for this date…
+    if (this.selectedVendor !== 'all' &&
+      !this.vendorOptions.some(vendor => vendor.fldId === this.selectedVendor)) {
+      this.selectedVendor = 'all';
+    }
+    // …and on the very first load, lead the screen with the first vendor selected.
+    if (!this.vendorChosenByUser && this.selectedVendor === 'all' && this.vendorOptions.length > 1) {
+      this.selectedVendor = this.vendorOptions[0].fldId;
+    }
+
+    // Drop cascaded filters that no longer exist within the vendor scope.
+    if (this.selectedCategory && !this.categories.some(cat => cat.name === this.selectedCategory)) {
+      this.selectedCategory = '';
+    }
+    if (this.selectedItemType && !this.itemTypes.some(type => type.name === this.selectedItemType)) {
+      this.selectedItemType = '';
+    }
+
+    this.resetPagination();
+  }
+
+  /** Vendor chip click: scope the list to the chosen vendor (or every vendor). */
+  setVendor(vendor: number | 'all'): void {
+    if (this.selectedVendor === vendor) return;
+    this.vendorChosenByUser = true;
+    this.selectedVendor = vendor;
+    // Reset cascaded filters if they no longer exist within the new vendor scope.
+    if (this.selectedCategory && !this.categories.some(cat => cat.name === this.selectedCategory)) {
+      this.selectedCategory = '';
+    }
+    if (this.selectedItemType && !this.itemTypes.some(type => type.name === this.selectedItemType)) {
+      this.selectedItemType = '';
+    }
+    this.resetPagination();
+    this.cdr.detectChanges();
+  }
+
+  /** Whether the row belongs to the vendor currently selected on the chips. */
+  private vendorScoped(row: StockEntryRow): boolean {
+    return this.selectedVendor === 'all' || Number(row.fldFKVendorId) === this.selectedVendor;
+  }
+
+  /** Display name of the row's vendor (shown on rows while browsing all vendors). */
+  vendorNameOf(row: StockEntryRow): string {
+    return this.vendorOptions.find(vendor => vendor.fldId === Number(row.fldFKVendorId))?.fldDescription || '';
+  }
+
+  trackByVendorId(_index: number, vendor: StockVendorOption): number {
+    return vendor.fldId;
+  }
+
+  /** Floating save button: jumps to the save actions bar below the list. */
+  scrollToSaveActions(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    document.getElementById('stockActionsBar')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
   }
 
   private categoryNameOf(row: StockEntryRow): string {
@@ -193,7 +291,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
   get categories(): { name: string; count: number }[] {
     const counts = new Map<string, number>();
     for (const row of this.rows) {
-      if (!row.fldIsDisplay) continue;
+      if (!row.fldIsDisplay || !this.vendorScoped(row)) continue;
       const name = this.categoryNameOf(row);
       if (!name) continue;
       counts.set(name, (counts.get(name) ?? 0) + 1);
@@ -220,7 +318,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
   get itemTypes(): { name: string; count: number }[] {
     const counts = new Map<string, number>();
     for (const row of this.rows) {
-      if (!row.fldIsDisplay) continue;
+      if (!row.fldIsDisplay || !this.vendorScoped(row)) continue;
       if (this.selectedCategory && this.categoryNameOf(row) !== this.selectedCategory) continue;
       const name = this.typeNameOf(row);
       if (!name) continue;
@@ -234,12 +332,13 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
   get itemTypeScopeCount(): number {
     return this.rows.filter(r =>
       r.fldIsDisplay &&
+      this.vendorScoped(r) &&
       (!this.selectedCategory || this.categoryNameOf(r) === this.selectedCategory)
     ).length;
   }
 
   get displayedCount(): number {
-    return this.rows.filter(r => r.fldIsDisplay).length;
+    return this.rows.filter(r => r.fldIsDisplay && this.vendorScoped(r)).length;
   }
 
   clearAllFilters(): void {
@@ -256,6 +355,9 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
 
       // Display only rows marked as visible
       row.fldIsDisplay &&
+
+      // Selected vendor scope (chips lead the screen)
+      this.vendorScoped(row) &&
 
       // Category filter (chip bar)
       (!this.selectedCategory || this.categoryNameOf(row) === this.selectedCategory) &&
@@ -288,6 +390,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
     const q = this.searchText.trim().toLowerCase();
     return this.rows.filter(row =>
       row.fldIsDisplay &&
+      this.vendorScoped(row) &&
       (!this.selectedCategory || this.categoryNameOf(row) === this.selectedCategory) &&
       (!this.selectedItemType || this.typeNameOf(row) === this.selectedItemType) &&
       (!this.showOnlyChanged || this.isChanged(row)) &&

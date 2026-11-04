@@ -84,11 +84,20 @@ export interface DailyStockEntrySaveRow {
 }
 
 
-// Complete Bulk Save request
 export interface DailyStockEntrySaveRequest {
 
     fldInventoryDate: string;
 
     items: DailyStockEntrySaveRow[];
 
+}
+
+// Vendor chip on the stock-entry screen: scopes the entry list to one vendor.
+export interface StockVendorOption {
+    fldId: number;
+    fldDescription: string;
+    /** Display rows (per vendor) shown on the chip. */
+    itemCount: number;
+    /** Display rows with unsaved changes, highlighted on the chip. */
+    changedCount: number;
 }

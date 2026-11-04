@@ -2,7 +2,7 @@ import { MenuCaptionPipe as GbMenuCaptionPipe } from '../../../../shared/pipes/m
 import { TranslatePipe as GbPageTranslatePipe } from '@ngx-translate/core';
 import { renderOrderReceipt } from './order-receipt';
 import { Component, OnInit, Inject, PLATFORM_ID, OnDestroy, ChangeDetectorRef, ViewChild } from '@angular/core';
-import { Observable, Subscription, timeout, finalize, map, of, catchError } from 'rxjs';
+import { Observable, Subscription, timeout, finalize, map, of, catchError, shareReplay } from 'rxjs';
 import { CommonModule, AsyncPipe, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -32,6 +32,35 @@ submitAction: 'Load All' | 'Active Only' = 'Load All'; // default to Load All
 filters: Record<string, string> = {};
 profileId = 0;
 userType = '';
+orderView: 'pending' | 'all' = 'pending';
+fromDate = this.formatInputDate(this.daysAgo(15));
+toDate = this.formatInputDate(new Date());
+orderLoadError = '';
+dateRangeError = '';
+
+private daysAgo(days: number): Date {
+    const date = new Date();
+    date.setDate(date.getDate() - days);
+    return date;
+}
+
+private formatInputDate(date: Date): string {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+onOrderViewChange(view: 'pending' | 'all'): void {
+    this.orderView = view;
+    this.pendingDeleteRequest = undefined;
+    this.deleteDialog?.close();
+    this.filters = {};
+    this.receiptError = '';
+    this.loadOrders();
+}
+
+applyOrderDates(): void {
+    if (this.orderView === 'all') this.loadOrders();
+}
+
 
 @ViewChild('deleteDialog') deleteDialog!: ConfirmDialogComponent;
 
@@ -79,16 +108,35 @@ private loadOrders(): void {
 		return;
 	}
 
-	// Order History must only load the logged-in profile's orders.
-	this.tblOrder$ = this.tblOrderService
-		.getTblPendingOrderBys(this.userType, this.profileId)
-		.pipe(
-			map(orders => this.normalizePendingOrders(orders).map(order => this.mapPendingOrder(order))),
-			catchError(error => {
-				console.error('Unable to load order history:', error);
-				return of([]);
-			})
-		);
+
+    this.orderLoadError = '';
+    this.dateRangeError = '';
+    if (this.orderView === 'all' &&
+        (!this.fromDate || !this.toDate || this.fromDate > this.toDate)) {
+        this.dateRangeError = 'OrderList.INVALID_DATE_RANGE';
+        this.tblOrder$ = of([]);
+        return;
+    }
+
+    // Pending remains profile-specific, exactly as before. The all-orders
+    // endpoint must enforce the authenticated user's access on the server.
+    const request$: Observable<TblOrder[]> = this.orderView === 'pending'
+        ? this.tblOrderService.getTblPendingOrderBys(this.userType, this.profileId).pipe(
+            map(orders => this.normalizePendingOrders(orders).map(order => this.mapPendingOrder(order))))
+        : this.tblOrderService.getActiveTblOrders(this.fromDate, this.toDate).pipe(
+            map(orders => Array.isArray(orders) ? orders : []));
+
+    // Both grid/count async pipes use one request. Replacing the observable
+    // on a mode/date change lets the async pipes cancel the previous request.
+    this.tblOrder$ = request$.pipe(
+        timeout(30000),
+        catchError(error => {
+            console.error('Unable to load orders:', error);
+            this.orderLoadError = 'OrderList.UNABLE_TO_LOAD_ORDERS';
+            return of([] as TblOrder[]);
+        }),
+        shareReplay({ bufferSize: 1, refCount: true })
+    );
 }
 
 private normalizePendingOrders(response: unknown): TblPendingOrderDto[] {
@@ -204,6 +252,7 @@ private mapPendingOrder(order: TblPendingOrderDto): TblOrder {
 
   /** Opens the delete confirmation dialog from the row delete icon only. */
   askDelete(order: TblOrder): void {
+    if (this.orderView !== 'pending') return;
     this.deleteTargetLabel = order.fldOrderNumber ? `order ${order.fldOrderNumber}` : `order #${order.fldId}`;
     this.pendingDeleteRequest = {
       fldId: order.fldId,
@@ -226,7 +275,7 @@ private mapPendingOrder(order: TblPendingOrderDto): TblOrder {
   }
 
   confirmDelete(): void {
-    if (!this.pendingDeleteRequest) {
+    if (this.orderView !== 'pending' || !this.pendingDeleteRequest) {
       this.deleteDialog.close();
       return;
     }

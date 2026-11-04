@@ -96,7 +96,12 @@
     "CURRENT_DAY_ORDER": "آج کا آرڈر",
     "ADVANCE_ORDER": "پیشگی آرڈر",
     "AUTO_APPLY": "خودکار لاگو کریں",
-    "GET_CONFIRMATION": "تصدیق حاصل کریں"
+    "GET_CONFIRMATION": "تصدیق حاصل کریں",
+    "PENDING_ORDERS": "زیر التوا آرڈرز",
+    "ALL_ORDERS": "تمام آرڈرز",
+    "FROM_DATE": "ابتدائی تاریخ",
+    "TO_DATE": "آخری تاریخ",
+    "LOAD_ORDERS": "آرڈرز دکھائیں"
   },
   "OrderShopping": {
     "LOADING_YOUR_ORDERS": "آپ کے آرڈرز لوڈ ہو رہے ہیں",

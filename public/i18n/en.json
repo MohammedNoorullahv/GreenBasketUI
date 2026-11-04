@@ -99,7 +99,12 @@
     "CURRENT_DAY_ORDER": "Current Day Order",
     "ADVANCE_ORDER": "Advance Order",
     "AUTO_APPLY": "Auto Apply",
-    "GET_CONFIRMATION": "Get Confirmation"
+    "GET_CONFIRMATION": "Get Confirmation",
+    "PENDING_ORDERS": "Pending Orders",
+    "ALL_ORDERS": "All Orders",
+    "FROM_DATE": "From Date",
+    "TO_DATE": "To Date",
+    "LOAD_ORDERS": "Load Orders"
   },
   "OrderShopping": {
     "LOADING_YOUR_ORDERS": "Loading your orders",

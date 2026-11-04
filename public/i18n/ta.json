@@ -96,7 +96,12 @@
     "CURRENT_DAY_ORDER": "இன்றைய ஆர்டர்",
     "ADVANCE_ORDER": "முன்பதிவு ஆர்டர்",
     "AUTO_APPLY": "தானாகப் பயன்படுத்தவும்",
-    "GET_CONFIRMATION": "உறுதிப்படுத்தல் பெறவும்"
+    "GET_CONFIRMATION": "உறுதிப்படுத்தல் பெறவும்",
+    "PENDING_ORDERS": "நிலுவையில் உள்ள ஆர்டர்கள்",
+    "ALL_ORDERS": "அனைத்து ஆர்டர்கள்",
+    "FROM_DATE": "தொடக்க தேதி",
+    "TO_DATE": "முடிவு தேதி",
+    "LOAD_ORDERS": "ஆர்டர்களைக் காட்டு"
   },
   "OrderShopping": {
     "LOADING_YOUR_ORDERS": "உங்கள் ஆர்டர்கள் ஏற்றப்படுகின்றன",

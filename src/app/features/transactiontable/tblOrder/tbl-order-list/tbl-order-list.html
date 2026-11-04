@@ -22,6 +22,37 @@
 
 	</div>
 
+    <fieldset style="border:0;padding:16px 0;margin:0;display:flex;flex-wrap:wrap;gap:16px;align-items:center">
+        <legend class="visually-hidden">{{ 'OrderList.ORDER_VIEW' | translate }}</legend>
+        <label style="display:flex;gap:8px;align-items:center">
+            <input type="radio" name="orderView" value="pending" [ngModel]="orderView"
+                (ngModelChange)="onOrderViewChange($event)">
+            {{ 'OrderList.PENDING_ORDERS' | translate }}
+        </label>
+        <label style="display:flex;gap:8px;align-items:center">
+            <input type="radio" name="orderView" value="all" [ngModel]="orderView"
+                (ngModelChange)="onOrderViewChange($event)">
+            {{ 'OrderList.ALL_ORDERS' | translate }}
+        </label>
+    </fieldset>
+    <div *ngIf="orderView === 'all'" style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:16px">
+        <div>
+            <label class="form-label" for="orderFromDate">{{ 'OrderList.FROM_DATE' | translate }}</label>
+            <input type="date" id="orderFromDate" name="orderFromDate" class="form-control"
+                [(ngModel)]="fromDate" required [attr.aria-describedby]="dateRangeError ? 'orderDateError' : null">
+        </div>
+        <div>
+            <label class="form-label" for="orderToDate">{{ 'OrderList.TO_DATE' | translate }}</label>
+            <input type="date" id="orderToDate" name="orderToDate" class="form-control"
+                [(ngModel)]="toDate" required [attr.aria-describedby]="dateRangeError ? 'orderDateError' : null">
+        </div>
+        <button type="button" class="btn-app btn-outline" (click)="applyOrderDates()">
+            {{ 'OrderList.LOAD_ORDERS' | translate }}
+        </button>
+    </div>
+    <p *ngIf="dateRangeError" id="orderDateError" role="alert" class="text-danger">{{ dateRangeError | translate }}</p>
+    <p *ngIf="orderLoadError" role="alert" class="text-danger">{{ orderLoadError | translate }}</p>
+
 	<p *ngIf="receiptError" role="alert" style="color:#b42318">{{ receiptError }}</p>
 	<div class="page-card">
 
@@ -131,17 +162,7 @@
 						
 						<td>
 							<div class="row-actions">
-								<!-- <a class="icon-btn edit" title="Edit"
-									[routerLink]="['/transactiontables/tblOrder/Edit', tblorder.fldId]"
-									[queryParams]="{ action: 'Edit' }">
-									<i class="bi bi-pencil-square"></i>
-								</a>
-								<!-- <a class="icon-btn delete" title="Delete"
-									[routerLink]="['/transactiontables/tblOrder/Edit', tblorder.fldId]"
-									[queryParams]="{ action: 'Delete' }">
-									<i class="bi bi-trash3"></i>
-								</a> -->
-								<button type="button" class="icon-btn delete" title="Delete"
+<button *ngIf="orderView === 'pending'" type="button" class="icon-btn delete" title="Delete"
 									[attr.aria-label]="'Delete order ' + tblorder.fldOrderNumber"
 									(click)="askDelete(tblorder)">
 									<i class="bi bi-trash3" aria-hidden="true"></i>

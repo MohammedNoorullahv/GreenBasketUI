@@ -23,8 +23,11 @@ export class TblOrderService {
 	};
 
 	//GET ACTIVE
-	getActiveTblOrders(): Observable<TblOrder[]> {
-		return this.http.get<TblOrder[]>(`${environment.apiBaseUrl}/api/TblOrder/GetActiveTblOrders`);
+	getActiveTblOrders(fldFromDate: string, fldToDate: string): Observable<TblOrder[]> {
+        const params = new HttpParams()
+            .set('FldFromDate', fldFromDate)
+            .set('FldToDate', fldToDate);
+		return this.http.get<TblOrder[]>(`${environment.apiBaseUrl}/api/TblOrder/GetActiveTblOrders`, { params });
 	};
 
 	//GET ACTIVELEAN

@@ -51,7 +51,7 @@ export class TblOrderDetailUpdateComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
 
 
-    this.tblOrder$ = this.tblOrderService.getActiveTblOrders();
+    // this.tblOrder$ = this.tblOrderService.getActiveTblOrders();
     this.tblItemMaster$ = this.tblItemMasterService.getActiveTblItemMasters();
     this.tblDailyInventory$ = this.tblDailyInventoryService.getAllTblDailyInventorys();
 

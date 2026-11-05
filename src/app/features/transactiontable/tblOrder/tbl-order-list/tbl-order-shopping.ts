@@ -1131,29 +1131,82 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  scrollToDeliverySettings(): void {
+  /**
+   * The infinite-scroll pagination appends the next page whenever the page
+   * nears the bottom. During a jump to the cart / delivery section that shifts
+   * the content away mid-scroll and the target is never reached. The
+   * pagination is frozen for the duration of the jump instead.
+   */
+  catalogScrollPaused = false;
+  private catalogScrollResumeTimer?: number;
+  private readonly catalogScrollSettleListener = (): void => this.trackCatalogScrollSettle();
+
+  private scrollToSection(sectionId: string, block: ScrollLogicalPosition): void {
     if (!isPlatformBrowser(this.platformId)) return;
-    document.getElementById('gbDeliverySettings')?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start'
-    });
+
+    const target = document.getElementById(sectionId);
+    if (!target) return;
+
+    // Stop the catalogue from growing (like the vendor daily inventory does)
+    // so the smooth scroll can reach the requested section in one go.
+    this.catalogScrollPaused = true;
+    this.cdr.detectChanges();
+
+    // Smooth scrolling does not report its duration, and on a long catalogue
+    // it would outlive any fixed timeout. Track the scrollers instead (capture
+    // phase catches scroll events from any container) and resume pagination
+    // once the scroll has fully settled.
+    window.removeEventListener('scroll', this.catalogScrollSettleListener, true);
+    window.addEventListener('scroll', this.catalogScrollSettleListener, true);
+
+    this.trackCatalogScrollSettle();
+    target.scrollIntoView({ behavior: 'smooth', block });
+  }
+
+  private trackCatalogScrollSettle(): void {
+    window.clearTimeout(this.catalogScrollResumeTimer);
+    // The catalogue sentinel sits before the cart / delivery sections, so
+    // after arriving it stays inert until the customer scrolls back up
+    // through the products and pagination resumes naturally.
+    this.catalogScrollResumeTimer = window.setTimeout(() => {
+      this.catalogScrollResumeTimer = undefined;
+      window.removeEventListener('scroll', this.catalogScrollSettleListener, true);
+      this.catalogScrollPaused = false;
+      this.cdr.detectChanges();
+    }, 280);
+  }
+
+  /**
+   * Header "move to top": after the catalogue has grown with the infinite
+   * scrolling the vendor filter bar is far away, so jump back in one smooth
+   * scroll instead of a manual scroll.
+   */
+  scrollToProductsTop(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    // Keep the pagination frozen while the jump is in flight.
+    this.catalogScrollPaused = true;
+    this.cdr.detectChanges();
+
+    window.removeEventListener('scroll', this.catalogScrollSettleListener, true);
+    window.addEventListener('scroll', this.catalogScrollSettleListener, true);
+    this.trackCatalogScrollSettle();
+
+    // The page scrolls inside .main-content, not the window.
+    const scroller = document.querySelector<HTMLElement>('.main-content');
+    if (scroller) {
+      scroller.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    }
+  }
+
+  scrollToDeliverySettings(): void {
+    this.scrollToSection('gbDeliverySettings', 'start');
   }
 
   scrollToCart(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-    document.getElementById('gbCartSummary')?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest'
-    });
-  }
-
-  /** Quick-access jump from the floating buttons: bring the brief cart into view. */
-  scrollToCartReview(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-    document.getElementById('gbCartSummary')?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center'
-    });
+    this.scrollToSection('gbCartSummary', 'center');
   }
 
   /** Returns to the shopping view so the delivery option (and charge) can be changed. */
@@ -1449,6 +1502,10 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
 
     this.pendingOrderRequest?.unsubscribe();
 
+    if (isPlatformBrowser(this.platformId)) {
+      window.clearTimeout(this.catalogScrollResumeTimer);
+      window.removeEventListener('scroll', this.catalogScrollSettleListener, true);
+    }
     this.unlockBackgroundScroll();
 
 

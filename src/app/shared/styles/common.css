@@ -3067,6 +3067,42 @@ app-tbl-order-shopping .gb-page {
   white-space: nowrap;
 }
 
+/* -------- Header move-to-top -------- */
+
+.gb-top-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .14);
+  color: #ffffff;
+  font: inherit;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.gb-top-icon:hover,
+.gb-top-icon:focus-visible {
+  background: rgba(255, 255, 255, .24);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .16);
+}
+
+.gb-top-icon:active {
+  transform: translateY(1px);
+}
+
+.gb-top-icon:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, .75);
+  outline-offset: 2px;
+}
+
 .gb-cart-pill {
   display: inline-flex;
   align-items: center;
@@ -4829,96 +4865,6 @@ app-tbl-order-shopping .gb-footer {
   outline-offset: 2px;
 }
 
-/* -------- Quick access: floating delivery options / cart review buttons -------- */
-
-.gb-quick-access {
-  position: fixed;
-  right: 22px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  z-index: 950;
-}
-
-.gb-quick-btn {
-  position: relative;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 2px solid #087d4b;
-  background: #ffffff;
-  color: #087d4b;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 18px;
-  line-height: 1;
-  box-shadow: 0 8px 20px rgba(8, 125, 75, .20);
-  transition: background-color .18s ease, color .18s ease, transform .18s ease, box-shadow .18s ease;
-}
-
-.gb-quick-btn:hover,
-.gb-quick-btn:focus-visible {
-  background: #087d4b;
-  color: #ffffff;
-  box-shadow: 0 12px 28px rgba(8, 125, 75, .32);
-  transform: translateY(-2px);
-}
-
-/* Peek-out label, mirroring the floating scroll buttons. */
-.gb-quick-label {
-  position: absolute;
-  right: calc(100% + 10px);
-  top: 50%;
-  transform: translateY(-50%);
-  white-space: nowrap;
-  font-size: 12px;
-  font-weight: 700;
-  color: #143a2a;
-  background: #ffffff;
-  padding: 3px 9px;
-  border-radius: 5px;
-  border: 1px solid #dce9e2;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity .2s ease, visibility .2s ease;
-}
-
-.gb-quick-btn:hover .gb-quick-label,
-.gb-quick-btn:focus-visible .gb-quick-label {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* Keep the floating buttons clear of content on small screens. */
-@media (max-width: 640px) {
-  .gb-quick-access {
-    right: 12px;
-    gap: 8px;
-  }
-
-  .gb-quick-btn {
-    width: 44px;
-    height: 44px;
-    font-size: 16px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .gb-quick-btn {
-    transition: background-color .15s ease, color .15s ease;
-  }
-
-  .gb-quick-btn:hover {
-    transform: none;
-  }
-}
-
 /* ---------------- Single-vendor conflict dialog ---------------- */
 
 .gb-vendor-switch-backdrop {
@@ -5734,6 +5680,12 @@ app-tbl-order-shopping .gb-footer {
 
   .gb-header-user {
     display: none;
+  }
+
+  .gb-top-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
   }
 
   .gb-cart-pill {

@@ -1094,16 +1094,6 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
     );
   }
 
-  startNewBasket(): void {
-    this.cart = [];
-    this.clearCartState();
-    this.quantityErrors = {};
-    this.pendingVendorSwitch = null;
-    this.releaseCartVendorIfEmpty();
-    void this.refreshUpiQr();
-    this.cdr.detectChanges();
-  }
-
   confirmVendorSwitch(): void {
     const pending = this.pendingVendorSwitch;
     if (!pending) return;

@@ -18,7 +18,13 @@
     "CUSTOMER_CONCERNS": "வாடிக்கையாளர் குறைகள்",
     "APP_SETTINGS": "செயலி அமைப்புகள்",
     "REPORTS": "அறிக்கைகள்",
-    "FEEDBACK": "கருத்துகள்"
+    "FEEDBACK": "கருத்துகள்",
+    "SHOP": "கடை",
+    "SECTION_MASTERS": "முதன்மை பட்டியல்",
+    "SECTION_TRANSACTIONS": "பரிமாற்றங்கள்",
+    "SECTION_ACCOUNT": "கணக்கு",
+    "SECTION_SUPPORT": "ஆதரவு",
+    "MENU_TAB": "மெனு"
   },
   "BUTTON": {
     "SAVE": "பதிவு செய்",
@@ -344,10 +350,8 @@
     "ONE_VENDOR_PER_ORDER": "ஒரு ஆர்டருக்கு ஒரு விற்பனையாளர்",
     "FILTER_BY_VENDOR": "விற்பனையாளரை வைத்து வடிகட்டு",
     "ALL_VENDORS": "அனைத்து விற்பனையாளர்கள்",
-    "YOUR_BASKET_VENDOR": "உங்கள் கூடை விற்பனையாளர்",
     "SINGLE_VENDOR_BASKET_TITLE": "ஒரே விற்பனையாளர் கூடை",
     "SINGLE_VENDOR_BASKET_HELP": "விலை, இருப்பு மற்றும் டெலிவரி இந்த விற்பனையாளரால் கையாளப்படும். வேறு விற்பனையாளரிடம் வாங்க புதிய கூடையைத் தொடங்கவும்.",
-    "START_NEW_BASKET": "புதிய கூடையைத் தொடங்கு",
     "DELIVERY_PREFERENCES": "டெலிவரி விருப்பங்கள்",
     "DELIVERY_CHARGES_DEPEND_ON_YOUR_VENDOR": "கட்டணங்கள் மற்றும் குறைந்தபட்ச ஆர்டர் உங்கள் விற்பனையாளர் மற்றும் டெலிவரி விருப்பங்களைப் பொறுத்தது.",
     "NO_PRODUCTS_AVAILABLE": "இப்போது உள்ளூர் விற்பனையாளர்களிடம் பொருட்கள் எதுவும் கிடைக்கவில்லை.",

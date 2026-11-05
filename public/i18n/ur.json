@@ -18,7 +18,13 @@
     "CUSTOMER_CONCERNS": "صارفین کی شکایات",
     "APP_SETTINGS": "ایپ کی ترتیبات",
     "REPORTS": "رپورٹس",
-    "FEEDBACK": "رائے"
+    "FEEDBACK": "رائے",
+    "SHOP": "دکان",
+    "SECTION_MASTERS": "ماسٹر ٹیبلز",
+    "SECTION_TRANSACTIONS": "لین دین",
+    "SECTION_ACCOUNT": "اکاؤنٹ",
+    "SECTION_SUPPORT": "سہارا",
+    "MENU_TAB": "مینو"
   },
   "BUTTON": {
     "SAVE": "محفوظ کریں",
@@ -344,10 +350,8 @@
     "ONE_VENDOR_PER_ORDER": "ایک آرڈر میں ایک ہی دکاندار",
     "FILTER_BY_VENDOR": "دکاندار کے لحاظ سے فلٹر کریں",
     "ALL_VENDORS": "تمام دکاندار",
-    "YOUR_BASKET_VENDOR": "آپ کی ٹوکری کا دکاندار",
     "SINGLE_VENDOR_BASKET_TITLE": "ایک ہی دکاندار کی ٹوکری",
     "SINGLE_VENDOR_BASKET_HELP": "قیمتیں، اسٹاک اور ڈیلیوری اسی دکاندار کے ذریعے ہوگی۔ کسی دوسرے دکاندار سے خریداری کے لیے نئی ٹوکری شروع کریں۔",
-    "START_NEW_BASKET": "نئی ٹوکری شروع کریں",
     "DELIVERY_PREFERENCES": "ڈیلیوری کی ترجیحات",
     "DELIVERY_CHARGES_DEPEND_ON_YOUR_VENDOR": "چارجز اور کم از کم آرڈر آپ کے دکاندار اور ڈیلیوری کے انتخاب پر منحصر ہیں۔",
     "NO_PRODUCTS_AVAILABLE": "اس وقت مقامی دکانداروں سے کوئی پروڈکٹ دستیاب نہیں ہے۔",

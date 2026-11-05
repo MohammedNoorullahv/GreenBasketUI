@@ -11,6 +11,13 @@ import { VendorNotificationService } from '../../services/vendor-notification.se
 
 type GreenBasketLanguage = "en" | "ta" | "ur";
 
+type BottomNavItem = {
+  label: string;
+  icon: string;
+  link: string;
+  exact: boolean;
+};
+
 @Component({
   selector: 'app-navbar',
   imports: [RouterLink, RouterOutlet, CommonModule, RouterLinkActive, TranslatePipe],
@@ -205,6 +212,65 @@ export class Navbar {
   toggleSidebar(): void {
     if (!this.hasSession) return;
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  }
+
+  /** Initials shown inside the round account avatars (top bar + drawer). */
+  get userInitials(): string {
+
+    const name =
+      this.profileName.trim();
+
+    if (!name) {
+      return '?';
+    }
+
+    return name
+      .split(/\s+/)
+      .slice(0, 2)
+      .map(part => part.charAt(0).toUpperCase())
+      .join('');
+
+  }
+
+  /**
+   * Quick-access tabs for the mobile bottom navigation bar. Keeps the most
+   * common actions of each role one tap away, mirroring market-standard
+   * grocery / commerce apps. The trailing "Menu" button opens the full drawer.
+   */
+  get bottomNavItems(): BottomNavItem[] {
+
+    if (this.isAdmin) {
+
+      return [
+        { label: 'MENU.DASHBOARD', icon: 'bi-grid-1x2', link: '/dashboard', exact: true },
+        { label: 'MENU.ORDERS', icon: 'bi-bag-check', link: '/transactiontables/tblOrder', exact: true },
+        { label: 'Inventory', icon: 'bi-clipboard-data', link: '/transactiontables/tblDailyInventory', exact: true },
+      ];
+
+    }
+
+    if (this.isVendor) {
+
+      return [
+        { label: 'MENU.ORDERS', icon: 'bi-bag-check', link: '/transactiontables/tblOrder', exact: true },
+        { label: 'Inventory', icon: 'bi-clipboard-data', link: '/transactiontables/tblDailyInventory', exact: true },
+        { label: 'MENU.PROFILE', icon: 'bi-person-badge', link: '/mastertables/tblProfile', exact: true },
+      ];
+
+    }
+
+    if (this.isCustomer) {
+
+      return [
+        { label: 'MENU.SHOP', icon: 'bi-basket', link: '/transactiontables/tblOrder/shop', exact: true },
+        { label: 'MENU.ORDERS', icon: 'bi-receipt', link: '/transactiontables/tblOrder', exact: true },
+        { label: 'MENU.PROFILE', icon: 'bi-person-badge', link: '/mastertables/tblProfile', exact: true },
+      ];
+
+    }
+
+    return [];
+
   }
 
   // 2. Ensure this exact method is written inside the class

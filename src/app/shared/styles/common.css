@@ -3898,97 +3898,6 @@ app-tbl-order-shopping .gb-page {
   color: #ffffff;
 }
 
-/* ---------------- Basket vendor lock ---------------- */
-
-.gb-basket-vendor {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  margin: 0 0 15px;
-  padding: 12px 14px;
-  border: 1px solid #cfe7d8;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #f1fbf4 0%, #ffffff 72%);
-  box-shadow: 0 6px 18px rgba(16, 74, 46, .05);
-}
-
-.gb-basket-vendor-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  flex-shrink: 0;
-  border-radius: 12px;
-  background: #e0f3e7;
-  color: #0b7a3b;
-  font-size: 18px;
-}
-
-.gb-basket-vendor-copy {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.gb-basket-vendor-eyebrow {
-  color: #5c7a68;
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: .07em;
-  line-height: 1.3;
-  text-transform: uppercase;
-}
-
-.gb-basket-vendor-copy strong {
-  overflow: hidden;
-  color: #143a2a;
-  font-size: 14.5px;
-  font-weight: 800;
-  line-height: 1.3;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.gb-basket-vendor-copy small {
-  color: #5f7568;
-  font-size: 11.5px;
-  line-height: 1.4;
-}
-
-.gb-basket-vendor-change {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  gap: 6px;
-  min-height: 38px;
-  padding: 0 12px;
-  border: 1px solid #cfe4d8;
-  border-radius: 10px;
-  background: #ffffff;
-  color: #0b6b36;
-  font-size: 12px;
-  font-weight: 800;
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    background-color .18s ease,
-    border-color .18s ease;
-}
-
-.gb-basket-vendor-change:hover {
-  border-color: #a9cfb9;
-  background: #edf8f1;
-}
-
-.gb-basket-vendor-change:focus-visible {
-  outline: 3px solid rgba(11, 122, 59, .3);
-  outline-offset: 2px;
-}
-
 .gb-catalog-heading {
   display: flex;
   align-items: center;
@@ -5727,15 +5636,6 @@ app-tbl-order-shopping .gb-footer {
     min-height: 32px;
     padding: 5px 10px;
     font-size: 11.5px;
-  }
-
-  .gb-basket-vendor {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .gb-basket-vendor-change {
-    width: 100%;
   }
 
   .gb-vendor-switch-backdrop {

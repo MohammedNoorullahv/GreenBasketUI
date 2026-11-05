@@ -1,11 +1,27 @@
 <div class="app-layout">
-    <!-- Mobile Header Bar: Only visible on small smartphone screens -->
+    <!-- =============================================
+         MOBILE TOP BAR — only visible below 992px
+         (hamburger | brand | language + avatar)
+    ============================================== -->
     <header class="mobile-top-bar" *ngIf="hasSession">
 
-        <!-- Green Basket Icon + Language Selector -->
-        <div class="mobile-brand">
+        <button type="button" class="mobile-icon-btn" (click)="toggleSidebar()"
+            [attr.aria-label]="isSidebarCollapsed ? 'Open navigation menu' : 'Close navigation menu'"
+            [attr.aria-expanded]="!isSidebarCollapsed">
 
+            <i class="bi" [ngClass]="isSidebarCollapsed ? 'bi-list' : 'bi-x-lg'"></i>
+
+        </button>
+
+        <div class="mobile-brand">
             <img src="/Images/Green Basket Light.jpg" alt="Green Basket" class="mobile-brand-logo" />
+            <div class="mobile-brand-text">
+                <span class="mobile-brand-name">Green Basket</span>
+                <span class="mobile-brand-role" *ngIf="userType">{{ userType }} Panel</span>
+            </div>
+        </div>
+
+        <div class="mobile-top-actions">
 
             <!-- Language Selection -->
             <div class="language-selector mobile-language-selector">
@@ -25,39 +41,30 @@
 
             </div>
 
-        </div>
+            <!-- Avatar chip: opens the drawer -->
+            <button type="button" class="mobile-avatar-btn" (click)="toggleSidebar()"
+                [attr.aria-label]="'Account: ' + (profileName || 'Guest')">
 
-        <div class="mobile-header-actions">
-
-            <!-- Existing Sidebar Toggle -->
-            <button type="button" class="mobile-toggle-btn" (click)="toggleSidebar()" aria-label="Toggle menu">
-
-                <i class="bi" [ngClass]="
-          isSidebarCollapsed
-            ? 'bi-list'
-            : 'bi-x-lg'
-        "></i>
+                {{ userInitials }}
 
             </button>
 
-        </div> <!-- End mobile-header-actions -->
+        </div>
 
-    </header> <!-- MISSING CLOSING TAG -->
+    </header>
 
-
-
-    <!-- Navigation Sidebar Container Frame -->
+    <!-- =============================================
+         NAVIGATION SIDEBAR / DRAWER
+    ============================================== -->
     <aside *ngIf="hasSession" class="sidebar" [class.mobile-open]="!isSidebarCollapsed">
-        <!-- Branding Header Section with 3 Leaves -->
 
-
+        <!-- Branding Header -->
         <div class="sidebar-header">
 
             <div class="brand-logo">
 
                 <img src="/Images/Green Basket Light.jpg" alt="Green Basket" class="desktop-brand-logo" />
                 <span class="desktop-brand-name">
-
                     <h4>Green Basket</h4>
                     <span class="sub-brand" *ngIf="userType">
                         {{ userType }} Panel
@@ -66,21 +73,15 @@
 
             </div>
 
-            <!-- Language Selection -->
-            <div class="language-selector">
+            <!-- Signed-in user chip -->
+            <div class="sidebar-user-chip" *ngIf="profileName">
 
-                <i class="bi bi-translate"></i>
+                <span class="sidebar-avatar" aria-hidden="true">{{ userInitials }}</span>
 
-                <select class="language-dropdown" [value]="selectedLanguage" (change)="onLanguageChange($event)"
-                    aria-label="Select language">
-
-                    <option value="en">En</option>
-
-                    <option value="ta">Ta</option>
-
-                    <option value="ur">Ur</option>
-
-                </select>
+                <span class="sidebar-user-meta">
+                    <span class="sidebar-user-name">{{ profileName }}</span>
+                    <span class="sidebar-user-role">{{ userType }}</span>
+                </span>
 
             </div>
 
@@ -88,11 +89,15 @@
 
         <!-- Navigation Menu Items -->
         <nav class="sidebar-menu">
-            <a *ngIf="isAdmin" class="menu-item" routerLink="/dashboard" routerLinkActive="active" (click)="isSidebarCollapsed = true">
+
+            <a *ngIf="isAdmin" class="menu-item" routerLink="/dashboard" routerLinkActive="active"
+                (click)="isSidebarCollapsed = true">
                 <i class="bi bi-grid-1x2"></i> <span>Dashboard</span>
             </a>
 
 
+            <!-- Masters -->
+            <span class="menu-section-label" *ngIf="isAdmin">{{ 'MENU.SECTION_MASTERS' | translate }}</span>
 
             <a *ngIf="isAdmin" class="menu-item" routerLink="/mastertables/tblPropertyMaster"
                 routerLinkActive="active-submenu" (click)="isSidebarCollapsed = true">
@@ -126,18 +131,16 @@
                 <span>{{ 'MENU.STREET_MASTER' | translate }}</span>
             </a>
 
-            <!-- <a routerLink="/mastertables/tblProfile" routerLinkActive="active-submenu">Profile</a> -->
-            <a *ngIf="isAdmin || isCustomer || isVendor" class="menu-item" routerLink="/mastertables/tblProfile"
-                routerLinkActive="active-submenu" (click)="isSidebarCollapsed = true">
-                <i class="bi bi-person-badge"></i>
-                <span>{{ 'MENU.PROFILE' | translate }}</span>
-            </a>
-
             <a *ngIf="isAdmin" class="menu-item" routerLink="/mastertables/tblItemMaster" routerLinkActive="active"
                 (click)="isSidebarCollapsed = true">
                 <i class="bi bi-box-seam"></i>
                 <span>{{ 'MENU.ITEM_MASTER' | translate }}</span>
             </a>
+
+            <!-- Transactions -->
+            <span class="menu-section-label" *ngIf="isAdmin || isVendor || isCustomer">
+                {{ 'MENU.SECTION_TRANSACTIONS' | translate }}
+            </span>
 
             <a *ngIf="isAdmin || isVendor" class="menu-item" routerLink="/transactiontables/tblDailyInventory"
                 routerLinkActive="active-submenu" (click)="isSidebarCollapsed = true">
@@ -152,8 +155,24 @@
                 <span>{{ 'MENU.ORDERS' | translate }}</span>
             </a>
 
-            <a *ngIf="isAdmin" class="menu-item" routerLink="/concerns"
-                routerLinkActive="active" (click)="isSidebarCollapsed = true">
+            <!-- Account -->
+            <span class="menu-section-label" *ngIf="isAdmin || isVendor || isCustomer">
+                {{ 'MENU.SECTION_ACCOUNT' | translate }}
+            </span>
+
+            <a *ngIf="isAdmin || isCustomer || isVendor" class="menu-item" routerLink="/mastertables/tblProfile"
+                routerLinkActive="active-submenu" (click)="isSidebarCollapsed = true">
+                <i class="bi bi-person-badge"></i>
+                <span>{{ 'MENU.PROFILE' | translate }}</span>
+            </a>
+
+            <!-- Support -->
+            <span class="menu-section-label" *ngIf="isAdmin || isVendor || isCustomer">
+                {{ 'MENU.SECTION_SUPPORT' | translate }}
+            </span>
+
+            <a *ngIf="isAdmin" class="menu-item" routerLink="/concerns" routerLinkActive="active"
+                (click)="isSidebarCollapsed = true">
                 <i class="bi bi-exclamation-triangle"></i> <span>{{ 'MENU.CUSTOMER_CONCERNS' | translate }}</span>
             </a>
 
@@ -162,53 +181,71 @@
                 <i class="bi bi-gear"></i> <span>{{ 'MENU.APP_SETTINGS' | translate }}</span>
             </a>
 
-            <a *ngIf="isAdmin" class="menu-item" routerLink="/reports" routerLinkActive="active" (click)="isSidebarCollapsed = true">
+            <a *ngIf="isAdmin" class="menu-item" routerLink="/reports" routerLinkActive="active"
+                (click)="isSidebarCollapsed = true">
                 <i class="bi bi-pie-chart"></i> <span>{{ 'MENU.REPORTS' | translate }}</span>
             </a>
 
-            
-
-            <a *ngIf="isAdmin || isCustomer || isVendor" class="menu-item" routerLink="/mastertables/tblFeedback" routerLinkActive="active-submenu" 
-            (click)="isSidebarCollapsed = true">
-                <i class="bi bi-chat-square-text"></i> 
+            <a *ngIf="isAdmin || isCustomer || isVendor" class="menu-item" routerLink="/mastertables/tblFeedback"
+                routerLinkActive="active-submenu" (click)="isSidebarCollapsed = true">
+                <i class="bi bi-chat-square-text"></i>
                 <span>{{ 'MENU.FEEDBACK' | translate }}</span>
             </a>
 
-            <div *ngIf="isVendor" class="vendor-push-settings" style="padding:8px 12px;">
-                <p *ngIf="vendorPush.saved()" role="status" style="margin:0 0 8px; color:inherit; font-weight:600;">
+            <div *ngIf="isVendor" class="vendor-push-card">
+                <p class="vendor-push-title" *ngIf="vendorPush.saved()" role="status">
                     <i class="bi bi-bell-fill" aria-hidden="true"></i>
                     Notifications enabled
                 </p>
 
-                <button *ngIf="!vendorPush.saved()" type="button" class="btn btn-success btn-sm"
+                <button *ngIf="!vendorPush.saved()" type="button" class="btn btn-success btn-sm vendor-push-btn"
                     [disabled]="vendorPush.busy()" (click)="enableVendorNotifications()">
                     <i class="bi bi-bell" aria-hidden="true"></i>
                     Enable Notifications
                 </button>
 
-                <button *ngIf="vendorPush.saved()" type="button" class="btn btn-warning btn-sm"
+                <button *ngIf="vendorPush.saved()" type="button" class="btn btn-warning btn-sm vendor-push-btn"
                     [disabled]="vendorPush.busy()" (click)="disableVendorNotifications()">
                     Disable on this device
                 </button>
 
-                <button type="button" class="btn btn-outline-light btn-sm" style="margin-top:8px;"
+                <button type="button" class="btn btn-outline-light btn-sm vendor-push-btn vendor-push-secondary"
                     [disabled]="vendorPush.busy()" (click)="checkVendorNotifications()">
                     Check status
                 </button>
 
-                <small role="status" aria-live="polite" style="display:block; margin-top:8px; color:inherit;">
+                <small role="status" aria-live="polite" class="vendor-push-status">
                     {{ vendorPush.status() }}
                 </small>
-                <small style="display:block; margin-top:8px; color:inherit;">
+
+                <small class="vendor-push-hint">
                     When enabled, order alerts continue after logout.
                     Disable alerts before leaving a shared device.
                 </small>
             </div>
 
-
         </nav>
 
+        <!-- Footer: language + logout -->
         <div class="sidebar-logout-footer">
+
+            <div class="language-selector sidebar-language-selector">
+
+                <i class="bi bi-translate"></i>
+
+                <select class="language-dropdown" [value]="selectedLanguage" (change)="onLanguageChange($event)"
+                    aria-label="Select language">
+
+                    <option value="en">En</option>
+
+                    <option value="ta">Ta</option>
+
+                    <option value="ur">Ur</option>
+
+                </select>
+
+            </div>
+
             <button type="button" class="logout-btn" [disabled]="isLoggingOut" (click)="logout()">
 
                 {{
@@ -218,10 +255,10 @@
                 }}
 
             </button>
+
         </div>
+
     </aside>
-
-
 
     <!-- Backdrop overlay when mobile sidebar drawer menu expands -->
     <div class="sidebar-backdrop" *ngIf="hasSession && !isSidebarCollapsed" (click)="toggleSidebar()"></div>
@@ -230,4 +267,27 @@
     <main class="main-content" [style.margin-inline-start]="hasSession ? null : '0px'">
         <router-outlet></router-outlet>
     </main>
+
+    <!-- =============================================
+         MOBILE BOTTOM NAVIGATION — quick access tabs
+    ============================================== -->
+    <nav class="mobile-bottom-nav" *ngIf="hasSession" aria-label="Primary quick navigation">
+
+        <a *ngFor="let item of bottomNavItems" class="bottom-nav-item" [routerLink]="item.link"
+            routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: item.exact }"
+            (click)="isSidebarCollapsed = true">
+
+            <span class="bottom-nav-icon"><i class="bi" [ngClass]="item.icon"></i></span>
+            <span class="bottom-nav-label">{{ item.label | translate }}</span>
+
+        </a>
+
+        <button type="button" class="bottom-nav-item bottom-nav-menu" (click)="toggleSidebar()">
+
+            <span class="bottom-nav-icon"><i class="bi" [ngClass]="isSidebarCollapsed ? 'bi-list' : 'bi-x-lg'"></i></span>
+            <span class="bottom-nav-label">{{ 'MENU.MENU_TAB' | translate }}</span>
+
+        </button>
+
+    </nav>
 </div>

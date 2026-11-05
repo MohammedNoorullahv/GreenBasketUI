@@ -19,7 +19,13 @@
     "CUSTOMER_CONCERNS": "Customer Concerns",
     "APP_SETTINGS": "App Settings",
     "REPORTS": "Reports",
-    "FEEDBACK": "Feedback"
+    "FEEDBACK": "Feedback",
+    "SHOP": "Shop",
+    "SECTION_MASTERS": "Master Tables",
+    "SECTION_TRANSACTIONS": "Transactions",
+    "SECTION_ACCOUNT": "Account",
+    "SECTION_SUPPORT": "Support",
+    "MENU_TAB": "Menu"
   },
   "BUTTON": {
     "SAVE": "Save",
@@ -347,10 +353,8 @@
     "ONE_VENDOR_PER_ORDER": "One vendor per order",
     "FILTER_BY_VENDOR": "Filter by vendor",
     "ALL_VENDORS": "All vendors",
-    "YOUR_BASKET_VENDOR": "Your basket vendor",
     "SINGLE_VENDOR_BASKET_TITLE": "Single-vendor basket",
     "SINGLE_VENDOR_BASKET_HELP": "Prices, stock and delivery are handled by this vendor. To shop another vendor, start a new basket.",
-    "START_NEW_BASKET": "Start new basket",
     "DELIVERY_PREFERENCES": "Delivery preferences",
     "DELIVERY_CHARGES_DEPEND_ON_YOUR_VENDOR": "Charges and the minimum order depend on your vendor and these delivery choices.",
     "NO_PRODUCTS_AVAILABLE": "No products are available from local vendors right now.",

@@ -1,33 +1,27 @@
+/* =========================================================
+   GREEN BASKET — NAVIGATION SHELL (Navbar + Mobile chrome)
+   ========================================================= */
+
 :host {
 
   /* Existing Green Basket Colour Identity */
-
   --sidebar-bg: #112F3E;
-
+  --sidebar-bg-2: #0E2533;
   --sidebar-hover: #0AA054;
-
   --sidebar-active: #0AA054;
-
+  --accent-soft: rgba(10, 160, 84, 0.18);
   --text-light: #FFFFFF;
-
   --text-muted: #B8C9D5;
-
+  --danger: #E5484D;
   --main-bg: #eef6f0;
 
-
   /* Premium Typography */
-
   --font-brand: 'Plus Jakarta Sans', sans-serif;
-
   --font-menu: 'Inter', sans-serif;
 
-
   display: block;
-
   width: 100%;
-
   height: 100%;
-
   min-height: 0;
 
 }
@@ -38,59 +32,35 @@
 ========================================= */
 
 .app-layout {
-
   display: flex;
-
   height: 100%;
-
   min-height: 0;
-
   width: 100%;
-
   overflow: hidden;
-
   background-color: var(--main-bg);
-
   font-family: var(--font-menu);
-
   -webkit-font-smoothing: antialiased;
-
   text-rendering: optimizeLegibility;
-
 }
 
 
 /* =========================================
-   SIDEBAR
+   SIDEBAR — DESKTOP
 ========================================= */
 
 .sidebar {
-
-  width: 260px;
-
-  background-color: var(--sidebar-bg);
-
+  width: 264px;
+  background: linear-gradient(180deg, #123140 0%, #0E2533 100%);
   color: var(--text-light);
-
   display: flex;
-
   flex-direction: column;
-
   flex-shrink: 0;
-
   height: 100%;
-
   min-height: 0;
-
-  overflow-y: auto;
-
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.08);
-
+  overflow: hidden;
+  box-shadow: 1px 0 24px rgba(6, 22, 30, 0.35);
   z-index: 100;
-
-  transition: transform 0.3s
-    cubic-bezier(0.4, 0, 0.2, 1);
-
+  transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 
@@ -99,568 +69,374 @@
 ========================================= */
 
 .sidebar-header {
-
-  padding: 25px 24px 24px;
-
-  border-bottom: 1px solid
-    rgba(255, 255, 255, 0.07);
-
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background:
+    radial-gradient(120% 90% at 85% -20%, rgba(10, 160, 84, 0.16) 0%, transparent 60%);
 }
-
-
-/* =========================================
-   BRAND LOGO
-========================================= */
 
 .brand-logo {
-
   display: flex;
-
   align-items: center;
-
   gap: 12px;
-
 }
 
-
-.organic-leaves-logo {
-
-  width: 38px;
-
-  height: 38px;
-
+.desktop-brand-logo {
+  width: 44px;
+  max-width: 44px;
+  height: 44px;
+  padding: 2px;
+  border-radius: 12px;
+  background: #ffffff;
+  object-fit: contain;
   flex-shrink: 0;
-
-  filter: drop-shadow(
-    0px 2px 4px rgba(0, 0, 0, 0.15)
-  );
-
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
 }
 
-
-/* =========================================
-   BRAND NAME - PREMIUM TYPOGRAPHY
-========================================= */
-
-.brand-text h1 {
-
-  font-family: var(--font-brand);
-
-  font-size: 1.28rem;
-
-  font-weight: 700;
-
-  line-height: 1.35;
-
-  letter-spacing: -0.65px;
-
+.desktop-brand-name h4 {
   margin: 0;
-
-  color: #FFFFFF;
-
+  color: #ffffff;
+  font-family: var(--font-brand);
+  font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  line-height: 1.3;
 }
-
-
-/* =========================================
-   ADMIN PANEL SUBTITLE
-========================================= */
 
 .sub-brand {
-
   font-family: var(--font-menu);
-
-  font-size: 0.76rem;
-
-  font-weight: 400;
-
-  letter-spacing: 0.15px;
-
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
   line-height: 1.5;
-
-  color: #B8C9D5;
-
+  color: #7FD8AE;
   display: block;
-
-  margin-top: 3px;
-
+  margin-top: 1px;
+  text-transform: uppercase;
 }
 
 
 /* =========================================
-   SIDEBAR MENU CONTAINER
+   SIGNED-IN USER CHIP (avatar + name)
+========================================= */
+
+.sidebar-user-chip {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.sidebar-avatar {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0AA054 0%, #0C7A44 100%);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow: 0 3px 10px rgba(10, 160, 84, 0.35);
+}
+
+.sidebar-user-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sidebar-user-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-user-role {
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #7FD8AE;
+}
+
+
+/* =========================================
+   MENU CONTAINER
 ========================================= */
 
 .sidebar-menu {
-
   display: flex;
-
   flex-direction: column;
+  padding: 14px 12px;
+  gap: 3px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+}
 
-  padding: 18px 12px;
+/* Grouped section labels */
+.menu-section-label {
+  margin: 12px 14px 6px;
+  font-family: var(--font-menu);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: rgba(184, 201, 213, 0.55);
+  user-select: none;
+}
 
-  gap: 5px;
+.menu-section-label:first-child {
+  margin-top: 2px;
+}
 
+.sidebar-menu .menu-item + .menu-section-label {
+  margin-top: 14px;
 }
 
 
 /* =========================================
-   MENU ITEMS - PREMIUM TYPOGRAPHY
+   MENU ITEMS
 ========================================= */
 
 .menu-item {
-
+  position: relative;
   display: flex;
-
   align-items: center;
-
-  gap: 15px;
-
-  padding: 12px 15px;
-
+  gap: 14px;
+  padding: 11px 14px;
+  margin-right: 4px;
   color: var(--text-muted);
-
   text-decoration: none;
-
   font-family: var(--font-menu);
-
-  font-size: 0.91rem;
-
+  font-size: 0.9rem;
   font-weight: 500;
-
-  letter-spacing: -0.15px;
-
-  line-height: 1.5;
-
-  border-radius: 8px;
-
+  letter-spacing: -0.1px;
+  line-height: 1.45;
+  border-radius: 10px;
   transition:
-
     background-color 0.18s ease,
-
     color 0.18s ease,
-
+    transform 0.18s ease,
     box-shadow 0.18s ease;
-
 }
 
-
-/* =========================================
-   MENU ICONS
-========================================= */
+/* Accent rail for active / hover states */
+.menu-item::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 50%;
+  translate: 0 -50%;
+  width: 3px;
+  height: 0;
+  border-radius: 99px;
+  background: var(--sidebar-hover);
+  opacity: 0;
+  transition: height 0.2s ease, opacity 0.2s ease;
+}
 
 .menu-item i {
-
-  font-size: 1.2rem;
-
+  font-size: 1.15rem;
   width: 24px;
-
   flex-shrink: 0;
-
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
-  opacity: 0.95;
-
-  transition: opacity 0.18s ease;
-
+  opacity: 0.92;
+  transition: transform 0.18s ease, color 0.18s ease;
 }
 
+.menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.07);
+  color: var(--text-light);
+  transform: translateX(2px);
+}
 
-/* =========================================
-   HOVER AND ACTIVE STATE
+.menu-item:hover i {
+  transform: translateY(-1px);
+}
 
-   ORIGINAL GREEN BACKGROUND RETAINED
-========================================= */
-
-.menu-item:hover,
-
-.menu-item.active {
-
-  background-color: var(--sidebar-hover) !important;
-
+/* Active state — premium green gradient pill */
+.menu-item:hover.active,
+.menu-item:hover.active-submenu,
+.menu-item.active,
+.menu-item.active-submenu {
+  background: linear-gradient(92deg, rgba(10, 160, 84, 0.95) 0%, rgba(12, 122, 68, 0.9) 100%) !important;
   color: var(--text-light) !important;
-
   font-weight: 600;
-
-  box-shadow:
-    0 4px 12px rgba(10, 160, 84, 0.25);
-
+  transform: none;
+  box-shadow: 0 6px 16px rgba(10, 160, 84, 0.32);
 }
 
-
-/* Menu icons when active */
+.menu-item.active::before,
+.menu-item.active-submenu::before {
+  height: 55%;
+  opacity: 1;
+}
 
 .menu-item:hover i,
-
-.menu-item.active i {
-
+.menu-item.active i,
+.menu-item.active-submenu i {
   color: #FFFFFF;
-
   opacity: 1;
-
 }
 
 
 /* =========================================
-   MOBILE TOP BAR
+   VENDOR PUSH NOTIFICATION CARD
 ========================================= */
 
-.mobile-top-bar {
-
-  display: none;
-
+.vendor-push-card {
+  margin: 14px 6px 4px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  overflow-wrap: anywhere;
 }
 
-
-/* =========================================
-   MAIN CONTENT
-========================================= */
-
-.main-content {
-
-  flex: 1 1 auto;
-
-  min-width: 0;
-
-  min-height: 0;
-
-  background-color: var(--main-bg);
-
-  padding: 24px;
-
-  overflow-y: auto;
-
-  height: 100%;
-
-  font-family: var(--font-menu);
-
+.vendor-push-title {
+  margin: 0 0 8px;
+  color: #7FD8AE;
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
-
-/* =========================================
-   MOBILE RESPONSIVE DESIGN
-========================================= */
-
-@media (max-width: 991px) {
-
-  .app-layout {
-
-    flex-direction: column;
-
-  }
-
-
-  .mobile-top-bar {
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    background-color: var(--sidebar-bg);
-
-    color: var(--text-light);
-
-    padding: 0 16px;
-
-    height: 60px;
-
-    flex: 0 0 auto;
-
-    position: relative;
-
-    z-index: 101;
-
-    box-shadow:
-      0 2px 10px rgba(0, 0, 0, 0.2);
-
-  }
-
-
-  .mobile-toggle-btn {
-
-    background: transparent;
-
-    border: none;
-
-    color: white;
-
-    font-size: 1.75rem;
-
-    cursor: pointer;
-
-    display: flex;
-
-    align-items: center;
-
-    padding: 8px;
-
-  }
-
-
-  .sidebar {
-
-    position: fixed;
-
-    top: 0;
-
-    left: 0;
-
-    bottom: 0;
-
-    width: 272px;
-
-    height: 100dvh;
-
-    overflow-y: auto;
-
-    transform: translateX(-100%);
-
-    box-shadow: none;
-
-    border-radius: 0;
-
-    z-index: 200;
-
-  }
-
-
-  .sidebar.mobile-open {
-
-    transform: translateX(0);
-
-    box-shadow:
-      5px 0 20px rgba(0, 0, 0, 0.3);
-
-  }
-
-
-  .sidebar-header {
-
-    display: block;
-
-  }
-
-
-  .sidebar-backdrop {
-
-    position: fixed;
-
-    top: 0;
-
-    left: 0;
-
-    right: 0;
-
-    bottom: 0;
-
-    background: rgba(0, 0, 0, 0.5);
-
-    backdrop-filter: blur(2px);
-
-    z-index: 150;
-
-  }
-
-
-  .main-content {
-
-    margin-top: 0;
-
-    padding: 16px;
-
-    height: auto;
-
-    min-height: 0;
-
-    flex: 1 1 auto;
-
-  }
-
-}
-
-
-/* =========================================
-   PURE CSS THREE-LEAF LOGO
-========================================= */
-
-.triple-leaf-css {
-
-  position: relative;
-
-  width: 36px;
-
-  height: 36px;
-
-  display: flex;
-
+.vendor-push-btn {
+  position: static;
+  display: inline-flex;
   align-items: center;
-
-  justify-content: center;
-
-  flex-shrink: 0;
-
-  margin-right: 4px;
-
+  gap: 6px;
+  min-height: 36px;
+  margin: 0 6px 6px 0;
+  border-radius: 9px;
+  font-weight: 600;
 }
 
-
-.css-leaf {
-
-  position: absolute;
-
-  background-color: #0AA054 !important;
-
-  border-radius: 0 100% 0 100%;
-
-  transform-origin: bottom center;
-
+.vendor-push-secondary {
+  margin-top: 0;
 }
 
-
-/* Central Leaf */
-
-.css-leaf.leaf-center {
-
-  width: 14px;
-
-  height: 24px;
-
-  top: 2px;
-
-  transform: rotate(0deg);
-
-  z-index: 2;
-
+.vendor-push-status,
+.vendor-push-hint {
+  display: block;
+  margin-top: 8px;
+  color: rgba(224, 236, 243, 0.75);
+  font-size: 0.72rem;
+  line-height: 1.45;
 }
 
-
-/* Left Leaf */
-
-.css-leaf.leaf-left {
-
-  width: 10px;
-
-  height: 18px;
-
-  bottom: 8px;
-
-  left: 3px;
-
-  transform: rotate(-40deg);
-
-  opacity: 0.85;
-
-  z-index: 1;
-
-}
-
-
-/* Right Leaf */
-
-.css-leaf.leaf-right {
-
-  width: 10px;
-
-  height: 18px;
-
-  bottom: 8px;
-
-  right: 3px;
-
-  transform: rotate(40deg);
-
-  opacity: 0.9;
-
-  z-index: 1;
-
-}
 
 /* =========================================
-   GREEN BASKET BRANDING
+   LOGOUT FOOTER
 ========================================= */
 
-.desktop-brand-logo {
-  display: block;
-  width: 100%;
-  max-width: 100px;
-  height: auto;
-  object-fit: contain;
+.sidebar-logout-footer {
+  flex: 0 0 auto;
+  padding: 12px 16px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(8, 24, 33, 0.45);
+  box-sizing: border-box;
 }
 
-.mobile-brand-logo {
+.sidebar-logout-footer > .logout-btn {
   display: block;
-  width: 42px;
-  height: 42px;
-  object-fit: contain;
+  position: static;
+  width: 100%;
+  min-height: 46px;
+  margin: 0;
+  box-sizing: border-box;
 }
+
+.logout-btn {
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 110, 110, 0.35);
+  border-radius: 11px;
+  background: rgba(229, 72, 77, 0.12);
+  color: #FFB4B6;
+  font-family: var(--font-menu);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.logout-btn:hover:not(:disabled) {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #ffffff;
+}
+
+.logout-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 
 /* =========================================
    LANGUAGE SELECTOR
 ========================================= */
 
-/* =========================================
-   DESKTOP LANGUAGE SELECTOR — PROFESSIONAL UI
-========================================= */
+.sidebar-language-selector {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 0 10px;
+  padding: 9px 14px;
+}
 
 .language-selector {
   display: flex;
   align-items: center;
   gap: 8px;
 
-  margin: 12px 0 0 0;
-  padding: 9px 14px;
-
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.12) 0%,
-    rgba(255, 255, 255, 0.06) 100%
-  );
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%);
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 12px;
 
   color: #ffffff;
-
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .language-selector:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.18) 0%,
-    rgba(255, 255, 255, 0.10) 100%
-  );
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.10) 100%);
   border-color: rgba(255, 255, 255, 0.28);
-  transform: translateY(-1px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
 .language-selector:focus-within {
   border-color: #0ea054;
-  box-shadow: 0 0 0 3px rgba(14, 160, 84, 0.18),
+  box-shadow:
+    0 0 0 3px rgba(14, 160, 84, 0.18),
     0 8px 20px rgba(0, 0, 0, 0.12);
   background: rgba(255, 255, 255, 0.14);
 }
 
 .language-selector i {
   font-size: 15px;
-  color: #0ea054;
+  color: #16b866;
   flex-shrink: 0;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
 }
 
 .language-dropdown {
-  width: 46px;
-  flex: none;
+  flex: 1 1 auto;
   min-width: 0;
 
   background: transparent;
@@ -669,7 +445,7 @@
   border: none;
   outline: none;
 
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 700;
   letter-spacing: 0.4px;
 
@@ -678,19 +454,15 @@
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 10px center;
+  background-position: right 2px center;
   background-size: 12px;
-  padding-right: 26px;
+  padding-right: 18px;
 
   transition: all 0.2s ease;
 }
 
 .language-dropdown:hover {
   color: #a7f3d0;
-}
-
-.language-dropdown:focus {
-  outline: none;
 }
 
 .language-dropdown option {
@@ -702,214 +474,388 @@
   white-space: nowrap;
 }
 
+
 /* =========================================
-   MOBILE LANGUAGE SELECTOR — COMPACT VARIANT
+   MAIN CONTENT
 ========================================= */
 
-.mobile-language-selector {
-  margin-top: 0;
-  padding: 6px 10px;
-  gap: 6px;
-
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  border-radius: 8px;
+.main-content {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  background-color: var(--main-bg);
+  padding: 24px;
+  overflow-y: auto;
+  height: 100%;
+  font-family: var(--font-menu);
 }
 
-.mobile-language-selector .language-dropdown {
-  width: 42px;
-  flex: none;
-  font-size: 11px;
+
+/* =========================================================
+   MOBILE CHROME — hidden by default on desktop
+========================================================= */
+
+.mobile-top-bar,
+.mobile-bottom-nav {
+  display: none;
 }
 
-/* Extra small screens (under 360px) */
-@media (max-width: 360px) {
-  .language-selector {
-    padding: 7px 10px;
-    gap: 5px;
-    border-radius: 10px;
-    margin: 10px 0 0 0;
+
+/* =========================================================
+   MOBILE RESPONSIVE DESIGN  (< 992px)
+========================================================= */
+
+@media (max-width: 991px) {
+
+  .app-layout {
+    flex-direction: column;
   }
 
-  .language-selector i {
-    font-size: 14px;
+  /* ---------------------------------------------
+     TOP BAR — glass gradient, safe-area aware
+  --------------------------------------------- */
+  .mobile-top-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: env(safe-area-inset-top) 12px 0;
+    height: calc(62px + env(safe-area-inset-top));
+
+    background:
+      linear-gradient(180deg, rgba(18, 49, 62, 0.98) 0%, rgba(14, 37, 51, 0.98) 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+    color: var(--text-light);
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 120;
+    box-shadow: 0 8px 24px rgba(6, 22, 30, 0.28);
   }
 
-  .language-dropdown {
+  .mobile-icon-btn {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 13px;
+    background: rgba(255, 255, 255, 0.07);
+    color: #ffffff;
+    font-size: 1.45rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  .mobile-icon-btn:active {
+    transform: scale(0.94);
+  }
+
+  .mobile-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    margin-inline-start: 2px;
+  }
+
+  .mobile-brand-logo {
     width: 40px;
-    font-size: 11px;
-    padding-right: 22px;
-    background-size: 11px;
-    background-position: right 8px center;
+    height: 40px;
+    object-fit: contain;
+    border-radius: 11px;
+    background: #ffffff;
+    padding: 2px;
+    flex-shrink: 0;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+  }
+
+  .mobile-brand-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .mobile-brand-name {
+    font-family: var(--font-brand);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-brand-role {
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #7FD8AE;
+  }
+
+  .mobile-top-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-inline-start: auto;
   }
 
   .mobile-language-selector {
-    padding: 5px 7px;
-    gap: 5px;
+    margin: 0;
+    padding: 7px 10px;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 11px;
+    box-shadow: none;
   }
 
   .mobile-language-selector .language-dropdown {
-    width: 40px;
-    font-size: 11px;
+    font-size: 11.5px;
+    width: 34px;
   }
+
+  .mobile-language-selector i {
+    font-size: 14px;
+  }
+
+  .mobile-avatar-btn {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(127, 216, 174, 0.55);
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0AA054 0%, #0C7A44 100%);
+    color: #ffffff;
+    font-family: var(--font-brand);
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(10, 160, 84, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-avatar-btn:active {
+    transform: scale(0.94);
+  }
+
+  /* ---------------------------------------------
+     DRAWER OVERHAUL
+  --------------------------------------------- */
+  .sidebar {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: min(308px, 86vw);
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    border-radius: 0 18px 18px 0;
+    box-shadow: none;
+    transform: translateX(calc(-100% - 24px));
+    z-index: 200;
+  }
+
+  [dir='rtl'] .sidebar {
+    transform: translateX(100%);
+    border-radius: 18px 0 0 18px;
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.4);
+  }
+
+  .sidebar-header {
+    display: block;
+    padding: 18px 16px 14px;
+  }
+
+  .sidebar-user-chip {
+    margin-top: 12px;
+  }
+
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 20, 27, 0.55);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    z-index: 150;
+    animation: gb-backdrop-in 0.25s ease both;
+  }
+
+  /* ---------------------------------------------
+     BOTTOM NAVIGATION — quick access tabs
+  --------------------------------------------- */
+  .mobile-bottom-nav {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    flex: 0 0 auto;
+
+    padding: 6px 6px calc(7px + env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, #123140 0%, #0E2533 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow: 0 -8px 24px rgba(6, 22, 30, 0.25);
+
+    z-index: 130;
+  }
+
+  .bottom-nav-item {
+    flex: 1 1 0%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 4px 2px;
+    background: none;
+    border: none;
+    color: rgba(196, 214, 224, 0.75);
+    text-decoration: none;
+    font-family: var(--font-menu);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.1px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.2s ease;
+  }
+
+  .bottom-nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    max-width: 64px;
+    height: 32px;
+    border-radius: 999px;
+    transition: background-color 0.22s ease, transform 0.22s ease;
+  }
+
+  .bottom-nav-icon i {
+    font-size: 1.28rem;
+    line-height: 1;
+    transition: transform 0.22s ease;
+  }
+
+  .bottom-nav-item:hover {
+    color: #ffffff;
+  }
+
+  /* Active tab: soft green pill behind the icon */
+  .bottom-nav-item.is-active {
+    color: #ffffff;
+  }
+
+  .bottom-nav-item.is-active .bottom-nav-icon {
+    background: var(--accent-soft);
+    transform: translateY(-2px);
+  }
+
+  .bottom-nav-item.is-active .bottom-nav-icon i {
+    color: #34E39B;
+    transform: scale(1.06);
+    filter: drop-shadow(0 2px 6px rgba(10, 160, 84, 0.45));
+  }
+
+  /* Menu button — slightly emphasized */
+  .bottom-nav-menu {
+    position: relative;
+  }
+
+  .bottom-nav-menu .bottom-nav-icon {
+    background: linear-gradient(135deg, #0AA054 0%, #0C7A44 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(10, 160, 84, 0.4);
+  }
+
+  .bottom-nav-menu .bottom-nav-icon i {
+    color: #ffffff !important;
+  }
+
+  /* ---------------------------------------------
+     MAIN CONTENT
+  --------------------------------------------- */
+  .main-content {
+    margin-top: 0;
+    padding: 16px 14px;
+    height: auto;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+
 }
 
-/* =========================================
-   MOBILE HEADER
-========================================= */
 
-.mobile-brand {
-  display: flex;
-  align-items: center;
+/* ---------------------------------------------
+   Bottom-nav entrance animation
+--------------------------------------------- */
+
+@keyframes gb-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.mobile-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
 
-/* =========================================
-   REFERENCE-ALIGNED REFRESH (UI only)
-   ========================================= */
-
-.sidebar {
-  background: linear-gradient(180deg, #123140 0%, #0e2634 100%);
-}
-
-.sidebar-header {
-  padding: 22px 20px;
-}
-
-.desktop-brand-logo {
-  width: 42px;
-  max-width: 42px;
-  height: 42px;
-  padding: 2px;
-  border-radius: 10px;
-  background: #ffffff;
-  flex-shrink: 0;
-}
-
-.desktop-brand-name h4 {
-  margin: 0;
-  color: #ffffff;
-  font-size: 1.05rem;
-  font-weight: 700;
-}
-
-.sidebar-menu {
-  padding: 16px 12px;
-  gap: 4px;
-}
-
-.menu-item {
-  border-radius: 9px;
-}
-
-/* Sub-menu routes use routerLinkActive="active-submenu"; give it the
-   same green highlight as a fully active route. */
-.menu-item.active-submenu {
-  background-color: var(--sidebar-hover) !important;
-  color: var(--text-light) !important;
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(10, 160, 84, 0.25);
-}
-
-.menu-item.active-submenu i {
-  color: #ffffff;
-  opacity: 1;
-}
-
-.logout-btn {
-  margin-top: 14px;
-  padding: 12px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.06);
-  color: #ffffff;
-  font-family: var(--font-menu);
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color .18s ease, border-color .18s ease;
-}
-
-.logout-btn:hover:not(:disabled) {
-  background: #c62828;
-  border-color: #c62828;
-}
-
-.logout-btn:disabled {
-  opacity: .6;
-  cursor: not-allowed;
-}
+/* =========================================================
+   EXTRA SMALL SCREENS  (< 380px)
+========================================================= */
 
 @media (max-width: 380px) {
 
   .mobile-top-bar {
-    padding-left: 12px;
-    padding-right: 12px;
+    padding-inline: 10px;
+    gap: 7px;
   }
 
-  .mobile-header-actions {
-    gap: 5px;
+  .mobile-icon-btn,
+  .mobile-avatar-btn {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+  }
+
+  .mobile-brand-logo {
+    width: 36px;
+    height: 36px;
+  }
+
+  .mobile-brand-name {
+    font-size: 0.92rem;
   }
 
   .mobile-language-selector {
-    padding: 5px;
-    gap: 4px;
+    padding: 6px 8px;
+    gap: 5px;
   }
 
   .mobile-language-selector .language-dropdown {
-    width: 42px;
+    width: 30px;
     font-size: 11px;
   }
 
-}
-/* Sidebar fits the routed workspace below branding and above the app footer.
-   More specific selectors also override the earlier inline 100dvh rule. */
-:host .app-layout > .sidebar {
-  height: 100%;
-  max-height: 100%;
-  min-height: 0;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-:host .app-layout > .sidebar > .sidebar-header {
-  flex: 0 0 auto;
-}
-:host .app-layout > .sidebar > .sidebar-menu {
-  flex: 1 1 0%;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  overscroll-behavior-y: contain;
-  scrollbar-width: thin;
-}
-:host .app-layout > .sidebar > .sidebar-menu > * {
-  flex-shrink: 0;
-}
-:host .app-layout > .sidebar > .sidebar-logout-footer {
-  flex: 0 0 auto;
-  padding: 12px 16px;
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(255, 255, 255, .18);
-  box-sizing: border-box;
-}
-:host .app-layout > .sidebar > .sidebar-logout-footer > .logout-btn {
-  display: block;
-  position: static;
-  width: 100%;
-  min-height: 44px;
-  margin: 0;
-  box-sizing: border-box;
-}
-/* The mobile drawer is fixed to the viewport rather than the workspace. */
-@media (max-width: 991px) {
-  :host .app-layout > .sidebar {
-    height: 100vh;
-    height: 100dvh;
-    max-height: 100dvh;
+  .bottom-nav-label {
+    font-size: 9.5px;
   }
+
+  .bottom-nav-icon {
+    width: 42px;
+  }
+
 }

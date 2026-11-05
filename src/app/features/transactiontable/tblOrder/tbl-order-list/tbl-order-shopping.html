@@ -794,21 +794,6 @@
         </div>
       </section>
 
-      <div class="gb-basket-vendor" *ngIf="cart.length" role="status" aria-live="polite">
-        <span class="gb-basket-vendor-icon" aria-hidden="true">
-          <i class="bi bi-shop"></i>
-        </span>
-        <div class="gb-basket-vendor-copy">
-          <span class="gb-basket-vendor-eyebrow">{{ 'OrderShopping.YOUR_BASKET_VENDOR' | translate }}</span>
-          <strong>{{ cartVendorName }}</strong>
-          <small>{{ 'OrderShopping.SINGLE_VENDOR_BASKET_HELP' | translate }}</small>
-        </div>
-        <button type="button" class="gb-basket-vendor-change" (click)="startNewBasket()">
-          <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
-          {{ 'OrderShopping.START_NEW_BASKET' | translate }}
-        </button>
-      </div>
-
       <div class="gb-catalog-heading" *ngIf="!loading && stock.length > 0">
         <div>
           <h2>{{ (category === 'All' ? ('OrderShopping.ALL_ITEMS' | translate) : (category | menuCaption:'OrderShopping')) }}</h2>

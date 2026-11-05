@@ -37,7 +37,9 @@ import { TblMenuMasterUpdateComponent } from './features/mastertables/tblMenuMas
 import { TblFeedbackListComponent } from './features/mastertables/tblFeedback/tbl-feedback-list/tbl-feedback-list';
 import { TblFeedbackAddComponent } from './features/mastertables/tblFeedback/tbl-feedback-add/tbl-feedback-add';
 import { TblFeedbackUpdateComponent } from './features/mastertables/tblFeedback/tbl-feedback-update/tbl-feedback-update';
-
+import { TblFeatureListComponent } from './features/transactiontable/tblFeature/tbl-feature-list/tbl-feature-list';
+import { TblFeatureAddComponent } from './features/transactiontable/tblFeature/tbl-feature-add/tbl-feature-add';
+import { TblFeatureUpdateComponent } from './features/transactiontable/tblFeature/tbl-feature-update/tbl-feature-update';
 
 // import { TblCityorTownMasterListComponent }
 //   from './features/mastertables/tblCityorTownMaster/tbl-cityor-town-master-list/tbl-cityor-town-master-list';
@@ -188,6 +190,21 @@ export const routes: Routes = [
       // AUTH-STAGE-2: canActivate: [menuGuard]
       { path: 'mastertables/tblFeedback/edit/:id', component: TblFeedbackUpdateComponent },
       // AUTH-STAGE-2: canActivate: [menuGuard]
+      {
+        path: 'transactiontables/tblFeature',
+        component: TblFeatureListComponent,
+      },
+      // AUTH-STAGE-2: canActivate: [menuGuard]
+      {
+        path: 'transactiontables/tblFeature/add',
+        component: TblFeatureAddComponent,
+      },
+      // AUTH-STAGE-2: canActivate: [menuGuard]
+      {
+        path: 'transactiontables/tblFeature/edit/:id',
+        component: TblFeatureUpdateComponent,
+      },
+
 
 
 

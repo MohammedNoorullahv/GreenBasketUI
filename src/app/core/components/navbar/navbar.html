@@ -192,6 +192,12 @@
                 <span>{{ 'MENU.FEEDBACK' | translate }}</span>
             </a>
 
+            <a *ngIf="isAdmin" class="menu-item" routerLink="/transactiontables/tblFeature" routerLinkActive="active" (click)="isSidebarCollapsed = true">
+                <i class="bi bi-pie-chart"></i> <span>{{ 'MENU.FEATURE' | translate }}</span>
+            </a>
+
+            
+
             <div *ngIf="isVendor" class="vendor-push-card">
                 <p class="vendor-push-title" *ngIf="vendorPush.saved()" role="status">
                     <i class="bi bi-bell-fill" aria-hidden="true"></i>

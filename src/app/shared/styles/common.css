@@ -7527,3 +7527,94 @@ select.column-filter-input {
 .fk-picker-group { display: flex; gap: 8px; align-items: stretch; }
 .fk-picker-group .form-control { flex: 1; min-width: 0; }
 .fk-picker-scroll { max-height: 50vh; overflow: auto; margin-top: 12px; }
+
+/* ---- TblFeature: FK grid picker (Submitted By), long-text cells, Closed status ---- */
+.fk-picker-input {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.fk-picker-input .form-control {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.fk-picker-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(17, 47, 62, .65);
+}
+
+.fk-picker-modal {
+  width: 100%;
+  max-width: 760px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 2px solid var(--gb-primary);
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, .18);
+}
+
+.fk-picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.fk-picker-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gb-ink);
+}
+
+.fk-picker-close {
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  color: var(--gb-ink);
+  cursor: pointer;
+}
+
+.fk-picker-search {
+  margin-bottom: 12px;
+}
+
+.fk-picker-body {
+  overflow-y: auto;
+  border: 1px solid var(--gb-border);
+  border-radius: 8px;
+}
+
+.fk-picker-body .data-table tbody tr {
+  cursor: pointer;
+}
+
+.fk-picker-body .data-table tbody tr.selected,
+.fk-picker-body .data-table tbody tr.selected:hover {
+  background: #e1f5e9;
+}
+
+.cell-truncate {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-closed {
+  background: #e8f0ea;
+  color: #62766e;
+}

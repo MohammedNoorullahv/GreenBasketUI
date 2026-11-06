@@ -449,4 +449,10 @@ export class Navbar {
 
   }
 
+  trackBottomNavItem(
+    index: number,
+    item: BottomNavItem
+  ): string {
+    return item.link;
+  }
 }

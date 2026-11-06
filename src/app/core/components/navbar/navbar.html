@@ -283,7 +283,7 @@
     ============================================== -->
     <nav class="mobile-bottom-nav" *ngIf="hasSession" aria-label="Primary quick navigation">
 
-        <a *ngFor="let item of bottomNavItems" class="bottom-nav-item" [routerLink]="item.link"
+        <a *ngFor="let item of bottomNavItems; trackBy: trackBottomNavItem" class="bottom-nav-item" [routerLink]="item.link"
             routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: item.exact }"
             (click)="isSidebarCollapsed = true">
 

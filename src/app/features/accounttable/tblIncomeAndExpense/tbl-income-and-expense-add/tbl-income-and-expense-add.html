@@ -1,0 +1,257 @@
+<!-- Path: src/app/features/accounttable/tblincomeandexpense/tbl-income-and-expense-add/tbl-income-and-expense-add.html -->
+<div class="container grid-page-shell">
+    <div class="page-header-bar-simple">
+        <h1 class="page-caption">Add Income and Expense</h1>
+    </div>
+    @if (isLoadingChoices) { <p role="status">Loading selection data...</p> }
+    @if (choiceError) { <div class="alert alert-danger" role="alert">{{ choiceError }} <button type="button"
+            (click)="loadChoices()">Retry</button></div> }
+    <form #form="ngForm" novalidate>
+        <fieldset class="page-card border-0" [disabled]="isSaving || isLoadingChoices || !!choiceError">
+            <div class="d-flex flex-row form-row">
+                <div class="col-3 field-group"><label class="form-label" for="fldTransactionDate">Transaction Date <span
+                            class="required">*</span></label>
+                    <input type="text" id="fldTransactionDate" name="fldTransactionDate" class="form-control"
+                        [ngModel]="dateText.fldTransactionDate" (ngModelChange)="setDate('fldTransactionDate', $event)"
+                        placeholder="dd-MMM-yyyy" maxlength="11" required #firstInput>
+                    @if (dateErrors.fldTransactionDate) { <div class="text-danger">{{ dateErrors.fldTransactionDate }}
+                    </div> }
+                    @if (form.controls['fldTransactionDate']?.touched && form.controls['fldTransactionDate']?.invalid) {
+                    <div class="text-danger">Transaction Date is required and must be valid.</div> }
+                </div>
+                <div class="col-3 field-group"><label class="form-label" for="fldTransactionType">Transaction Type <span
+                            class="required">*</span></label>
+                    <select id="fldTransactionType" name="fldTransactionType" class="form-control"
+                        [(ngModel)]="model.fldTransactionType" required (ngModelChange)="recalculate()">
+                        <option value="Income">Income</option>
+                        <option value="Expense">Expense</option>
+                    </select>
+                    @if (form.controls['fldTransactionType']?.touched && form.controls['fldTransactionType']?.invalid) {
+                    <div class="text-danger">Transaction Type is required and must be valid.</div> }
+                </div>
+            </div>
+            <div class="d-flex flex-row form-row">
+                <div class="col-3 field-group"><label class="form-label" for="profileName">Profile <span
+                            class="required">*</span></label>
+                    <div class="fk-picker-group"><input id="profileName" name="profileName" class="form-control"
+                            [ngModel]="profileName" readonly required>
+                        <button type="button" class="btn-app btn-outline" (click)="profilePickerOpen = true">Select
+                            Profile</button>
+                    </div>
+                    <input type="hidden" name="fldFKProfileId" [(ngModel)]="model.fldFKProfileId">
+                    @if (form.controls['profileName']?.touched && !model.fldFKProfileId) { <div class="text-danger">
+                        Profile is required.</div> }
+                </div>
+                <div class="col-3 field-group"><label class="form-label" for="fldDescription">Description <span
+                            class="required">*</span></label>
+                    <textarea id="fldDescription" name="fldDescription" class="form-control"
+                        [(ngModel)]="model.fldDescription" maxlength="500" required rows="2"></textarea>
+                    @if (form.controls['fldDescription']?.touched && form.controls['fldDescription']?.invalid) { <div
+                        class="text-danger">Description is required and must be valid.</div> }
+                </div>
+            </div>
+            <div class="d-flex flex-row form-row">
+                <div class="col-3 field-group"><label class="form-label" for="fldCurrencyCode">Currency <span
+                            class="required">*</span></label>
+                    <input type="text" id="fldCurrencyCode" name="fldCurrencyCode" class="form-control"
+                        [(ngModel)]="model.fldCurrencyCode" maxlength="3" required>
+                    @if (form.controls['fldCurrencyCode']?.touched && form.controls['fldCurrencyCode']?.invalid) { <div
+                        class="text-danger">Currency is required and must be valid.</div> }
+                </div>
+
+                <div class="col-3 field-group"><label class="form-label" for="fldFKPaymentStatusId">Payment Status <span
+                            class="required">*</span></label>
+                    <select id="fldFKPaymentStatusId" name="fldFKPaymentStatusId" class="form-control"
+                        [(ngModel)]="model.fldFKPaymentStatus" required>
+                        <option [ngValue]="0">-- Select --</option>
+                        @for (p of paymentStatuses; track p.fldId) { <option [ngValue]="p.fldId">{{ p.fldDescription }}
+                        </option> }
+                        @if (model.fldFKPaymentStatus && !hasPaymentStatus()) { <option
+                            [ngValue]="model.fldFKPaymentStatus">{{ paymentStatusName }}</option> }
+                    </select>
+                    @if (form.controls['fldFKPaymentStatusId']?.touched &&
+                    form.controls['fldFKPaymentStatusId']?.invalid) { <div class="text-danger">Payment Status is
+                        required and must be valid.</div> }
+                </div>
+
+                <div class="col-3 field-group"><label class="form-label" for="fldFKTransactionCategoryId">Transaction Category<span
+                            class="required">*</span></label>
+                    <select id="fldFKTransactionCategoryId" name="fldFKTransactionCategoryId" class="form-control"
+                        [(ngModel)]="model.fldFKTransactionCategory" required>
+                        <option [ngValue]="0">-- Select --</option>
+                        @for (p of transactionCategories; track p.fldId) { <option [ngValue]="p.fldId">{{ p.fldDescription }}
+                        </option> }
+                        @if (model.fldFKTransactionCategory && !hasTransactionCategory()) { <option
+                            [ngValue]="model.fldFKTransactionCategory">{{ transactionCategoryName }}</option> }
+                    </select>
+                    @if (form.controls['fldFKTransactionCategoryId']?.touched &&
+                    form.controls['fldFKTransactionCategoryId']?.invalid) { <div class="text-danger">Payment Status is
+                        required and must be valid.</div> }
+                </div>
+
+            </div>
+            <div class="d-flex flex-row form-row">
+                <div class="col-3 field-group"><label class="form-label" for="fldBillAmount">Bill Amount <span
+                            class="required">*</span></label>
+                    <input type="number" id="fldBillAmount" name="fldBillAmount" class="form-control"
+                        [(ngModel)]="model.fldBillAmount" min="0.01" step="0.01" required
+                        (ngModelChange)="recalculate()">
+                    @if (form.controls['fldBillAmount']?.touched && form.controls['fldBillAmount']?.invalid) { <div
+                        class="text-danger">Bill Amount is required and must be valid.</div> }
+                </div>
+                <div class="col-3 field-group"><label class="form-label" for="fldPaidorReceivedAmount">Paid / Received
+                        Amount <span class="required">*</span></label>
+                    <input type="number" id="fldPaidorReceivedAmount" name="fldPaidorReceivedAmount"
+                        class="form-control" [(ngModel)]="model.fldPaidorReceivedAmount" min="0" step="0.01" required>
+                    @if (form.controls['fldPaidorReceivedAmount']?.touched &&
+                    form.controls['fldPaidorReceivedAmount']?.invalid) { <div class="text-danger">Paid / Received Amount
+                        is required and must be valid.</div> }
+                </div>
+            </div>
+            <div class="d-flex flex-row form-row">
+                <div class="col-3 field-group"><label class="form-label" for="fldBalance2PayorReceive">Balance to Pay /
+                        Receive <span class="required">*</span></label>
+                    <input type="number" id="fldBalance2PayorReceive" name="fldBalance2PayorReceive"
+                        class="form-control" [(ngModel)]="model.fldBalance2PayorReceive" min="0" step="0.01" required>
+                    @if (form.controls['fldBalance2PayorReceive']?.touched &&
+                    form.controls['fldBalance2PayorReceive']?.invalid) { <div class="text-danger">Balance to Pay /
+                        Receive is required and must be valid.</div> }
+                </div>
+                <div class="col-3 field-group"><label class="form-label" for="fldIncome">Income</label>
+                    <input type="number" id="fldIncome" name="fldIncome" class="form-control"
+                        [(ngModel)]="model.fldIncome" min="0">
+                </div>
+            </div>
+            <div class="d-flex flex-row form-row">
+                <div class="col-3 field-group"><label class="form-label" for="fldExpenses">Expenses</label>
+                    <input type="number" id="fldExpenses" name="fldExpenses" class="form-control"
+                        [(ngModel)]="model.fldExpenses" min="0">
+                </div>
+                <div class="col-3 field-group"><label class="form-label" for="fldBalanceAmount">Balance Amount <span
+                            class="required">*</span></label>
+                    <input type="number" id="fldBalanceAmount" name="fldBalanceAmount" class="form-control"
+                        [(ngModel)]="model.fldBalanceAmount" min="0" step="0.01" required>
+                    @if (form.controls['fldBalanceAmount']?.touched && form.controls['fldBalanceAmount']?.invalid) {
+                    <div class="text-danger">Balance Amount is required and must be valid.</div> }
+                </div>
+            </div>
+            <div class="d-flex flex-row form-row">
+                <div class="col-3 field-group"><label class="form-label" for="fldPaymentDate">Payment / Receipt
+                        Date</label>
+                    <input type="text" id="fldPaymentDate" name="fldPaymentDate" class="form-control"
+                        [ngModel]="dateText.fldPaymentDate" (ngModelChange)="setDate('fldPaymentDate', $event)"
+                        placeholder="dd-MMM-yyyy" maxlength="11">
+                    @if (dateErrors.fldPaymentDate) { <div class="text-danger">{{ dateErrors.fldPaymentDate }}</div> }
+                </div>
+                <div class="col-3 field-group"><label class="form-label" for="fldPaymentMode">Payment Mode</label>
+                    <input type="text" id="fldPaymentMode" name="fldPaymentMode" class="form-control"
+                        [(ngModel)]="model.fldPaymentMode" maxlength="30">
+                </div>
+            </div>
+            <div class="d-flex flex-row form-row">
+                <div class="col-3 field-group"><label class="form-label" for="fldPaymentReference">Payment
+                        Reference</label>
+                    <input type="text" id="fldPaymentReference" name="fldPaymentReference" class="form-control"
+                        [(ngModel)]="model.fldPaymentReference" maxlength="100">
+                </div>
+                <div class="col-3 field-group"><label class="form-label" for="fldPartyName">Party Name</label>
+                    <input type="text" id="fldPartyName" name="fldPartyName" class="form-control"
+                        [(ngModel)]="model.fldPartyName" maxlength="200">
+                </div>
+            </div>
+            <div class="d-flex flex-row form-row">
+                <div class="col-3 field-group"><label class="form-label" for="fldFKOrderId">Related Order ID</label>
+                    <input type="number" id="fldFKOrderId" name="fldFKOrderId" class="form-control"
+                        [(ngModel)]="model.fldFKOrderId" min="1" max="2147483647" step="1"><small
+                        class="text-muted">Optional reference; entered manually.</small>
+                </div>
+                <div class="col-3 field-group"><label class="form-label" for="fldInvoiceNumber">Invoice / Bill / Receipt
+                        No.</label>
+                    <input type="text" id="fldInvoiceNumber" name="fldInvoiceNumber" class="form-control"
+                        [(ngModel)]="model.fldInvoiceNumber" maxlength="100">
+                </div>
+            </div>
+            <div class="d-flex flex-row form-row">
+                <div class="col-3 field-group"><label class="form-label" for="fldDocumentPath">Document Path /
+                        URL</label>
+                    <input type="text" id="fldDocumentPath" name="fldDocumentPath" class="form-control"
+                        [(ngModel)]="model.fldDocumentPath" maxlength="1000">
+                </div>
+                <div class="col-3 field-group"><label class="form-label" for="fldServicePeriodFrom">Service Period
+                        From</label>
+                    <input type="text" id="fldServicePeriodFrom" name="fldServicePeriodFrom" class="form-control"
+                        [ngModel]="dateText.fldServicePeriodFrom"
+                        (ngModelChange)="setDate('fldServicePeriodFrom', $event)" placeholder="dd-MMM-yyyy"
+                        maxlength="11">
+                    @if (dateErrors.fldServicePeriodFrom) { <div class="text-danger">{{ dateErrors.fldServicePeriodFrom
+                        }}</div> }
+                </div>
+            </div>
+            <div class="d-flex flex-row form-row">
+                <div class="col-3 field-group"><label class="form-label" for="fldServicePeriodTo">Service Period
+                        To</label>
+                    <input type="text" id="fldServicePeriodTo" name="fldServicePeriodTo" class="form-control"
+                        [ngModel]="dateText.fldServicePeriodTo" (ngModelChange)="setDate('fldServicePeriodTo', $event)"
+                        placeholder="dd-MMM-yyyy" maxlength="11">
+                    @if (dateErrors.fldServicePeriodTo) { <div class="text-danger">{{ dateErrors.fldServicePeriodTo }}
+                    </div> }
+                </div>
+                <div class="col-3 field-group"><label class="form-label" for="fldRemarks">Remarks</label>
+                    <textarea id="fldRemarks" name="fldRemarks" class="form-control" [(ngModel)]="model.fldRemarks"
+                        maxlength="1000" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="d-flex flex-row form-row">
+                <div class="col-3 field-group"><label class="form-label" for="fldFKTransactionId">Related Transaction
+                        ID</label>
+                    <input type="number" id="fldFKTransactionId" name="fldFKTransactionId" class="form-control"
+                        [(ngModel)]="model.fldFKTransactionId" min="1" max="2147483647" step="1"><small
+                        class="text-muted">Optional reference; entered manually.</small>
+                </div>
+            </div>
+        </fieldset>
+        <div class="page-actions-bar">
+            <button type="button" class="btn-app btn-save" (click)="OnFormSubmit(form, 'SaveAndAddNew')"
+                [disabled]="isSaving || isLoadingChoices || !!choiceError">Save &amp; Add New</button>
+            <button type="button" class="btn-app btn-new" (click)="OnFormSubmit(form, 'SaveAndClose')"
+                [disabled]="isSaving || isLoadingChoices || !!choiceError">Save &amp; Close</button>
+            <button type="button" class="btn-app btn-back" (click)="backToHome()">Back</button>
+        </div>
+    </form>
+    @if (profilePickerOpen) {
+    <div class="fk-picker-overlay">
+        <section class="fk-picker-modal" role="dialog" aria-modal="true" aria-labelledby="profilePickerTitle"
+            (keydown.escape)="profilePickerOpen = false">
+            <div class="fk-picker-header">
+                <h2 id="profilePickerTitle" class="fk-picker-title">Select Profile</h2>
+                <button type="button" class="fk-picker-close" aria-label="Close profile selection"
+                    (click)="profilePickerOpen = false">×</button>
+            </div>
+            <input type="search" class="form-control fk-picker-search" aria-label="Find profile"
+                [(ngModel)]="profileSearch" placeholder="Search name, contact or user type">
+            <div class="fk-picker-body">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Contact</th>
+                            <th>User Type</th>
+                            <th>Select</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (p of filteredProfiles; track p.fldId) { <tr
+                            [class.selected]="p.fldId === model.fldFKProfileId">
+                            <td>{{ p.fldFullName }}</td>
+                            <td>{{ p.fldContactNumber }}</td>
+                            <td>{{ p.fldUserType }}</td>
+                            <td><button type="button" class="btn-app btn-outline"
+                                    (click)="selectProfile(p)">Select</button></td>
+                        </tr> }
+                    </tbody>
+                </table>@if (!filteredProfiles.length) { <p class="grid-footnote">No records found.</p> }
+            </div>
+        </section>
+    </div>
+    }
+</div>

@@ -40,6 +40,9 @@ import { TblFeedbackUpdateComponent } from './features/mastertables/tblFeedback/
 import { TblFeatureListComponent } from './features/transactiontable/tblFeature/tbl-feature-list/tbl-feature-list';
 import { TblFeatureAddComponent } from './features/transactiontable/tblFeature/tbl-feature-add/tbl-feature-add';
 import { TblFeatureUpdateComponent } from './features/transactiontable/tblFeature/tbl-feature-update/tbl-feature-update';
+import { TblIncomeAndExpenseListComponent } from './features/accounttable/tblIncomeAndExpense/tbl-income-and-expense-list/tbl-income-and-expense-list';
+import { TblIncomeAndExpenseAddComponent } from './features/accounttable/tblIncomeAndExpense/tbl-income-and-expense-add/tbl-income-and-expense-add';
+import { TblIncomeAndExpenseUpdateComponent } from './features/accounttable/tblIncomeAndExpense/tbl-income-and-expense-update/tbl-income-and-expense-update';
 
 // import { TblCityorTownMasterListComponent }
 //   from './features/mastertables/tblCityorTownMaster/tbl-cityor-town-master-list/tbl-cityor-town-master-list';
@@ -204,6 +207,13 @@ export const routes: Routes = [
         path: 'transactiontables/tblFeature/edit/:id',
         component: TblFeatureUpdateComponent,
       },
+      { path: 'accounttable/tblincomeandexpense', component: TblIncomeAndExpenseListComponent },
+      // AUTH-STAGE-2: canActivate: [menuGuard]
+      { path: 'accounttable/tblincomeandexpense/add', component: TblIncomeAndExpenseAddComponent },
+      // AUTH-STAGE-2: canActivate: [menuGuard]
+      { path: 'accounttable/tblincomeandexpense/edit/:id', component: TblIncomeAndExpenseUpdateComponent },
+      // AUTH-STAGE-2: canActivate: [menuGuard]
+
 
 
 

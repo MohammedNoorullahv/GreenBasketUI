@@ -1,0 +1,46 @@
+<!-- Path: src/app/features/accounttable/tblincomeandexpense/tbl-income-and-expense-list/tbl-income-and-expense-list.html -->
+<div class="container grid-page-shell">
+<div class="page-header-bar"><h1 class="page-caption">Income and Expenses</h1>
+<div class="page-header-center">
+<button type="button" class="btn-app btn-toggle" [disabled]="actionType === 'Load All'" (click)="OnFormSubmit('Load All')">All Records</button>
+<button type="button" class="btn-app btn-toggle" [disabled]="actionType === 'Active Only'" (click)="OnFormSubmit('Active Only')">Active Records</button>
+</div><div class="page-header-right"><a routerLink="/accounttable/tblincomeandexpense/add" class="btn-app btn-new"><i class="bi bi-plus-lg"></i>New Record</a></div></div>
+@if (errorMessage) { <div class="alert alert-danger" role="alert">{{ errorMessage }} <button type="button" (click)="OnFormSubmit(actionType)">Retry</button></div> }
+<div class="page-card">
+@if (tbl$ | async; as items) {
+<div class="page-header-bar-secondary"><div class="page-header-left"><button type="button" class="btn-app btn-outline" disabled title="Reserved for a future filter">Filter</button><button type="button" class="btn-app btn-outline" disabled title="Reserved for a future export">Export CSV</button></div>
+<div class="page-header-right"><span class="pagination-info">Showing {{ items.length }} of {{ items.length }} Records</span><button type="button" class="pager-btn" disabled aria-label="Previous page"><i class="bi bi-chevron-left"></i></button><button type="button" class="pager-btn" disabled aria-label="Next page"><i class="bi bi-chevron-right"></i></button></div></div>
+<table class="data-table"><thead><tr>
+<th>Transaction Date</th><th>Profile</th><th>Type</th><th>Description</th><th>Currency</th><th>Payment Status</th><th>Bill Amount</th><th>Paid / Received Amount</th><th>Balance to Pay / Receive</th><th>Income</th><th>Expenses</th><th>Balance Amount</th><th>Payment / Receipt Date</th><th>Payment Mode</th><th>Payment Reference</th><th>Party Name</th><th>Related Order ID</th><th>Invoice / Bill / Receipt No.</th><th>Document Path / URL</th><th>Service Period From</th><th>Service Period To</th><th>Remarks</th><th>Related Transaction ID</th><th>Actions</th></tr></thead><tbody>
+@for (r of items; track r.fldId) { <tr>
+<td>{{ r.fldTransactionDate | date:'dd-MMM-yyyy':'UTC' }}</td>
+<td>{{ r.tblProfileId?.fldFullName }}</td>
+<td>{{ r.fldTransactionType }}</td>
+<td>{{ r.fldDescription }}</td>
+<td>{{ r.fldCurrencyCode }}</td>
+<td>{{ r.tblPropertyPaymentStatusId?.fldDescription }}</td>
+<td>{{ r.fldBillAmount | number:'1.2-2' }}</td>
+<td>{{ r.fldPaidorReceivedAmount | number:'1.2-2' }}</td>
+<td>{{ r.fldBalance2PayorReceive | number:'1.2-2' }}</td>
+<td>{{ r.fldIncome | number:'1.2-2' }}</td>
+<td>{{ r.fldExpenses | number:'1.2-2' }}</td>
+<td>{{ r.fldBalanceAmount | number:'1.2-2' }}</td>
+<td>{{ r.fldPaymentDate | date:'dd-MMM-yyyy':'UTC' }}</td>
+<td>{{ r.fldPaymentMode }}</td>
+<td>{{ r.fldPaymentReference }}</td>
+<td>{{ r.fldPartyName }}</td>
+<td>{{ r.fldFKOrderId }}</td>
+<td>{{ r.fldInvoiceNumber }}</td>
+<td>{{ r.fldDocumentPath }}</td>
+<td>{{ r.fldServicePeriodFrom | date:'dd-MMM-yyyy':'UTC' }}</td>
+<td>{{ r.fldServicePeriodTo | date:'dd-MMM-yyyy':'UTC' }}</td>
+<td>{{ r.fldRemarks }}</td>
+<td>{{ r.fldFKTransactionId }}</td>
+<td><div class="row-actions">
+<a class="icon-btn edit" title="Edit" [routerLink]="['/accounttable/tblincomeandexpense/edit', r.fldId]" [queryParams]="{ action: 'Edit' }"><i class="bi bi-pencil-square"></i></a>
+<a class="icon-btn del delete" title="Delete" [routerLink]="['/accounttable/tblincomeandexpense/edit', r.fldId]" [queryParams]="{ action: 'Delete' }"><i class="bi bi-trash"></i></a>
+</div></td></tr> }
+</tbody></table>
+@if (items.length === 0) { <p class="grid-footnote">No records found.</p> }
+} @else { <p role="status">Loading records...</p> }
+</div></div>

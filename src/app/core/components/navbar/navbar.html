@@ -196,6 +196,11 @@
                 <i class="bi bi-pie-chart"></i> <span>{{ 'MENU.FEATURE' | translate }}</span>
             </a>
 
+            <a *ngIf="isAdmin" class="menu-item" routerLink="/accounttable/tblincomeandexpense" routerLinkActive="active" (click)="isSidebarCollapsed = true">
+                <i class="bi bi-chat-square-text"></i>
+                <span> {{ 'MENU.INCOMEANDEXPENSES' | translate}} </span>
+            </a>
+
             <a *ngIf="isAdmin" class="menu-item" routerLink="/transactiontables/tblFeature" routerLinkActive="active" (click)="isSidebarCollapsed = true">
                 <i class="bi bi-pie-chart"></i> <span>{{ 'MENU.FEATURE' | translate }}</span>
             </a>

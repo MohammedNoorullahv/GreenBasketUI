@@ -31,6 +31,9 @@
 
     <form #form="ngForm" novalidate>
 
+        <!-- Invisible reCAPTCHA container required by Firebase Phone Auth -->
+        <div id="registrationRecaptchaContainer" aria-hidden="true"></div>
+
         <div class="page-card profile-page-card">
 
             <div class="profile-form">
@@ -79,7 +82,36 @@
 
 
                 <!-- =================================================
-                     CONTACT NUMBER
+                     FULL NAME
+                     ================================================= -->
+                <div class="profile-field">
+
+                    <label class="form-label" for="fldFullName">
+
+                        Full Name
+                        <span class="required">*</span>
+
+                    </label>
+
+                    <input type="text" id="fldFullName" class="form-control" name="fldFullName"
+                        [(ngModel)]="model.fldFullName" maxlength="150" placeholder="Enter full name" required />
+                    <p class="registration-field-error" *ngIf="fieldError('fldFullName')">{{ fieldError('fldFullName')
+                        }}</p>
+
+                    <div class="text-danger profile-validation" *ngIf="
+                            form.controls['fldFullName']?.touched &&
+                            form.controls['fldFullName']?.invalid
+                        ">
+
+                        Full Name is required.
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     CONTACT NUMBER  (+ Firebase OTP verification)
                      ================================================= -->
                 <div class="profile-field">
 
@@ -98,27 +130,143 @@
 
                         <input type="tel" id="fldContactNumber" class="form-control" name="fldContactNumber"
                             [(ngModel)]="model.fldContactNumber" inputmode="numeric" pattern="[6-9][0-9]{9}"
-                            maxlength="10" placeholder="Enter phone number" required />
-                        <p class="registration-field-error" *ngIf="fieldError('fldContactNumber')">{{
-                            fieldError('fldContactNumber') }}</p>
+                            maxlength="10" placeholder="Enter phone number" required
+                            [disabled]="isRegistration && mobileVerified" [attr.aria-readonly]="isRegistration && mobileVerified" />
+
+                        <span *ngIf="isRegistration && mobileVerified"
+                            class="profile-verified-badge" role="status">
+                            <i class="bi bi-shield-check" aria-hidden="true"></i>
+                            Verified
+                        </span>
 
                     </div>
 
+                    <p class="registration-field-error" *ngIf="fieldError('fldContactNumber')">{{
+                        fieldError('fldContactNumber') }}</p>
+
                     <div class="text-danger profile-validation" *ngIf="
                             form.controls['fldContactNumber']?.touched &&
-                            form.controls['fldContactNumber']?.invalid
+                            form.controls['fldContactNumber']?.invalid &&
+                            !mobileVerified
                         ">
 
                         Phone Number is required.
 
                     </div>
 
+
+                    <!-- Firebase OTP verification stage (public registration) -->
+                    <div *ngIf="isRegistration" class="registration-otp" id="registrationOtpButton">
+
+                        <!-- Stage 1: number not yet sent / not verified -->
+                        <ng-container *ngIf="!mobileVerified">
+
+                            <!-- Step 1: request the OTP -->
+                            <ng-container *ngIf="!otpSent">
+
+                                <button type="button" class="btn-app btn-outline registration-otp-send"
+                                    [disabled]="isSendingOtp || isVerifyingOtp" (click)="sendRegistrationOtp()">
+
+                                    <i class="bi bi-shield-lock" aria-hidden="true"></i>
+
+                                    {{ isSendingOtp ? 'Sending OTP…' : 'Send OTP' }}
+
+                                </button>
+
+                                <p class="registration-otp-hint">
+                                    An OTP will be sent to this number to verify it before registration.
+                                </p>
+
+                            </ng-container>
+
+                            <!-- Step 2: OTP entry, verification and resend -->
+                            <ng-container *ngIf="otpSent">
+
+                                <label class="form-label" for="registrationOtp">Enter 6-digit OTP</label>
+
+                                <input type="text" id="registrationOtp" name="registrationOtp"
+                                    class="form-control registration-otp-input" inputmode="numeric"
+                                    autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}"
+                                    placeholder="••••••" [(ngModel)]="otp"
+                                    (ngModelChange)="onRegistrationOtpChange($event)"
+                                    [disabled]="isSendingOtp || isVerifyingOtp" required />
+
+                                <div class="registration-otp-resend-row">
+
+                                    <span *ngIf="resendCooldown > 0 || isSendingOtp"
+                                        class="registration-otp-countdown"
+                                        [class.resend-active]="isSendingOtp">
+                                        {{ isSendingOtp ? 'Resending OTP…' : 'Resend OTP in ' + resendCooldown + 's' }}
+                                    </span>
+
+                                    <button *ngIf="!(resendCooldown > 0 || isSendingOtp)" type="button"
+                                        class="profile-text-button" [disabled]="isVerifyingOtp"
+                                        (click)="resendRegistrationOtp()">
+                                        Resend OTP
+                                    </button>
+
+                                </div>
+
+                                <div class="registration-otp-actions">
+
+                                    <button type="button" class="btn-app btn-register"
+                                        [disabled]="isVerifyingOtp || isSendingOtp || otp.length !== 6"
+                                        (click)="verifyRegistrationOtp()">
+
+                                        <i class="bi bi-patch-check" aria-hidden="true"></i>
+
+                                        {{ isVerifyingOtp ? 'Verifying…' : 'Verify OTP' }}
+
+                                    </button>
+
+                                    <button type="button" class="btn-app btn-outline"
+                                        [disabled]="isVerifyingOtp || isSendingOtp"
+                                        (click)="changeRegistrationMobile()">
+                                        Change Number
+                                    </button>
+
+                                </div>
+
+                                <p class="registration-otp-hint">
+                                    Verify the OTP to unlock the remaining registration fields.
+                                </p>
+
+                            </ng-container>
+
+                        </ng-container>
+
+                        <!-- Stage 2: verified — fields unlocked, number locked -->
+                        <p *ngIf="mobileVerified" class="registration-otp-hint registration-otp-verified">
+                            <i class="bi bi-check-circle" aria-hidden="true"></i>
+                            Mobile number verified. The remaining registration fields are unlocked and this number
+                            cannot be changed.
+                        </p>
+
+                        <!-- OTP status messages -->
+                        <p *ngIf="otpMessage"
+                            class="registration-otp-message" role="status" aria-live="polite">
+                            {{ otpMessage }}
+                        </p>
+
+                        <p *ngIf="otpError"
+                            class="registration-otp-error" role="alert" aria-live="assertive">
+                            {{ otpError }}
+                        </p>
+
+                    </div>
+
                 </div>
 
 
-                <!-- =================================================
-                     ALTERNATE CONTACT NUMBER
-                     ================================================= -->
+                        <!-- =================================================
+                             FIELDS UNLOCKED AFTER MOBILE VERIFICATION
+                             (public registration OTP gate)
+                             ================================================= -->
+                        <ng-container *ngIf="mobileVerified">
+
+                        <!-- =================================================
+                             ALTERNATE CONTACT NUMBER
+                             ================================================= -->
                 <div class="profile-field">
 
                     <label class="form-label" for="fldAlternateContactNumber">
@@ -170,69 +318,8 @@
 
 
                 <!-- =================================================
-                     PASSWORD
+                      PASSWORD (MPIN REMOVED: Firebase OTP replaces it)
                      ================================================= -->
-                <div class="profile-field">
-
-                    <label class="form-label" for="fldPasswordHash">
-                        MPIN <span class="required">*</span>
-                    </label>
-
-                    <div class="profile-password-wrapper">
-
-                        <!-- <input [type]="showPassword ? 'text' : 'password'" id="fldPasswordHash" class="form-control"
-                            name="fldPasswordHash" [(ngModel)]="model.fldPasswordHash" placeholder="Enter password"
-                            required /> -->
-
-                        <input [type]="showPassword ? 'text' : 'password'" id="fldPasswordHash" class="form-control"
-                            name="fldPasswordHash" [(ngModel)]="model.fldPasswordHash"
-                            (ngModelChange)="onMPINChange($event)" inputmode="numeric" minlength="6" maxlength="6"
-                            pattern="[0-9]{6}" placeholder="Enter 6-digit MPIN" #mpinField="ngModel" required />
-                        <p class="registration-field-error" *ngIf="fieldError('fldPasswordHash')">{{
-                            fieldError('fldPasswordHash') }}</p>
-
-                        <div *ngIf="mpinField.invalid && (mpinField.touched || mpinField.dirty)" class="text-danger">
-                            MPIN must contain exactly 6 digits.
-                        </div>
-
-                        <button type="button" class="profile-password-eye" (click)="showPassword = !showPassword">
-
-                            <i *ngIf="!showPassword" class="bi bi-eye"></i>
-                            <i *ngIf="showPassword" class="bi bi-eye-slash"></i>
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-                <!-- =================================================
-                     FULL NAME
-                     ================================================= -->
-                <div class="profile-field">
-
-                    <label class="form-label" for="fldFullName">
-
-                        Full Name
-                        <span class="required">*</span>
-
-                    </label>
-
-                    <input type="text" id="fldFullName" class="form-control" name="fldFullName"
-                        [(ngModel)]="model.fldFullName" maxlength="150" placeholder="Enter full name" required />
-                    <p class="registration-field-error" *ngIf="fieldError('fldFullName')">{{ fieldError('fldFullName')
-                        }}</p>
-
-                    <div class="text-danger profile-validation" *ngIf="
-                            form.controls['fldFullName']?.touched &&
-                            form.controls['fldFullName']?.invalid
-                        ">
-
-                        Full Name is required.
-
-                    </div>
-
-                </div>
 
 
                 <!-- =================================================
@@ -832,6 +919,9 @@
                     </label>
 
                 </div>
+
+                </ng-container>
+                <!-- /otp gate: fields unlocked after mobile verification -->
 
 
             </div>

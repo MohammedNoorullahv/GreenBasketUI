@@ -29,6 +29,7 @@ import { TblVendorEnquiryService } from '../../tblVendorEnquiry/services/tbl-ven
 import { TblCityorTownMaster } from '../../tblCityorTownMaster/models/tblCityorTownMaster.model';
 import { TblCityorTownMasterService } from '../../tblCityorTownMaster/services/tbl-cityor-town-master';
 import { TblStreetMasterAdd } from '../../tblStreetMaster/models/tblStreetMaster-Add.model';
+import { FirebaseOtpAuthService } from '../../../../core/services/firebase-otp-auth.service';
 
 @Component({
   selector: 'app-tbl-profile-add',
@@ -51,6 +52,22 @@ import { TblStreetMasterAdd } from '../../tblStreetMaster/models/tblStreetMaster
     .registration-location { border: 1px solid #b9d5c5; border-radius: 8px; padding: 12px; }
     .registration-location button { min-height: 44px; }
     .registration-location p { overflow-wrap: anywhere; }
+
+    /* ---- Firebase OTP verification (public registration) ---- */
+    .registration-otp { border: 1px solid #b9d5c5; border-radius: 10px; padding: 12px; margin-top: 10px; background: #f8fbf9; }
+    .registration-otp-send { min-height: 44px; }
+    .registration-otp-hint { margin: 8px 0 0; color: #5b6b7a; font-size: 13px; }
+    .registration-otp-verified { color: #0b7a45; font-weight: 600; }
+    .registration-otp-verified .bi { margin-right: .35rem; }
+    .registration-otp-input { letter-spacing: 6px; text-align: center; font-size: 20px; font-weight: 700; max-width: 240px; }
+    .registration-otp-resend-row { margin-top: 8px; min-height: 24px; display: flex; align-items: center; gap: 8px; }
+    .registration-otp-countdown { color: #5b6b7a; font-size: 13px; font-weight: 600; }
+    .registration-otp-countdown.resend-active { opacity: .65; }
+    .registration-otp-actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .registration-otp-message { margin: 10px 0 0; color: #0b7a45; font-size: 13.5px; font-weight: 600; }
+    .registration-otp-error { margin: 10px 0 0; color: #b42318; font-size: 13.5px; font-weight: 600; }
+    .profile-verified-badge { display: inline-flex; align-items: center; gap: .3rem; padding: 4px 10px; border-radius: 999px; background: #e7f4ec; color: #0b7a45; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+    .profile-phone-group input[disabled] { background: #f0f7f3; color: #4b6156; }
     :host .profile-map-modal { max-height: calc(100dvh - 24px); overflow: auto; max-width: calc(100vw - 24px); }
     @media (max-width: 760px) {
       :host(.public-registration) .profile-form { grid-template-columns: minmax(0, 1fr); }
@@ -163,7 +180,7 @@ export class TblProfileAddComponent implements OnDestroy {
     };
     const labels: Record<string, string> = {
       fldUserType: 'User type', fldContactNumber: 'Phone number',
-      fldPasswordHash: 'MPIN', fldFullName: 'Full name', fldDoorNo: 'Door number',
+      fldFullName: 'Full name', fldDoorNo: 'Door number',
       fldEmailId: 'Email address', fldFKStreetId: 'Street', selectedCityorTownId: 'City / Town',
       newStreetName: 'New street name', fldvVendorName: 'Vendor / shop name',
       fldIsTermsAgreed: 'Terms & Conditions'
@@ -171,12 +188,18 @@ export class TblProfileAddComponent implements OnDestroy {
     for (const [name, control] of Object.entries(form.controls)) {
       if (control.invalid) {
         const label = labels[name] || name.replace(/^fldv?/, '').replace(/([a-z])([A-Z])/g, '$1 $2');
-        const message = name === 'fldPasswordHash' ? 'MPIN must contain exactly six digits.'
-          : control.errors?.['required'] ? `${label} is required.`
-            : control.errors?.['email'] ? 'Enter a valid email address.'
-              : `${label}: check the entered value and permitted range.`;
+        const message = control.errors?.['required'] ? `${label} is required.`
+          : control.errors?.['email'] ? 'Enter a valid email address.'
+            : `${label}: check the entered value and permitted range.`;
         add(name, message);
       }
+    }
+    if (!this.mobileVerified) {
+      add('fldContactNumber',
+        'Verify your mobile number with the OTP before registering.');
+      this.cdr.detectChanges();
+      this.focusField('registrationOtpButton');
+      return false;
     }
     if (!/^[6-9][0-9]{9}$/.test(this.model.fldContactNumber || ''))
       add('fldContactNumber', 'Enter a valid 10-digit mobile number starting with 6, 7, 8 or 9.');
@@ -215,6 +238,221 @@ export class TblProfileAddComponent implements OnDestroy {
     }];
     this.cdr.detectChanges();
     this.focusField(this.validationErrors[0].field);
+  }
+
+  // ================================================================ //
+  // MOBILE OTP VERIFICATION (public registration, Firebase Phone Auth)
+  // ================================================================ //
+
+  /** Sends the OTP for the mobile number entered on the registration form. */
+  sendRegistrationOtp(): void {
+
+    if (this.isSendingOtp || this.isVerifyingOtp) {
+      return;
+    }
+
+    this.otpError = '';
+    this.otpMessage = '';
+
+    const mobile = (this.model.fldContactNumber || '').trim();
+
+    if (!/^[6-9][0-9]{9}$/.test(mobile)) {
+      this.otpError =
+        'Please enter a valid 10-digit mobile number starting with 6, 7, 8 or 9.';
+      this.cdr.detectChanges();
+      document.getElementById('fldContactNumber')?.focus();
+      return;
+    }
+
+    this.isSendingOtp = true;
+    this.cdr.detectChanges();
+
+    void this.firebaseOtp
+      .sendOtp(mobile, this.recaptchaContainerId)
+      .then(() => {
+
+        this.isSendingOtp = false;
+        this.otp = '';
+        this.otpSent = true;
+
+        this.startResendCountdown();
+
+        this.otpMessage =
+          `An OTP has been sent to ${this.firebaseOtp.countryCode} ${mobile}. ` +
+          'Verify it to unlock the remaining registration fields.';
+
+        this.cdr.detectChanges();
+
+      })
+      .catch((error: Error) => {
+        this.isSendingOtp = false;
+        this.otpError = error.message ||
+          'Unable to send the OTP. Please try again.';
+        this.cdr.detectChanges();
+      });
+
+  }
+
+  /** Resend OTP, gated by the countdown between sends. */
+  resendRegistrationOtp(): void {
+
+    if (this.resendCooldown > 0 || this.isSendingOtp || this.isVerifyingOtp) {
+      return;
+    }
+
+    this.otpError = '';
+    this.otpMessage = '';
+    this.isSendingOtp = true;
+    this.cdr.detectChanges();
+
+    // The shared service resets and reuses the same reCAPTCHA widget,
+    // keeping app verification stable across attempts.
+    void this.firebaseOtp
+      .sendOtp(
+        (this.model.fldContactNumber || '').trim(),
+        this.recaptchaContainerId
+      )
+      .then(() => {
+
+        this.isSendingOtp = false;
+        this.otp = '';
+
+        this.startResendCountdown();
+
+        this.otpMessage =
+          `A new OTP has been sent to ${this.firebaseOtp.countryCode} ${(this.model.fldContactNumber || '').trim()}.`;
+
+        this.cdr.detectChanges();
+
+      })
+      .catch((error: Error) => {
+        this.isSendingOtp = false;
+        this.otpError = error.message ||
+          'Unable to resend the OTP. Please try again.';
+        this.cdr.detectChanges();
+      });
+
+  }
+
+  onRegistrationOtpChange(value: string): void {
+    this.otp = value.replace(/\D/g, '').slice(0, 6);
+  }
+
+  /** Verifies the OTP with Firebase and unlocks the remaining fields. */
+  verifyRegistrationOtp(): void {
+
+    if (this.isVerifyingOtp || this.isSendingOtp) {
+      return;
+    }
+
+    this.otpError = '';
+    this.otpMessage = '';
+
+    if (!this.otpSent) {
+      this.otpError = 'Please send the OTP first.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    if (!/^\d{6}$/.test(this.otp.trim())) {
+      this.otpError = 'Please enter a valid 6-digit OTP.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.isVerifyingOtp = true;
+    this.cdr.detectChanges();
+
+    void this.firebaseOtp
+      .verifyOtp(this.otp.trim())
+      .then((result) => {
+
+        this.isVerifyingOtp = false;
+        this.mobileVerified = true;
+
+        // Keep the mobile number locked on the Firebase-verified value.
+        const verifiedMobile =
+          (result.phoneNumber || '').replace(/^\+91/, '') ||
+          (this.model.fldContactNumber || '').trim();
+
+        if (/^[6-9][0-9]{9}$/.test(verifiedMobile)) {
+          this.model.fldContactNumber = verifiedMobile;
+        }
+
+        this.otp = '';
+        this.otpSent = false;
+        this.stopResendCountdown();
+
+        this.otpMessage = `Mobile number ${this.firebaseOtp.countryCode} ${this.model.fldContactNumber} verified successfully.`;
+        this.otpError = '';
+
+        // Verification succeeded; the Firebase session itself is no longer
+        // needed here. The ID token is fetched again at submit time.
+        void this.firebaseOtp.reset();
+
+        this.cdr.detectChanges();
+        document.getElementById('fldFullName')?.focus({ preventScroll: true });
+
+      })
+      .catch((error: Error) => {
+
+        this.isVerifyingOtp = false;
+        // Keep the OTP on screen so the user can simply retry on typos.
+        this.otp = error.message.includes('expired') ? '' : this.otp;
+        this.otpError = error.message ||
+          'OTP verification failed. Please try again.';
+        this.cdr.detectChanges();
+
+      });
+
+  }
+
+  /** Reopens the OTP stage so a different number can be entered. */
+  changeRegistrationMobile(): void {
+
+    if (this.isSendingOtp || this.isVerifyingOtp) {
+      return;
+    }
+
+    this.otpSent = false;
+    this.otp = '';
+    this.otpMessage = '';
+    this.otpError = '';
+
+    this.stopResendCountdown();
+
+    void this.firebaseOtp.reset();
+
+    this.cdr.detectChanges();
+    document.getElementById('fldContactNumber')?.focus();
+
+  }
+
+  private startResendCountdown(): void {
+
+    this.stopResendCountdown();
+
+    this.resendCooldown = this.resendSeconds;
+
+    this.resendTimer = setInterval(() => {
+
+      if (this.resendCooldown > 0) {
+        this.resendCooldown--;
+        this.cdr.detectChanges();
+      }
+
+      if (this.resendCooldown <= 0) {
+        this.stopResendCountdown();
+      }
+
+    }, 1000);
+
+  }
+
+  private stopResendCountdown(): void {
+    clearInterval(this.resendTimer);
+    this.resendTimer = undefined;
+    this.resendCooldown = 0;
   }
 
   model: TblProfileAdd;
@@ -269,14 +507,38 @@ export class TblProfileAddComponent implements OnDestroy {
   private lastAddressRequestAt = 0;
 
   selectedMapAddress = "";
-  showPassword: boolean = false;
+
+  /** Invisible reCAPTCHA container required by Firebase Phone Auth. */
+  readonly recaptchaContainerId = 'registrationRecaptchaContainer';
+
+  // ---- Firebase OTP verification state (public registration only) ----
+  /** Stage 1: only Name + Mobile are shown until the OTP is verified. */
+  otpSent = false;
+  isSendingOtp = false;
+  isVerifyingOtp = false;
+  otp = '';
+  otpMessage = '';
+  otpError = '';
+
+  /** Seconds left before a new OTP may be requested. */
+  resendCooldown = 0;
+  private resendTimer?: ReturnType<typeof setInterval>;
+  private readonly resendSeconds = 30;
+
+  /**
+   * True once Firebase has verified the mobile number. For the internal
+   * (admin) Add Profile screen no OTP gate is applied.
+   */
+  mobileVerified = !this.isRegistration;
+
   tblStreetMasterList: TblStreetMaster[] = [];
 
   constructor(private tblProfileService: TblProfileService,
     private tblStreetMasterService: TblStreetMasterService,
     private tblCityorTownMasterService: TblCityorTownMasterService,
     private vendorEnquiryService: TblVendorEnquiryService,
-    private router: Router, private toastr: ToastrService, private cdr: ChangeDetectorRef) {
+    private router: Router, private toastr: ToastrService, private cdr: ChangeDetectorRef,
+    private firebaseOtp: FirebaseOtpAuthService) {
     this.model = {
       fldId: 0,
       fldUserType: 'Customer',
@@ -496,13 +758,53 @@ export class TblProfileAddComponent implements OnDestroy {
 
   private saveProfile(): void {
 
-    const saveRequest: Observable<unknown> = this.isRegistration
-      ? this.registrationHttp.post(
-        `${environment.apiBaseUrl}/api/TblProfile/RegisterProfile`, this.model)
-      : this.tblProfileService.addTblProfile(this.model);
-    this.addTblProfileSubscription = saveRequest.subscribe({
+    if (this.isRegistration) {
+      // Include the verified Firebase ID token in the registration request.
+      // BACKEND INTEGRATION PENDING: the backend currently ignores this
+      // extra field; once it validates the token, this payload already
+      // carries it.
+      this.firebaseOtp.getIdToken().then((idToken) => {
 
-      next: (response) => {
+        const payload: TblProfileAdd & { fldFirebaseIdToken?: string | null } = {
+          ...this.model,
+          fldFirebaseIdToken: idToken
+        };
+
+        this.addTblProfileSubscription = this.registrationHttp
+          .post(
+            `${environment.apiBaseUrl}/api/TblProfile/RegisterProfile`,
+            payload
+          )
+          .subscribe(this.registrationSaveSubscriber());
+
+      }).catch((error) => {
+
+        // Registration must still be possible on the existing API
+        // contract if the Firebase token cannot be obtained.
+        this.toastr.error(
+          'Unable to read the verified mobile session. Please try again.',
+          'Error',
+          { toastClass: 'ngx-toastr custom-toast error-toast' }
+        );
+        console.error('Firebase token retrieval failed', error);
+
+      });
+
+      return;
+    }
+
+    this.addTblProfileSubscription = this.tblProfileService
+      .addTblProfile(this.model)
+      .subscribe(this.registrationSaveSubscriber());
+
+  }
+
+  /** Shared subscriber used by both registration and internal profile save. */
+  private registrationSaveSubscriber() {
+
+    return {
+
+      next: (response: unknown) => {
 
         this.isSaving = false;
 
@@ -515,6 +817,7 @@ export class TblProfileAddComponent implements OnDestroy {
         );
 
         if (this.isRegistration) {
+          void this.firebaseOtp.reset();
           void this.router.navigateByUrl('/login');
           return;
         }
@@ -531,14 +834,15 @@ export class TblProfileAddComponent implements OnDestroy {
         }
       },
 
-      error: (err) => {
+      error: (err: unknown) => {
 
         this.isSaving = false;
 
         this.showSaveError(err);
       }
 
-    });
+    };
+
   }
 
   resetForm() {
@@ -585,6 +889,9 @@ export class TblProfileAddComponent implements OnDestroy {
     this.addTblProfileSubscription?.unsubscribe();
     this.addTblStreetMasterSubscription?.unsubscribe();
     this.vendorEnquirySubscription?.unsubscribe();
+    this.stopResendCountdown();
+    // Drop the in-memory Firebase session (and its ID token) with the screen.
+    void this.firebaseOtp.reset();
   }
 
   isFormValid(form: any): boolean {
@@ -1081,19 +1388,13 @@ export class TblProfileAddComponent implements OnDestroy {
       // Existing Street Name
       this.model.fldStreetName =
         selectedStreet.fldStreetName;
-      
+
 
     } else {
 
       this.model.fldFKStreetId = 0;
       this.model.fldStreetName = '';
     }
-  }
-
-  onMPINChange(value: string): void {
-    this.model.fldPasswordHash = value
-      .replace(/\D/g, '')
-      .slice(0, 6);
   }
 
   readonly vendorShopTypes = ['Grocery', 'Snacks', 'Meat', 'Others'];

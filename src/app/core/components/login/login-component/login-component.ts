@@ -1,16 +1,3 @@
-// import { Component } from '@angular/core';
-
-// @Component({
-//   selector: 'app-login-component',
-//   imports: [],
-//   templateUrl: './login-component.html',
-//   styleUrl: './login-component.css',
-// })
-// export class LoginComponent {
-
-// }
-
-
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   afterNextRender,
@@ -30,7 +17,7 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { environment } from '../../../../../environments/environment';
 import { VendorNotificationService } from '../../../services/vendor-notification.service';
-// import { environment } from '../../../environments/environment';
+import { FirebaseOtpAuthService } from '../../../services/firebase-otp-auth.service';
 
 interface LoginResponse {
   message: string;
@@ -59,21 +46,26 @@ export class LoginComponent {
 
   mobileNumber = '';
   otp = '';
-  mpin = '';
-  verificationMethod: 'OTP' | 'MPIN' = 'MPIN';
-  readonly mpinLength = 6; // Match this to your backend MPIN policy.
-  showMPIN = false;
+
+  otpSent = false;
+  isLoading = false;
+  isSendingOtp = false;
+
+  /** Seconds left before the user may request a new OTP. */
+  resendCooldown = 0;
+  private resendTimer?: ReturnType<typeof setInterval>;
+  private readonly resendSeconds = 30;
+
+  /** Invisible reCAPTCHA container rendered next to the OTP forms. */
+  readonly recaptchaContainerId = 'loginRecaptchaContainer';
 
   rememberMe = false;
   private readonly rememberedMobileKey = 'gbRememberedMobile';
 
-  otpSent = false;
-  isLoading = false;
-
   errorMessage = '';
   successMessage = '';
 
-  private readonly apiUrl =
+private readonly apiUrl =
     `${environment.apiBaseUrl}/api/Authenticate`;
 
   showIntroVideo = false;
@@ -108,12 +100,16 @@ export class LoginComponent {
     private platformId: object,
     private cdr: ChangeDetectorRef,
     private vendorNotifications: VendorNotificationService,
-    private destroyRef: DestroyRef
+    private destroyRef: DestroyRef,
+    private firebaseOtp: FirebaseOtpAuthService
   ) {
     this.destroyRef.onDestroy(() => {
       this.introDestroyed = true;
       clearTimeout(this.introWatchdog);
       this.introElement?.pause();
+      this.stopResendCountdown();
+      // Drop the in-memory Firebase session (and its ID token) with the screen.
+      void this.firebaseOtp.reset();
     });
 
     // Runs only in the browser after hydration; no storage access during SSR.
@@ -170,9 +166,14 @@ export class LoginComponent {
     this.cdr.detectChanges();
   }
 
+  // ================================================================ //
+  // OTP ENTRY (Firebase Phone Authentication)
+  // ================================================================ //
+
+  /** Sends the OTP through Firebase Phone Authentication. */
   sendOTP(): void {
 
-    if (this.isLoading) {
+    if (this.isSendingOtp || this.isLoading) {
       return;
     }
 
@@ -189,136 +190,152 @@ export class LoginComponent {
       return;
     }
 
-    this.isLoading = true;
+    this.isSendingOtp = true;
+    this.cdr.detectChanges();
 
-    this.http.post<any>(
-      `${this.apiUrl}/GenerateOTP`,
-      null,
-      {
-        params: {
-          fldContactNumber: mobile
-        }
-      }
-    )
-      .subscribe({
+    void this.firebaseOtp
+      .sendOtp(mobile, this.recaptchaContainerId)
+      .then(() => {
 
-        next: (response) => {
+        this.isSendingOtp = false;
+        this.otp = '';
+        this.otpSent = true;
 
-          // Do not log authentication responses or verification codes.
+        // Remember the number as soon as the challenge is created,
+        // without waiting for the user to finish verification.
+        this.persistRememberedMobile(mobile);
 
-          this.isLoading = false;
+        this.startResendCountdown();
 
-          this.otp = '';
+        this.successMessage =
+          `An OTP has been sent to ${this.firebaseOtp.countryCode} ${mobile}.`;
 
-          this.mpin = '';
-          this.showMPIN = false;
-          this.verificationMethod = 'MPIN';
-          this.otpSent = true;
+        this.cdr.detectChanges();
 
-          // Remember the number as soon as the challenge is created,
-          // without waiting for the user to finish verification.
-          this.persistRememberedMobile(mobile);
-
-          this.successMessage =
-            'Enter your MPIN to continue.';
-
-          this.cdr.detectChanges();
-
-        },
-
-        error: (error: HttpErrorResponse) => {
-
-          this.isLoading = false;
-
-          this.errorMessage =
-            error.error?.message ||
-            'Unable to generate OTP. Please try again.';
-
-          this.cdr.detectChanges();
-
-        }
-
+      })
+      .catch((error: Error) => {
+        this.isSendingOtp = false;
+        this.errorMessage = error.message ||
+          'Unable to send the OTP. Please try again.';
+        this.cdr.detectChanges();
       });
 
   }
 
-  onMPINChange(value: string): void {
-    this.mpin = value.replace(/\D/g, '').slice(0, this.mpinLength);
+  /** Resend OTP, gated by the countdown so mail/SMS charges stay sane. */
+  resendOTP(): void {
+
+    if (this.resendCooldown > 0 || this.isSendingOtp || this.isLoading) {
+      return;
+    }
+
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.isSendingOtp = true;
+    this.cdr.detectChanges();
+
+    // The shared service resets and reuses the same reCAPTCHA widget,
+    // keeping app verification stable across attempts.
+    void this.firebaseOtp
+      .sendOtp(
+        this.mobileNumber.trim(),
+        this.recaptchaContainerId
+      )
+      .then(() => {
+
+        this.isSendingOtp = false;
+        this.otp = '';
+
+        this.startResendCountdown();
+
+        this.successMessage =
+          `A new OTP has been sent to ${this.firebaseOtp.countryCode} ${this.mobileNumber.trim()}.`;
+
+        this.cdr.detectChanges();
+
+      })
+      .catch((error: Error) => {
+        this.isSendingOtp = false;
+        this.errorMessage = error.message ||
+          'Unable to resend the OTP. Please try again.';
+        this.cdr.detectChanges();
+      });
+
   }
 
+  onOtpChange(value: string): void {
+    this.otp = value.replace(/\D/g, '').slice(0, 6);
+  }
+
+  /** Verifies the OTP with Firebase, then continues to the backend login. */
   verifyLogin(): void {
 
-    if (this.isLoading) {
+    if (this.isLoading || this.isSendingOtp) {
       return;
     }
 
     this.errorMessage = '';
     this.successMessage = '';
 
-    const method = this.verificationMethod;
     const mobile = this.mobileNumber.trim();
     if (!/^[6-9]\d{9}$/.test(mobile)) {
       this.errorMessage = 'Please enter a valid 10-digit mobile number.';
-      return;
-    }
-
-    const enteredOTP =
-      method === 'OTP' ? this.otp.trim() : '';
-
-    const enteredMPIN =
-      method === 'MPIN' ? this.mpin.trim() : '';
-
-    // The selected credential must contain exactly six digits.
-    const credential = enteredOTP || enteredMPIN;
-    //const credential = method === 'OTP' ? this.otp.trim() : this.mpin.trim();
-
-    const expectedLength = method === 'OTP' ? 6 : this.mpinLength;
-    if (!new RegExp(`^\\d{${expectedLength}}$`).test(credential)) {
-      this.errorMessage = `Please enter a valid ${expectedLength}-digit ${method}.`;
       this.cdr.detectChanges();
       return;
     }
+
+    const enteredOTP = this.otp.trim();
+    if (!/^\d{6}$/.test(enteredOTP)) {
+      this.errorMessage = 'Please enter a valid 6-digit OTP.';
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.isLoading = true;
+    this.cdr.detectChanges();
 
+    void this.firebaseOtp
+      .verifyOtp(enteredOTP)
+      .then((result) => {
 
+        // Firebase verified the number. The ID token stays in memory only.
+        this.loginWithBackend(result.idToken, mobile);
 
+      })
+      .catch((error: Error) => {
 
-    // At least one credential is compulsory.
-    if (!enteredOTP && !enteredMPIN) {
-      this.errorMessage = 'Please enter OTP or MPIN.';
-      this.cdr.detectChanges();
-      return;
-    }
+        this.isLoading = false;
+        // Keep the OTP on screen so the user can simply retry on typos.
+        this.otp = error.message.includes('expired')
+          ? ''
+          : this.otp;
 
+        this.errorMessage = error.message ||
+          'OTP verification failed. Please try again.';
 
+        this.cdr.detectChanges();
 
+      });
 
-    if (!/^\d{6}$/.test(credential)) {
-      this.errorMessage =
-        `Please enter a valid 6-digit ${method}.`;
+  }
 
-      this.cdr.detectChanges();
-      return;
-    }
-
+  /**
+   * Sends the verified Firebase ID token to the Green Basket backend.
+   *
+   * BACKEND INTEGRATION PENDING: the endpoint/DTO below is the prepared
+   * contract. The backend must accept the Firebase ID token, validate it,
+   * and return the same LoginResponse shape used by the app today
+   * (accessToken + profile with fldUserType). No backend change is
+   * implemented as part of this task.
+   */
+  private loginWithBackend(idToken: string, mobile: string): void {
 
     const payload = {
       FldContactNumber: mobile,
-      FldOTP: enteredOTP,
-      FldMPIN: enteredMPIN
+      FldFirebaseIdToken: idToken
     };
 
-    this.isLoading = true;
-
-    // const payload = method === 'OTP'
-    //   ? { fldContactNumber: mobile, fldOTP: credential }
-    //   : { fldContactNumber: mobile, fldMPIN: credential };
-    // // Integration contract: confirm this endpoint/DTO with AuthenticateController.
-    // // MPIN must be validated on the server, returning the same LoginResponse as OTP.
-    //const endpoint = method === 'OTP' ? 'ValidateOTPAndLogin' : 'ValidateMPINAndLogin';
-    const endpoint = method === 'OTP' ? 'ValidateOTPAndLogin' : 'ValidateOTPAndLogin';
-
-    this.http.post<LoginResponse>(`${this.apiUrl}/${endpoint}`, payload)
+    this.http.post<LoginResponse>(`${this.apiUrl}/LoginWithFirebase`, payload)
       .subscribe({
 
         next: (response) => {
@@ -337,6 +354,7 @@ export class LoginComponent {
 
           if (isPlatformBrowser(this.platformId)) {
 
+            // Backend session tokens (not the Firebase ID token).
             sessionStorage.setItem(
               'gbAccessToken',
               response.accessToken
@@ -359,13 +377,13 @@ export class LoginComponent {
 
           }
 
-
-
           this.successMessage =
             'Login successful.';
           this.otp = '';
-          this.mpin = '';
-          this.showMPIN = false;
+
+          // The Firebase state is no longer needed on this screen.
+          void this.firebaseOtp.reset();
+          this.stopResendCountdown();
 
           this.cdr.detectChanges();
 
@@ -380,16 +398,12 @@ export class LoginComponent {
           this.isLoading = false;
 
           this.errorMessage =
-            error.status === 400 || error.status === 401
-              ? `Invalid ${method}. Please try again.`
+            error.status === 404
+              ? 'Mobile verification succeeded, but the backend login endpoint is not yet available.'
               : error.error?.message ||
-              (error.status === 404 && method === 'MPIN'
-                ? 'MPIN verification is currently unavailable. Please try again later.'
-                : `${method} verification failed. Please try again.`);
+              'Login failed after OTP verification. Please try again.';
 
           this.otp = '';
-          this.mpin = '';
-          this.showMPIN = false;
 
           this.cdr.detectChanges();
 
@@ -400,10 +414,10 @@ export class LoginComponent {
   }
 
   changeMobileNumber(): void {
-    if (this.isLoading) return;
-    this.mpin = '';
-    this.showMPIN = false;
-    this.verificationMethod = 'MPIN';
+
+    if (this.isLoading || this.isSendingOtp) {
+      return;
+    }
 
     this.otpSent = false;
     this.otp = '';
@@ -411,6 +425,40 @@ export class LoginComponent {
     this.errorMessage = '';
     this.successMessage = '';
 
+    this.stopResendCountdown();
+
+    // Drop the pending verification state with the previous number.
+    void this.firebaseOtp.reset();
+
+    this.cdr.detectChanges();
+
+  }
+
+  private startResendCountdown(): void {
+
+    this.stopResendCountdown();
+
+    this.resendCooldown = this.resendSeconds;
+
+    this.resendTimer = setInterval(() => {
+
+      if (this.resendCooldown > 0) {
+        this.resendCooldown--;
+        this.cdr.detectChanges();
+      }
+
+      if (this.resendCooldown <= 0) {
+        this.stopResendCountdown();
+      }
+
+    }, 1000);
+
+  }
+
+  private stopResendCountdown(): void {
+    clearInterval(this.resendTimer);
+    this.resendTimer = undefined;
+    this.resendCooldown = 0;
   }
 
   private navigateAfterLogin(
@@ -564,24 +612,6 @@ export class LoginComponent {
     } catch {
       // Stored session is corrupt; fall through to the normal login flow.
     }
-
-  }
-
-  testOTPScreen(): void {
-
-    this.otpSent = true;
-
-    this.isLoading = false;
-
-    this.successMessage = 'OTP screen test successful.';
-
-    console.log(
-      'OTP Screen Test:',
-      this.otpSent,
-      this.isLoading
-    );
-
-    this.cdr.detectChanges();
 
   }
 

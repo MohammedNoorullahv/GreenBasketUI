@@ -86,6 +86,15 @@ export class FirebaseOtpAuthService {
   private confirmation: ConfirmationResult | null = null;
 
   /**
+   * ID token captured at the moment the OTP was verified successfully.
+   * Some flows tear the Firebase session down right after verification
+   * (e.g. registration screens), so this in-memory copy is what allows
+   * `getIdToken()` to still hand the token to the caller at submit time.
+   * Memory only; never persisted and cleared by `reset()`.
+   */
+  private lastVerifiedToken: string | null = null;
+
+  /**
    * Invisible reCAPTCHA widget, created once per container and reused
    * (reset) between OTP attempts.
    */
@@ -246,6 +255,10 @@ export class FirebaseOtpAuthService {
       const user = credential.user;
       const idToken = await user.getIdToken();
 
+      // Remember the token verified here so a later getIdToken() can still
+      // return it even if the Firebase session is signed out in between.
+      this.lastVerifiedToken = idToken;
+
       this.log('info', 'OTP verified successfully by Firebase.');
 
       return {
@@ -262,8 +275,10 @@ export class FirebaseOtpAuthService {
   }
 
   /**
-   * Returns the current Firebase user's ID token, or null when no user is
-   * signed in with Firebase. The token is never persisted anywhere.
+   * Returns the current Firebase user's ID token. When the session has
+   * already been signed out (registration screens do this right after
+   * verification), falls back to the token captured during `verifyOtp()`.
+   * Returns null only when neither is available. Never persisted anywhere.
    */
   async getIdToken(): Promise<string | null> {
 
@@ -278,13 +293,13 @@ export class FirebaseOtpAuthService {
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
         unsubscribe();
         if (!user) {
-          resolve(null);
+          resolve(this.lastVerifiedToken);
           return;
         }
         try {
           resolve(await user.getIdToken());
         } catch {
-          resolve(null);
+          resolve(this.lastVerifiedToken);
         }
       });
     });
@@ -299,6 +314,7 @@ export class FirebaseOtpAuthService {
   async reset(): Promise<void> {
 
     this.confirmation = null;
+    this.lastVerifiedToken = null;
 
     await this.disposeVerifier();
 

@@ -370,6 +370,10 @@ export class TblProfileAddComponent implements OnDestroy {
         this.isVerifyingOtp = false;
         this.mobileVerified = true;
 
+        // Capture the token Firebase issued at verification time — this is
+        // what gets submitted with the Register payload.
+        this.firebaseIdToken = result.idToken;
+
         // Keep the mobile number locked on the Firebase-verified value.
         const verifiedMobile =
           (result.phoneNumber || '').replace(/^\+91/, '') ||
@@ -386,9 +390,10 @@ export class TblProfileAddComponent implements OnDestroy {
         this.otpMessage = `Mobile number ${this.firebaseOtp.countryCode} ${this.model.fldContactNumber} verified successfully.`;
         this.otpError = '';
 
-        // Verification succeeded; the Firebase session itself is no longer
-        // needed here. The ID token is fetched again at submit time.
-        void this.firebaseOtp.reset();
+        // IMPORTANT: do NOT reset the Firebase session here. The ID token
+        // obtained from this verification is what the backend needs on the
+        // Register button click; the session is signed out after the
+        // registration API call succeeds (see registrationSaveSubscriber).
 
         this.cdr.detectChanges();
         document.getElementById('fldFullName')?.focus({ preventScroll: true });
@@ -421,6 +426,9 @@ export class TblProfileAddComponent implements OnDestroy {
 
     this.stopResendCountdown();
 
+    // A new number must be re-verified, so the previously captured token
+    // is no longer valid.
+    this.firebaseIdToken = null;
     void this.firebaseOtp.reset();
 
     this.cdr.detectChanges();
@@ -530,6 +538,13 @@ export class TblProfileAddComponent implements OnDestroy {
    * (admin) Add Profile screen no OTP gate is applied.
    */
   mobileVerified = !this.isRegistration;
+
+  /**
+   * Firebase ID token captured the moment the mobile number was verified.
+   * The Register button sends this to the backend; it stays in memory only
+   * and is cleared once registration succeeds (or when the screen leaves).
+   */
+  private firebaseIdToken: string | null = null;
 
   tblStreetMasterList: TblStreetMaster[] = [];
 
@@ -760,10 +775,21 @@ export class TblProfileAddComponent implements OnDestroy {
 
     if (this.isRegistration) {
       // Include the verified Firebase ID token in the registration request.
-      // BACKEND INTEGRATION PENDING: the backend currently ignores this
-      // extra field; once it validates the token, this payload already
-      // carries it.
-      this.firebaseOtp.getIdToken().then((idToken) => {
+      // Prefer a fresh token from the still-signed-in Firebase session, and
+      // fall back to the token captured during OTP verification. If neither
+      // is available the request is aborted rather than sending null.
+      this.firebaseOtp.getIdToken().then((freshToken) => {
+
+        const idToken = freshToken || this.firebaseIdToken;
+
+        if (!idToken) {
+          this.toastr.error(
+            'Your mobile verification session has expired. Please verify the OTP again.',
+            'Error',
+            { toastClass: 'ngx-toastr custom-toast error-toast' }
+          );
+          return;
+        }
 
         const payload: TblProfileAdd & { firebaseIdToken?: string | null } = {
           ...this.model,
@@ -817,6 +843,9 @@ export class TblProfileAddComponent implements OnDestroy {
         );
 
         if (this.isRegistration) {
+          // Registration is done; drop the verified token and the
+          // Firebase session before leaving the screen.
+          this.firebaseIdToken = null;
           void this.firebaseOtp.reset();
           void this.router.navigateByUrl('/login');
           return;
@@ -891,6 +920,7 @@ export class TblProfileAddComponent implements OnDestroy {
     this.vendorEnquirySubscription?.unsubscribe();
     this.stopResendCountdown();
     // Drop the in-memory Firebase session (and its ID token) with the screen.
+    this.firebaseIdToken = null;
     void this.firebaseOtp.reset();
   }
 

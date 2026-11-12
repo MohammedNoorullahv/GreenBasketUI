@@ -50,8 +50,10 @@
                         class="text-danger">Description is required and must be valid.</div> }
                 </div>
             </div>
-            <div class="d-flex flex-row form-row">
-                <div class="col-3 field-group"><label class="form-label" for="fldCurrencyCode">Currency <span
+
+            <div class="row g-3">
+
+                <div class="col-12 col-md-4 field-group"><label class="form-label" for="fldCurrencyCode">Currency <span
                             class="required">*</span></label>
                     <input type="text" id="fldCurrencyCode" name="fldCurrencyCode" class="form-control"
                         [(ngModel)]="model.fldCurrencyCode" maxlength="3" required>
@@ -59,8 +61,8 @@
                         class="text-danger">Currency is required and must be valid.</div> }
                 </div>
 
-                <div class="col-3 field-group"><label class="form-label" for="fldFKPaymentStatusId">Payment Status <span
-                            class="required">*</span></label>
+                <div class="col-12 col-md-4 field-group"><label class="form-label" for="fldFKPaymentStatusId">Payment
+                        Status <span class="required">*</span></label>
                     <select id="fldFKPaymentStatusId" name="fldFKPaymentStatusId" class="form-control"
                         [(ngModel)]="model.fldFKPaymentStatus" required>
                         <option [ngValue]="0">-- Select --</option>
@@ -74,12 +76,13 @@
                         required and must be valid.</div> }
                 </div>
 
-                <div class="col-3 field-group"><label class="form-label" for="fldFKTransactionCategoryId">Transaction Category<span
-                            class="required">*</span></label>
+                <div class="col-12 col-md-4 field-group"><label class="form-label"
+                        for="fldFKTransactionCategoryId">Transaction Category<span class="required">*</span></label>
                     <select id="fldFKTransactionCategoryId" name="fldFKTransactionCategoryId" class="form-control"
                         [(ngModel)]="model.fldFKTransactionCategory" required>
                         <option [ngValue]="0">-- Select --</option>
-                        @for (p of transactionCategories; track p.fldId) { <option [ngValue]="p.fldId">{{ p.fldDescription }}
+                        @for (p of transactionCategories; track p.fldId) { <option [ngValue]="p.fldId">{{
+                            p.fldDescription }}
                         </option> }
                         @if (model.fldFKTransactionCategory && !hasTransactionCategory()) { <option
                             [ngValue]="model.fldFKTransactionCategory">{{ transactionCategoryName }}</option> }
@@ -90,94 +93,135 @@
                 </div>
 
             </div>
-            <div class="d-flex flex-row form-row">
-                <div class="col-3 field-group"><label class="form-label" for="fldBillAmount">Bill Amount <span
+
+            <div class="row g-3">
+
+                <div class="col-12 col-md-4 field-group"><label class="form-label" for="fldBillAmount">Bill Amount <span
                             class="required">*</span></label>
+
                     <input type="number" id="fldBillAmount" name="fldBillAmount" class="form-control"
-                        [(ngModel)]="model.fldBillAmount" min="0.01" step="0.01" required
-                        (ngModelChange)="recalculate()">
+                        [ngModel]="model.fldBillAmount" (ngModelChange)="onBillAmountChange($event)" min="0.01"
+                        step="0.01" required>
+
                     @if (form.controls['fldBillAmount']?.touched && form.controls['fldBillAmount']?.invalid) { <div
                         class="text-danger">Bill Amount is required and must be valid.</div> }
                 </div>
-                <div class="col-3 field-group"><label class="form-label" for="fldPaidorReceivedAmount">Paid / Received
+
+                <div class="col-12 col-md-4 field-group"><label class="form-label" for="fldPaidorReceivedAmount">Paid /
+                        Received
                         Amount <span class="required">*</span></label>
+
                     <input type="number" id="fldPaidorReceivedAmount" name="fldPaidorReceivedAmount"
-                        class="form-control" [(ngModel)]="model.fldPaidorReceivedAmount" min="0" step="0.01" required>
+                        class="form-control" [ngModel]="model.fldPaidorReceivedAmount"
+                        (ngModelChange)="onPaidAmountChange($event)" min="0" [max]="model.fldBillAmount || 0"
+                        step="0.01" required>
+
+                    @if (form.controls['fldPaidorReceivedAmount']?.touched &&
+                    form.controls['fldPaidorReceivedAmount']?.errors?.['max']) {
+                    <div class="text-danger">
+                        Paid / Received Amount cannot exceed Bill Amount.
+                    </div>
+                    }
+
                     @if (form.controls['fldPaidorReceivedAmount']?.touched &&
                     form.controls['fldPaidorReceivedAmount']?.invalid) { <div class="text-danger">Paid / Received Amount
                         is required and must be valid.</div> }
                 </div>
-            </div>
-            <div class="d-flex flex-row form-row">
-                <div class="col-3 field-group"><label class="form-label" for="fldBalance2PayorReceive">Balance to Pay /
+
+                <div class="col-12 col-md-4 field-group"><label class="form-label" for="fldBalance2PayorReceive">Balance
+                        to Pay /
                         Receive <span class="required">*</span></label>
                     <input type="number" id="fldBalance2PayorReceive" name="fldBalance2PayorReceive"
-                        class="form-control" [(ngModel)]="model.fldBalance2PayorReceive" min="0" step="0.01" required>
+                        class="form-control" [(ngModel)]="model.fldBalance2PayorReceive" step="0.01" readonly
+                        aria-readonly="true">
                     @if (form.controls['fldBalance2PayorReceive']?.touched &&
                     form.controls['fldBalance2PayorReceive']?.invalid) { <div class="text-danger">Balance to Pay /
                         Receive is required and must be valid.</div> }
                 </div>
-                <div class="col-3 field-group"><label class="form-label" for="fldIncome">Income</label>
-                    <input type="number" id="fldIncome" name="fldIncome" class="form-control"
-                        [(ngModel)]="model.fldIncome" min="0">
-                </div>
+                <input type="number" id="fldIncome" name="fldIncome" class="form-control" [(ngModel)]="model.fldIncome"
+                    min="0" hidden>
+
+
+                <input type="number" id="fldExpenses" name="fldExpenses" class="form-control"
+                    [(ngModel)]="model.fldExpenses" min="0" hidden>
+
+
+                <input type="number" id="fldBalanceAmount" name="fldBalanceAmount" class="form-control"
+                    [(ngModel)]="model.fldBalanceAmount" min="0" hidden>
+
+
             </div>
-            <div class="d-flex flex-row form-row">
-                <div class="col-3 field-group"><label class="form-label" for="fldExpenses">Expenses</label>
-                    <input type="number" id="fldExpenses" name="fldExpenses" class="form-control"
-                        [(ngModel)]="model.fldExpenses" min="0">
+
+
+            <div class="row g-3">
+
+                <div class="col-12 col-md-4 field-group"><label class="form-label" for="fldPartyName">Party Name</label>
+                    <input type="text" id="fldPartyName" name="fldPartyName" class="form-control"
+                        [(ngModel)]="model.fldPartyName" maxlength="200">
                 </div>
-                <div class="col-3 field-group"><label class="form-label" for="fldBalanceAmount">Balance Amount <span
-                            class="required">*</span></label>
-                    <input type="number" id="fldBalanceAmount" name="fldBalanceAmount" class="form-control"
-                        [(ngModel)]="model.fldBalanceAmount" min="0" step="0.01" required>
-                    @if (form.controls['fldBalanceAmount']?.touched && form.controls['fldBalanceAmount']?.invalid) {
-                    <div class="text-danger">Balance Amount is required and must be valid.</div> }
+
+                <div class="col-12 col-md-4 field-group"><label class="form-label" for="fldInvoiceNumber">Invoice / Bill
+                        / Receipt
+                        No.</label>
+                    <input type="text" id="fldInvoiceNumber" name="fldInvoiceNumber" class="form-control"
+                        [(ngModel)]="model.fldInvoiceNumber" maxlength="100">
                 </div>
-            </div>
-            <div class="d-flex flex-row form-row">
-                <div class="col-3 field-group"><label class="form-label" for="fldPaymentDate">Payment / Receipt
+
+                <div class="col-12 col-md-4 field-group"><label class="form-label" for="fldPaymentDate">Payment /
+                        Receipt
                         Date</label>
                     <input type="text" id="fldPaymentDate" name="fldPaymentDate" class="form-control"
                         [ngModel]="dateText.fldPaymentDate" (ngModelChange)="setDate('fldPaymentDate', $event)"
                         placeholder="dd-MMM-yyyy" maxlength="11">
                     @if (dateErrors.fldPaymentDate) { <div class="text-danger">{{ dateErrors.fldPaymentDate }}</div> }
                 </div>
-                <div class="col-3 field-group"><label class="form-label" for="fldPaymentMode">Payment Mode</label>
-                    <input type="text" id="fldPaymentMode" name="fldPaymentMode" class="form-control"
-                        [(ngModel)]="model.fldPaymentMode" maxlength="30">
-                </div>
+
+
+
             </div>
-            <div class="d-flex flex-row form-row">
-                <div class="col-3 field-group"><label class="form-label" for="fldPaymentReference">Payment
+
+            <div class="row g-3">
+
+                <div class="col-12 col-md-4 field-group"><label class="form-label" for="fldPaymentReference">Payment
                         Reference</label>
                     <input type="text" id="fldPaymentReference" name="fldPaymentReference" class="form-control"
                         [(ngModel)]="model.fldPaymentReference" maxlength="100">
                 </div>
-                <div class="col-3 field-group"><label class="form-label" for="fldPartyName">Party Name</label>
-                    <input type="text" id="fldPartyName" name="fldPartyName" class="form-control"
-                        [(ngModel)]="model.fldPartyName" maxlength="200">
+
+                <div class="col-12 col-md-4 field-group"><label class="form-label" for="fldPaymentMode">Payment
+                        Mode</label>
+                    <input type="text" id="fldPaymentMode" name="fldPaymentMode" class="form-control"
+                        [(ngModel)]="model.fldPaymentMode" maxlength="30">
                 </div>
-            </div>
-            <div class="d-flex flex-row form-row">
-                <div class="col-3 field-group"><label class="form-label" for="fldFKOrderId">Related Order ID</label>
-                    <input type="number" id="fldFKOrderId" name="fldFKOrderId" class="form-control"
-                        [(ngModel)]="model.fldFKOrderId" min="1" max="2147483647" step="1"><small
-                        class="text-muted">Optional reference; entered manually.</small>
-                </div>
-                <div class="col-3 field-group"><label class="form-label" for="fldInvoiceNumber">Invoice / Bill / Receipt
-                        No.</label>
-                    <input type="text" id="fldInvoiceNumber" name="fldInvoiceNumber" class="form-control"
-                        [(ngModel)]="model.fldInvoiceNumber" maxlength="100">
-                </div>
-            </div>
-            <div class="d-flex flex-row form-row">
-                <div class="col-3 field-group"><label class="form-label" for="fldDocumentPath">Document Path /
+
+                <div class="col-12 col-md-4 field-group"><label class="form-label" for="fldDocumentPath">Document Path /
                         URL</label>
                     <input type="text" id="fldDocumentPath" name="fldDocumentPath" class="form-control"
                         [(ngModel)]="model.fldDocumentPath" maxlength="1000">
                 </div>
-                <div class="col-3 field-group"><label class="form-label" for="fldServicePeriodFrom">Service Period
+
+            </div>
+
+            <div class="row g-4">
+
+                <div class="col-12 col-md-3 field-group"><label class="form-label" for="fldFKOrderId">Related Order
+                        ID</label>
+                    <input type="number" id="fldFKOrderId" name="fldFKOrderId" class="form-control"
+                        [(ngModel)]="model.fldFKOrderId" min="1" max="2147483647" step="1"><small
+                        class="text-muted">Optional reference; entered manually.</small>
+                </div>
+
+                <div class="col-12 col-md-3 field-group"><label class="form-label" for="fldFKTransactionId">Related
+                        Transaction
+                        ID</label>
+                    <input type="number" id="fldFKTransactionId" name="fldFKTransactionId" class="form-control"
+                        [(ngModel)]="model.fldFKTransactionId" min="1" max="2147483647" step="1"><small
+                        class="text-muted">Optional reference; entered manually.</small>
+                </div>
+
+
+                <div class="col-12 col-md-3 field-group"><label class="form-label" for="fldServicePeriodFrom">Service
+                        Period
                         From</label>
                     <input type="text" id="fldServicePeriodFrom" name="fldServicePeriodFrom" class="form-control"
                         [ngModel]="dateText.fldServicePeriodFrom"
@@ -186,9 +230,9 @@
                     @if (dateErrors.fldServicePeriodFrom) { <div class="text-danger">{{ dateErrors.fldServicePeriodFrom
                         }}</div> }
                 </div>
-            </div>
-            <div class="d-flex flex-row form-row">
-                <div class="col-3 field-group"><label class="form-label" for="fldServicePeriodTo">Service Period
+
+                <div class="col-12 col-md-3 field-group"><label class="form-label" for="fldServicePeriodTo">Service
+                        Period
                         To</label>
                     <input type="text" id="fldServicePeriodTo" name="fldServicePeriodTo" class="form-control"
                         [ngModel]="dateText.fldServicePeriodTo" (ngModelChange)="setDate('fldServicePeriodTo', $event)"
@@ -196,18 +240,18 @@
                     @if (dateErrors.fldServicePeriodTo) { <div class="text-danger">{{ dateErrors.fldServicePeriodTo }}
                     </div> }
                 </div>
+
+            </div>
+
+            <div class="d-flex flex-row form-row">
+
                 <div class="col-3 field-group"><label class="form-label" for="fldRemarks">Remarks</label>
                     <textarea id="fldRemarks" name="fldRemarks" class="form-control" [(ngModel)]="model.fldRemarks"
                         maxlength="1000" rows="2"></textarea>
                 </div>
             </div>
             <div class="d-flex flex-row form-row">
-                <div class="col-3 field-group"><label class="form-label" for="fldFKTransactionId">Related Transaction
-                        ID</label>
-                    <input type="number" id="fldFKTransactionId" name="fldFKTransactionId" class="form-control"
-                        [(ngModel)]="model.fldFKTransactionId" min="1" max="2147483647" step="1"><small
-                        class="text-muted">Optional reference; entered manually.</small>
-                </div>
+
             </div>
         </fieldset>
         <div class="page-actions-bar">

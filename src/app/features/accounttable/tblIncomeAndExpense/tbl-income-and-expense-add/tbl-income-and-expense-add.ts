@@ -117,7 +117,50 @@ export class TblIncomeAndExpenseAddComponent implements OnInit, OnDestroy {
     this.dateErrors = {};
     for (const field of incomeExpenseDateFields) this.dateText[field] = this.formatDate(this.model[field]);
   }
+
+  // Set true in the Add component; false in the Update component.
+  isAddMode = true;
+
+  private paidAmountManuallyEdited = false;
+
+  onBillAmountChange(value: number | null): void {
+
+    const billAmount = Number(value) || 0;
+
+    this.model.fldBillAmount = billAmount;
+
+    this.model.fldPaidorReceivedAmount = billAmount;
+
+    this.recalculate();
+
+    this.model.fldBalance2PayorReceive = 0;
+
+}
+
+onPaidAmountChange(value: number | null): void {
+
+    const paidAmount = Number(value) || 0;
+
+    this.model.fldPaidorReceivedAmount = paidAmount;
+
+    this.recalculate();
+
+    const billAmount = Number(this.model.fldBillAmount) || 0;
+
+    this.model.fldBalance2PayorReceive =
+        Math.round((billAmount - paidAmount) * 100) / 100;
+
+}
+
   recalculate(): void {
+    const billAmount = Number(this.model.fldBillAmount) || 0;
+
+    const paidAmount =
+      Number(this.model.fldPaidorReceivedAmount) || 0;
+
+    this.model.fldBalance2PayorReceive =
+      Math.round((billAmount - paidAmount) * 100) / 100;
+
     const amount = Number(this.model.fldBillAmount) || 0;
     this.model.fldIncome = this.model.fldTransactionType === 'Income' ? amount : 0;
     this.model.fldExpenses = this.model.fldTransactionType === 'Expense' ? amount : 0;
@@ -159,7 +202,7 @@ export class TblIncomeAndExpenseAddComponent implements OnInit, OnDestroy {
     if (this.model.fldTransactionType !== 'Income' && this.model.fldTransactionType !== 'Expense') return false;
     for (const amount of [this.model.fldBillAmount, this.model.fldPaidorReceivedAmount, this.model.fldBalance2PayorReceive, this.model.fldBalanceAmount]) {
       if (amount === null || amount === undefined || !Number.isFinite(amount) || amount < 0 || amount > 9999999999999999.99 ||
-          Math.abs(amount * 100 - Math.round(amount * 100)) > 0.001) return false;
+        Math.abs(amount * 100 - Math.round(amount * 100)) > 0.001) return false;
     }
     if ((this.model.fldBillAmount ?? 0) < 0.01) return false;
     for (const id of [this.model.fldFKOrderId, this.model.fldFKTransactionId])
@@ -183,7 +226,7 @@ export class TblIncomeAndExpenseAddComponent implements OnInit, OnDestroy {
   constructor(private service: TblIncomeAndExpenseService, private profileService: TblProfileService,
     private tblPropertySharedService: TblPropertySharedservice, private router: Router,
     private route: ActivatedRoute, private toastr: ToastrService, private cdr: ChangeDetectorRef,
-    @Inject(PLATFORM_ID) private platformId: object) {}
+    @Inject(PLATFORM_ID) private platformId: object) { }
   ngOnInit(): void { this.syncDateText(); this.loadChoices(); this.focusFirst(); }
   resetForm(): void {
     this.model = this.newModel(); this.profileName = ''; this.profileSearch = '';

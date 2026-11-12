@@ -331,11 +331,11 @@ private readonly apiUrl =
   private loginWithBackend(idToken: string, mobile: string): void {
 
     const payload = {
-      FldContactNumber: mobile,
-      FldFirebaseIdToken: idToken
+      fldContactNumber: mobile,
+      firebaseIdToken: idToken
     };
 
-    this.http.post<LoginResponse>(`${this.apiUrl}/LoginWithFirebase`, payload)
+    this.http.post<LoginResponse>(`${this.apiUrl}/ValidateFirebaseAndLogin`, payload)
       .subscribe({
 
         next: (response) => {

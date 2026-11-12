@@ -765,14 +765,14 @@ export class TblProfileAddComponent implements OnDestroy {
       // carries it.
       this.firebaseOtp.getIdToken().then((idToken) => {
 
-        const payload: TblProfileAdd & { fldFirebaseIdToken?: string | null } = {
+        const payload: TblProfileAdd & { firebaseIdToken?: string | null } = {
           ...this.model,
-          fldFirebaseIdToken: idToken
+          firebaseIdToken: idToken
         };
 
         this.addTblProfileSubscription = this.registrationHttp
           .post(
-            `${environment.apiBaseUrl}/api/TblProfile/RegisterProfile`,
+            `${environment.apiBaseUrl}/api/TblProfile/RegisterProfileWithFirebase`,
             payload
           )
           .subscribe(this.registrationSaveSubscriber());

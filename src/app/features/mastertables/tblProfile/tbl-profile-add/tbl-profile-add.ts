@@ -791,9 +791,9 @@ export class TblProfileAddComponent implements OnDestroy {
           return;
         }
 
-        const payload: TblProfileAdd & { firebaseIdToken?: string | null } = {
+        const payload: TblProfileAdd & { FldFirebaseIdToken?: string | null } = {
           ...this.model,
-          firebaseIdToken: idToken
+          FldFirebaseIdToken: idToken
         };
 
         this.addTblProfileSubscription = this.registrationHttp

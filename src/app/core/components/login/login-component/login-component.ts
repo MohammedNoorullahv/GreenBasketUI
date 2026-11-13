@@ -332,7 +332,7 @@ private readonly apiUrl =
 
     const payload = {
       fldContactNumber: mobile,
-      firebaseIdToken: idToken
+      FldFirebaseIdToken: idToken
     };
 
     this.http.post<LoginResponse>(`${this.apiUrl}/ValidateFirebaseAndLogin`, payload)

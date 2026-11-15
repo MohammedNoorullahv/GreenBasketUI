@@ -1,39 +1,9 @@
 <!-- =====================================
-     GREEN BASKET INTRO VIDEO
+     GREEN BASKET LOGIN
 ===================================== -->
 
 <div
-  class="intro-video-container"
-  *ngIf="showIntroVideo">
-
-  <video
-    #introVideo
-    class="intro-video"
-    autoplay
-    muted
-    playsinline
-    preload="auto"
-    (timeupdate)="onIntroVideoProgress()"
-    (ended)="onIntroVideoEnded()"
-    (error)="onIntroVideoError()">
-
-    <source
-      src="/Videos/relaffsol_Intro.mp4"
-      type="video/mp4">
-
-  </video>
-
-  <button type="button" class="intro-skip-button" (click)="skipIntro()"
-    aria-label="Skip introduction and show login">
-    Skip Intro <span aria-hidden="true">→</span>
-  </button>
-
-</div>
-
-
-<div
-  class="login-page"
-  *ngIf="!showIntroVideo">
+  class="login-page">
 
   <div class="login-shell">
 
@@ -72,6 +42,9 @@
     </aside>
 
     <div class="login-card">
+
+    <!-- Invisible reCAPTCHA container required by Firebase Phone Auth -->
+    <div id="loginRecaptchaContainer" aria-hidden="true"></div>
 
     <!-- Logo / Branding -->
 
@@ -181,22 +154,12 @@
         </div>
 
 
-        <!-- <button class="primary-button" type="submit" [disabled]="isLoading">
+        <button class="primary-button" type="submit" [disabled]="isLoading || isSendingOtp">
 
           {{
-          isLoading
+          isSendingOtp
           ? 'Sending OTP...'
           : 'Send OTP'
-          }}
-
-        </button> -->
-
-           <button class="primary-button" type="submit" [disabled]="isLoading">
-
-          {{
-          isLoading
-          ? 'Proceeding...'
-          : 'Proceed with MPIN'
           }}
 
         </button>
@@ -205,8 +168,8 @@
 
 
       <!-- =====================================
-     MPIN VERIFICATION SCREEN
-===================================== -->
+      OTP VERIFICATION SCREEN (Firebase)
+      ===================================== -->
 
       <form *ngIf="otpSent" (ngSubmit)="verifyLogin()" class="login-form">
 
@@ -219,44 +182,52 @@
           </div>
 
           <h3>
-            Enter Your MPIN
+            Verify OTP
           </h3>
 
           <p>
-            Use your existing MPIN to continue.
+            Enter the 6-digit code sent to your mobile number.
           </p>
 
           <div class="otp-mobile">
 
             +91 {{ mobileNumber }}
 
-            <button type="button" class="change-number-btn" [disabled]="isLoading"
+            <button type="button" class="change-number-btn" [disabled]="isLoading || isSendingOtp"
               (click)="changeMobileNumber()">Change</button>
 
           </div>
 
         </div>
 
-        <label class="input-label" for="mpin">Enter {{ mpinLength }}-digit MPIN</label>
+        <label class="input-label" for="otp">Enter 6-digit OTP</label>
 
-          <input id="mpin" name="mpin" class="otp-input" [type]="showMPIN ? 'text' : 'password'"
-            inputmode="numeric" autocomplete="current-password" [maxlength]="mpinLength"
-            [pattern]="'[0-9]{' + mpinLength + '}'"
-            [(ngModel)]="mpin" (ngModelChange)="onMPINChange($event)" [disabled]="isLoading" required />
+          <input id="otp" name="otp" class="otp-input" type="text" inputmode="numeric"
+            autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="••••••"
+            [(ngModel)]="otp" (ngModelChange)="onOtpChange($event)" [disabled]="isLoading || isSendingOtp"
+            required />
 
-          <button type="button" class="change-number-btn" [disabled]="isLoading"
-            [attr.aria-pressed]="showMPIN" (click)="showMPIN = !showMPIN">
+        <div class="resend-row">
 
-            {{ showMPIN ? 'Hide MPIN' : 'Show MPIN' }}
+          @if (resendCooldown > 0) {
+            <span class="resend-countdown" [class.resend-active]="isSendingOtp">
+              {{ isSendingOtp ? 'Resending OTP…' : 'Resend OTP in ' + resendCooldown + 's' }}
+            </span>
+          } @else {
+            <button type="button" class="change-number-btn resend-button" [disabled]="isLoading || isSendingOtp"
+              (click)="resendOTP()">
+              {{ isSendingOtp ? 'Resending OTP…' : 'Resend OTP' }}
+            </button>
+          }
 
-          </button>
+        </div>
 
-          <p class="otp-expiry">Use your existing MPIN.</p>
+        <p class="otp-expiry">Didn't receive the code? Use the Resend option above.</p>
 
         <button class="primary-button" type="submit"
-          [disabled]="isLoading || mpin.length !== mpinLength">
+          [disabled]="isLoading || isSendingOtp || otp.length !== 6">
 
-          {{ isLoading ? 'Verifying MPIN...' : 'Verify MPIN' }}
+          {{ isLoading ? 'Verifying OTP...' : 'Verify OTP' }}
 
         </button>
 
@@ -278,7 +249,7 @@
           New User?
         </span>
 
-        <a routerLink="/mastertables/tblProfile/add">
+        <a routerLink="/register">
 
           Register
 

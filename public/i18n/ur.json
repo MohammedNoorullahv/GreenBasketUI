@@ -362,7 +362,12 @@
     "DELIVERY_OPTIONS": "ڈیلیوری کے اختیارات",
     "EDIT": "ترمیم",
     "EDIT_DELIVERY_OPTIONS": "ڈیلیوری کے اختیارات میں ترمیم کریں",
-    "LOCAL_VENDOR": "مقامی دکاندار"
+    "LOCAL_VENDOR": "مقامی دکاندار",
+    "FILTERS": "فلٹرز",
+    "CATEGORIES": "اقسام",
+    "VENDORS": "وینڈرز",
+    "CLEAR_ALL": "سب صاف کریں",
+    "FILTERED_ITEMS": "فلٹر شدہ اشیاء"
   },
   "DailyInventoryList": {
     "TODAY_S_VEGETABLES": "کل آئٹمز",
@@ -465,6 +470,9 @@
     "ITEM_TYPE": "آئٹم کی قسم",
     "ALL_ITEM_TYPES": "تمام آئٹم کی اقسام",
     "FILTER_BY_ITEM_TYPE": "آئٹم کی قسم کے مطابق فلٹر کریں",
-    "CLEAR_ITEM_TYPE_FILTER": "آئٹم قسم کا فلٹر صاف کریں"
+    "CLEAR_ITEM_TYPE_FILTER": "آئٹم قسم کا فلٹر صاف کریں",
+    "FILTERS": "فلٹرز",
+    "CATEGORIES": "اقسام",
+    "CLEAR_ALL": "سب صاف کریں"
   }
 }

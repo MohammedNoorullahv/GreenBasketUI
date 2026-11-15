@@ -37,7 +37,12 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
   private vendorChosenByUser = false;
   // Vendor display names come from the order-catalogue API; rows only carry ids.
   private vendorNameById = new Map<number, string>();
-  selectedCategory = '';
+  // Amazon-style category filter rail (mirrors the customer shopping screen).
+  // An empty list means "All categories"; every checked sidebar category
+  // narrows the entry list.
+  selectedCategories: string[] = [];
+  /** Mobile: the left filter rail collapses into a toggleable panel. */
+  filtersOpen = false;
   selectedItemType = '';
   isMobileView = false;
   private mediaQuery: MediaQueryList | null = null;
@@ -229,9 +234,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
     }
 
     // Drop cascaded filters that no longer exist within the vendor scope.
-    if (this.selectedCategory && !this.categories.some(cat => cat.name === this.selectedCategory)) {
-      this.selectedCategory = '';
-    }
+    this.pruneCategorySelection();
     if (this.selectedItemType && !this.itemTypes.some(type => type.name === this.selectedItemType)) {
       this.selectedItemType = '';
     }
@@ -245,9 +248,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
     this.vendorChosenByUser = true;
     this.selectedVendor = vendor;
     // Reset cascaded filters if they no longer exist within the new vendor scope.
-    if (this.selectedCategory && !this.categories.some(cat => cat.name === this.selectedCategory)) {
-      this.selectedCategory = '';
-    }
+    this.pruneCategorySelection();
     if (this.selectedItemType && !this.itemTypes.some(type => type.name === this.selectedItemType)) {
       this.selectedItemType = '';
     }
@@ -301,13 +302,36 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
       .map(([name, count]) => ({ name, count }));
   }
 
-  setCategory(name: string): void {
-    this.selectedCategory = name;
-    // Reset the cascaded item type filter if it does not exist in the new category.
-    if (this.selectedItemType && !this.itemTypes.some(t => t.name === this.selectedItemType)) {
+  /** Drops selected categories that no longer exist in the vendor scope. */
+  private pruneCategorySelection(): void {
+    const valid = new Set(this.categories.map(cat => cat.name));
+    this.selectedCategories = this.selectedCategories.filter(name => valid.has(name));
+  }
+
+  /** Adds/removes one category checkbox and resets cascaded filters + paging. */
+  toggleCategory(name: string): void {
+    this.selectedCategories = this.selectedCategories.includes(name)
+      ? this.selectedCategories.filter(category => category !== name)
+      : [...this.selectedCategories, name];
+    // Reset the cascaded item type filter if it does not exist in the new scope.
+    if (this.selectedItemType && !this.itemTypes.some(type => type.name === this.selectedItemType)) {
       this.selectedItemType = '';
     }
     this.resetPagination();
+  }
+
+  isCategorySelected(name: string): boolean {
+    return this.selectedCategories.includes(name);
+  }
+
+  /** Whether any sidebar/toolbar filter is active (drives the Clear-all chip). */
+  get activeFilterCount(): number {
+    return this.selectedCategories.length + (this.selectedItemType ? 1 : 0);
+  }
+
+  /** Mobile drawer toggle for the filter rail. */
+  toggleFilters(): void {
+    this.filtersOpen = !this.filtersOpen;
   }
 
   setItemType(name: string): void {
@@ -319,7 +343,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
     const counts = new Map<string, number>();
     for (const row of this.rows) {
       if (!row.fldIsDisplay || !this.vendorScoped(row)) continue;
-      if (this.selectedCategory && this.categoryNameOf(row) !== this.selectedCategory) continue;
+      if (this.selectedCategories.length > 0 && !this.selectedCategories.includes(this.categoryNameOf(row))) continue;
       const name = this.typeNameOf(row);
       if (!name) continue;
       counts.set(name, (counts.get(name) ?? 0) + 1);
@@ -333,7 +357,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
     return this.rows.filter(r =>
       r.fldIsDisplay &&
       this.vendorScoped(r) &&
-      (!this.selectedCategory || this.categoryNameOf(r) === this.selectedCategory)
+      (this.selectedCategories.length === 0 || this.selectedCategories.includes(this.categoryNameOf(r)))
     ).length;
   }
 
@@ -343,6 +367,7 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
 
   clearAllFilters(): void {
     this.searchText = '';
+    this.selectedCategories = [];
     this.selectedItemType = '';
     this.resetPagination();
   }
@@ -359,10 +384,11 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
       // Selected vendor scope (chips lead the screen)
       this.vendorScoped(row) &&
 
-      // Category filter (chip bar)
-      (!this.selectedCategory || this.categoryNameOf(row) === this.selectedCategory) &&
+      // Category filter (sidebar rail, multi-select like the order screens)
+      (this.selectedCategories.length === 0 ||
+        this.selectedCategories.includes(this.categoryNameOf(row))) &&
 
-      // Item type filter (cascades from the selected category)
+      // Item type filter (cascades from the selected categories)
       (!this.selectedItemType || this.typeNameOf(row) === this.selectedItemType) &&
 
       // Existing Changed Only filter
@@ -391,7 +417,8 @@ export class TblDailyInventoryAddComponent implements OnInit, OnDestroy {
     return this.rows.filter(row =>
       row.fldIsDisplay &&
       this.vendorScoped(row) &&
-      (!this.selectedCategory || this.categoryNameOf(row) === this.selectedCategory) &&
+      (this.selectedCategories.length === 0 ||
+        this.selectedCategories.includes(this.categoryNameOf(row))) &&
       (!this.selectedItemType || this.typeNameOf(row) === this.selectedItemType) &&
       (!this.showOnlyChanged || this.isChanged(row)) &&
       (!q || [

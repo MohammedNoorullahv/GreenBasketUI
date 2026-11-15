@@ -22,7 +22,9 @@
 
   min-height: 0;
 
-  overflow: hidden;
+  /* `clip` keeps overflowing content invisible without creating a scroll
+     container, so sticky headers in routed screens pin against the viewport. */
+  overflow: clip;
 
   background-color: #eef6f0;
 }
@@ -44,7 +46,7 @@ app-branding {
   display: flex;
   flex-direction: column;
 
-  overflow: hidden;
+  overflow: clip;
 }
 
 app-footer {

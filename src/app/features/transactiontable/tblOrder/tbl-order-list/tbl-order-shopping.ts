@@ -53,7 +53,9 @@ interface SavedCartState {
     | 'Advance Delivery';
   requestedDeliveryDate: string;
   searchText: string;
-  category: string;
+  categories: string[];
+  /** Legacy single-choice field kept so older saved baskets still restore. */
+  category?: string;
   viewMode: 'grid' | 'list';
   vendorFilter: number | 'all';
 }
@@ -85,7 +87,12 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
   priceChangeOption: 'Auto Apply' | 'Get Confirmation' = 'Get Confirmation';
   requestedDeliveryDate = this.today();
   searchText = '';
-  category = 'All';
+  // Amazon-style multi-select category filter. An empty list means "All
+  // categories"; every checked sidebar category narrows the catalogue.
+  selectedCategories: string[] = [];
+  // Filter sidebar panel state. Always expanded on desktop; on small screens
+  // the toolbar button toggles it so the catalogue stays front and centre.
+  filtersOpen = false;
   // Grid shows image cards; list is a compact, no-image table-like view.
   viewMode: 'grid' | 'list' = 'grid';
   // Exactly one vendor is always selected. The first vendor becomes the
@@ -353,9 +360,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
           this.vendorFilter = options.some(vendor => vendor.fldId === this.vendorFilter)
             ? this.vendorFilter
             : (options.length > 0 ? options[0].fldId : 'all');
-          if (this.category !== 'All' && !this.categories.includes(this.category)) {
-            this.category = 'All';
-          }
+          this.pruneCategorySelection();
 
           if (!this.orderViewDestroyed) this.cdr.detectChanges();
         },
@@ -363,7 +368,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
           this.stock = [];
           this.vendorOptions = [];
           this.vendorFilter = 'all';
-          this.category = 'All';
+          this.selectedCategories = [];
           this.resetCatalogPagination();
           console.error('Unable to load vendor catalogue:', err);
           this.toastr.error('Unable to load available products. Please try again.');
@@ -425,13 +430,39 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
   }
 
   get categories(): string[] {
-    return ['All', ...new Set(this.vendorScopedStock.map(x => x.fldCategoryName || 'Other'))];
+    return [...new Set(this.vendorScopedStock.map(x => x.fldCategoryName || 'Other'))]
+      .sort((a, b) => a.localeCompare(b));
+  }
+
+  /** Drops selected categories that no longer exist in the loaded catalogue. */
+  private pruneCategorySelection(): void {
+    const valid = new Set(this.categories);
+    this.selectedCategories = this.selectedCategories.filter(c => valid.has(c));
   }
 
   get visibleStock(): OrderStockItem[] {
     const eligible = this.vendorScopedStock.filter(x =>
-      this.category === 'All' || (x.fldCategoryName || 'Other') === this.category);
+      this.selectedCategories.length === 0 ||
+      this.selectedCategories.includes(x.fldCategoryName || 'Other'));
     return this.searchText.trim() ? rankStock(this.searchText, eligible, eligible.length) : eligible;
+  }
+
+  /** How many catalogue items each sidebar checkbox would match. */
+  categoryStockCount(category: string): number {
+    return this.vendorScopedStock.filter(x => (x.fldCategoryName || 'Other') === category).length;
+  }
+
+  isCategorySelected(category: string): boolean {
+    return this.selectedCategories.includes(category);
+  }
+
+  /** Number of active filters, shown on the mobile toggle and the Clear button. */
+  get activeFilterCount(): number {
+    return this.selectedCategories.length + (this.vendorFilter !== 'all' ? 1 : 0);
+  }
+
+  get selectedVendorName(): string {
+    return this.vendorOptions.find(vendor => vendor.fldId === this.vendorFilter)?.fldDescription ?? '';
   }
 
   /** Products currently rendered in the grid/list (the first page and beyond). */
@@ -510,9 +541,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
     // active so only that vendor's items are ever listed.
     if (filter === 'all' || this.vendorFilter === filter) return;
     this.vendorFilter = filter;
-    if (this.category !== 'All' && !this.categories.includes(this.category)) {
-      this.category = 'All';
-    }
+    this.pruneCategorySelection();
     this.resetCatalogPagination();
     this.clearHiddenQuantityErrors();
     this.cdr.detectChanges();
@@ -674,8 +703,35 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
     this.quantityErrors = next;
   }
 
-  setCategory(category: string): void {
-    this.category = category;
+  /** Adds/removes one category checkbox and restarts catalogue paging. */
+  toggleCategory(category: string): void {
+    this.selectedCategories = this.selectedCategories.includes(category)
+      ? this.selectedCategories.filter(c => c !== category)
+      : [...this.selectedCategories, category];
+    this.applyCatalogFilterChange();
+  }
+
+  /** Clears categories (and optionally the vendor chip) from the sidebar. */
+  clearAllFilters(): void {
+    this.selectedCategories = [];
+    this.vendorFilter = 'all';
+    this.applyCatalogFilterChange();
+  }
+
+  /** Removes the vendor chip from the active-filter bar. */
+  clearVendorFilter(): void {
+    if (this.vendorFilter === 'all') return;
+    this.vendorFilter = 'all';
+    this.applyCatalogFilterChange();
+  }
+
+  /** Closes/opens the filter panel on small screens. */
+  toggleFilters(): void {
+    this.filtersOpen = !this.filtersOpen;
+    this.cdr.detectChanges();
+  }
+
+  private applyCatalogFilterChange(): void {
     this.resetCatalogPagination();
     this.clearHiddenQuantityErrors();
     this.cdr.detectChanges();
@@ -955,9 +1011,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
     // Stay single-vendor: re-select the first vendor instead of a mixed view.
     this.vendorFilter = this.vendorOptions.length > 0 ? this.vendorOptions[0].fldId : 'all';
 
-    if (this.category !== 'All' && !this.categories.includes(this.category)) {
-      this.category = 'All';
-    }
+    this.pruneCategorySelection();
 
     this.upiQrDataUrl = '';
     this.upiTransactionReference = '';
@@ -981,7 +1035,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
         fldOrderType: this.fldOrderType,
         requestedDeliveryDate: this.requestedDeliveryDate,
         searchText: this.searchText,
-        category: this.category,
+        categories: this.selectedCategories,
         viewMode: this.viewMode,
         vendorFilter: this.vendorFilter
       };
@@ -1062,8 +1116,11 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
       if (typeof state.searchText === 'string') {
         this.searchText = state.searchText;
       }
-      if (typeof state.category === 'string') {
-        this.category = state.category;
+      if (Array.isArray(state.categories)) {
+        this.selectedCategories = state.categories.filter(c => typeof c === 'string');
+      } else if (typeof state.category === 'string' && state.category && state.category !== 'All') {
+        // Baskets saved before the multi-select upgrade stored one category.
+        this.selectedCategories = [state.category];
       }
       if (state.viewMode === 'grid' || state.viewMode === 'list') {
         this.viewMode = state.viewMode;
@@ -2176,7 +2233,7 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
 
     this.searchText = '';
 
-    this.category = 'All';
+    this.selectedCategories = [];
 
     this.orderOption = 'Current Day Order';
 

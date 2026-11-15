@@ -46,3 +46,7 @@ Thumbs.db
 .env.*
 !.env.example
 
+# Real environment configs contain API keys — keep local only, track the example
+src/environments/environment.ts
+src/environments/environment.development.ts
+

@@ -365,7 +365,12 @@
     "DELIVERY_OPTIONS": "Delivery options",
     "EDIT": "Edit",
     "EDIT_DELIVERY_OPTIONS": "Edit delivery options",
-    "LOCAL_VENDOR": "Local vendor"
+    "LOCAL_VENDOR": "Local vendor",
+    "FILTERS": "Filters",
+    "CATEGORIES": "Categories",
+    "VENDORS": "Vendors",
+    "CLEAR_ALL": "Clear all",
+    "FILTERED_ITEMS": "Filtered items"
   },
   "DailyInventoryList": {
     "TODAY_S_VEGETABLES": "Total Items",
@@ -472,6 +477,9 @@
     "ALL_RECORDS_LOADED": "All {{p0}} records loaded",
     "ALL_VENDORS": "All vendors",
     "FILTER_BY_VENDOR": "Filter by vendor",
+    "FILTERS": "Filters",
+    "CATEGORIES": "Categories",
+    "CLEAR_ALL": "Clear all",
     "REVIEW_UNSAVED_CHANGES": "Review unsaved changes"
   }
 }

@@ -28,12 +28,21 @@ type BottomNavItem = {
     :host .sidebar {
       display: flex;
       flex-direction: column;
-      height: 100vh;
-      height: 100dvh;
-      max-height: 100dvh;
+      /* Desktop: fill the space between the company header and footer.
+         A fixed 100vh here would push the logout footer off-screen. */
+      height: 100%;
+      max-height: 100%;
       min-height: 0;
       overflow: hidden;
       box-sizing: border-box;
+    }
+    /* Mobile drawer: it is position:fixed, so it owns the whole viewport. */
+    @media (max-width: 991px) {
+      :host .sidebar {
+        height: 100vh;
+        height: 100dvh;
+        max-height: 100dvh;
+      }
     }
     :host .sidebar > .sidebar-header { flex: 0 0 auto; }
     :host .sidebar > .sidebar-menu {

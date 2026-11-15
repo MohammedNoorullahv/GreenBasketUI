@@ -36,7 +36,10 @@
   height: 100%;
   min-height: 0;
   width: 100%;
-  overflow: hidden;
+  /* `clip` still clips overflowing children but, unlike `hidden`, does not
+     turn this box into a scroll container — sticky headers inside the routed
+     screens can then pin against the real scrolling element. */
+  overflow: clip;
   background-color: var(--main-bg);
   font-family: var(--font-menu);
   -webkit-font-smoothing: antialiased;
@@ -527,7 +530,9 @@
 
     color: var(--text-light);
     flex: 0 0 auto;
-    position: relative;
+    /* Pinned: the application top bar never scrolls out of view. */
+    position: sticky;
+    top: 0;
     z-index: 120;
     box-shadow: 0 8px 24px rgba(6, 22, 30, 0.28);
   }

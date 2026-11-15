@@ -34,17 +34,31 @@
 .stock-save-count { margin-right: auto; font-size: .85rem; color: #475569; }
 @media (max-width: 640px) { .stock-search { max-width: none; flex: 1 1 100%; } .stock-card { padding: .35rem; } .stock-table th, .stock-table td { padding: .4rem; } }
 
-/* ---- Category chip filter ---- */
+/* ---- Category filter rail (mirrors the order-screen filter sidebar) ---- */
 .stock-total-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 1.7rem; padding: .12rem .55rem; margin-left: .45rem; border-radius: 999px; background: #078653; color: #fff; font-size: .78rem; font-weight: 700; vertical-align: middle; }
 .stock-message .column-filter-clear { margin-left: .6rem; }
-.stock-category-bar { display: flex; gap: .5rem; overflow-x: auto; padding: .25rem .1rem .65rem; margin-bottom: .5rem; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
-.stock-category-bar::-webkit-scrollbar { height: 5px; }
-.stock-category-bar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
-.stock-category-chip { display: inline-flex; align-items: center; gap: .4rem; padding: .42rem .85rem; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #334155; font-size: .85rem; font-weight: 600; white-space: nowrap; cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
-.stock-category-chip:hover { border-color: #078653; color: #078653; }
-.stock-category-chip.active { background: #078653; border-color: #078653; color: #fff; }
-.stock-category-chip .chip-count { background: rgba(15, 23, 42, .08); color: inherit; font-size: .72rem; font-weight: 700; padding: .05rem .45rem; border-radius: 999px; }
-.stock-category-chip.active .chip-count { background: rgba(255, 255, 255, .25); }
+
+/* Two-column catalogue: filter rail + entry list, reusing the shared
+   gb-* filter styles from common.css. */
+.stock-catalog-layout {
+  /* The stock page scrolls inside the app shell; no pinned header offset. */
+  --gb-header-h: 0px;
+  margin-top: .25rem;
+}
+
+.stock-catalog-main { min-width: 0; }
+
+.gb-filters .stock-type-select { min-width: 0; width: 100%; }
+
+.stock-type-clear-rail { margin-top: .5rem; }
+
+.gb-filter-empty {
+  margin: 0;
+  padding: 4px 8px;
+  color: #7d9186;
+  font-size: 12px;
+  font-weight: 600;
+}
 
 /* ---- Item type filter (cascades from selected category) ---- */
 .stock-type-filter { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; margin-bottom: .65rem; }
@@ -113,7 +127,6 @@
 .stock-available-toggle .stock-field-label { margin-bottom: 0; }
 
 @media (max-width: 640px) {
-  .stock-category-chip { font-size: .8rem; padding: .38rem .75rem; }
   .stock-type-select { flex: 1 1 auto; min-width: 0; width: auto; }
   .stock-number-input { font-size: 1rem; }
   .stock-card-controls { flex-wrap: nowrap; }
@@ -299,8 +312,7 @@
 .stock-vendor-chip .chip-changed { background: #fcd34d; color: #92400e; }
 .stock-vendor-chip.active .chip-changed { background: #f59e0b; color: #fff; }
 
-.stock-vendor-chip:focus-visible,
-.stock-category-chip:focus-visible {
+.stock-vendor-chip:focus-visible {
   outline: 3px solid rgba(7, 134, 83, .3);
   outline-offset: 2px;
 }

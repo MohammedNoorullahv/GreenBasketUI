@@ -3746,15 +3746,25 @@ app-tbl-order-shopping .gb-page {
 
 /* ---------------- Catalog toolbar ---------------- */
 
+/* Two-screen approach: the green app bar sticks to the very top, and this
+   search toolbar sticks directly below it, so search + filters are always
+   reachable no matter how far the catalogue has scrolled. */
+app-tbl-order-shopping {
+  --gb-header-h: 69px;
+}
+
 .gb-catalog-toolbar {
+  position: sticky;
+  top: var(--gb-header-h);
+  z-index: 20;
   display: grid;
-  grid-template-columns: minmax(240px, 370px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 18px;
-  padding: 13px 16px;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
   border: 1px solid #dfece4;
-  border-radius: 16px;
+  border-radius: 14px;
   background: #ffffff;
   box-shadow: 0 5px 18px rgba(16, 74, 46, .05);
 }
@@ -3775,45 +3785,6 @@ app-tbl-order-shopping .gb-page {
 
 .gb-search .gb-input {
   padding-left: 40px;
-}
-
-.gb-categories {
-  display: flex;
-  gap: 7px;
-  margin: 0;
-  padding: 2px 0;
-  overflow-x: auto;
-  scrollbar-width: thin;
-}
-
-.gb-categories button {
-  flex-shrink: 0;
-  min-height: 36px;
-  padding: 0 15px;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  background: #eef4f0;
-  color: #3f5a4c;
-  font-size: 12.5px;
-  font-weight: 700;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background-color .18s ease, color .18s ease, border-color .18s ease;
-}
-
-.gb-categories button:hover {
-  background: #e3f0e9;
-}
-
-.gb-categories button.active {
-  border-color: #0b7a3b;
-  background: #0b7a3b;
-  color: #ffffff;
-}
-
-.gb-categories button:focus-visible {
-  outline: 3px solid rgba(11, 122, 59, .3);
-  outline-offset: 2px;
 }
 
 /* ---------------- Vendor filters ---------------- */
@@ -3896,6 +3867,213 @@ app-tbl-order-shopping .gb-page {
 .gb-vendor-chip.active .gb-vendor-chip-count {
   background: rgba(255, 255, 255, .22);
   color: #ffffff;
+}
+
+/* ---------------- Catalog layout: filter rail + products ---------------- */
+
+.gb-catalog-layout {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+}
+
+/* Left rail: sticky under the two pinned bars so the category checkboxes
+   stay on screen while the product grid scrolls, Amazon style. */
+.gb-filters {
+  position: sticky;
+  top: calc(var(--gb-header-h) + 12px);
+  z-index: 10;
+  /* Reserve room for the branding bar and footer so the rail always fits
+     inside the visible part of the scroll area. */
+  max-height: calc(100vh - var(--gb-header-h) - 130px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px;
+  border: 1px solid #dfece4;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 5px 18px rgba(16, 74, 46, .05);
+  scrollbar-width: thin;
+}
+
+.gb-filters-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.gb-filters-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #143a2a;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -.01em;
+}
+
+.gb-filters-title i {
+  color: #0b7a3b;
+  font-size: 14px;
+}
+
+.gb-filters-clear {
+  padding: 4px 9px;
+  border: 0;
+  border-radius: 999px;
+  background: #eef4f0;
+  color: #3f5a4c;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color .18s ease, color .18s ease;
+}
+
+.gb-filters-clear:hover {
+  background: #0b7a3b;
+  color: #ffffff;
+}
+
+.gb-filters-clear:focus-visible {
+  outline: 3px solid rgba(11, 122, 59, .3);
+  outline-offset: 2px;
+}
+
+.gb-filter-group {
+  padding: 10px 0 2px;
+}
+
+.gb-filter-group + .gb-filter-group {
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid #edf4f0;
+}
+
+.gb-filter-group h4 {
+  margin: 0 0 6px;
+  color: #6b8175;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.gb-filter-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gb-filter-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color .15s ease;
+}
+
+.gb-filter-option:hover {
+  background: #f2f8f4;
+}
+
+.gb-filter-option:focus-within {
+  outline: 3px solid rgba(11, 122, 59, .25);
+  outline-offset: -2px;
+}
+
+/* Native checkbox keeps keyboard + screen-reader behaviour; accent-color
+   paints it in the Green Basket green. */
+.gb-filter-option input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: #0b7a3b;
+  cursor: pointer;
+}
+
+.gb-filter-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: #3f5a4c;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gb-filter-count {
+  flex-shrink: 0;
+  color: #7d9186;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Vendor chips live in the rail now, so drop their old toolbar separator. */
+.gb-filters .gb-vendor-filters {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 7px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.gb-filters .gb-vendor-chip {
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Mobile filters toggle: hidden on desktop where the rail is always open. */
+.gb-filters-toggle {
+  display: none;
+}
+
+.gb-active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.gb-active-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 4px 12px;
+  border: 1px solid #bfd8c9;
+  border-radius: 999px;
+  background: #e7f3ec;
+  color: #14503a;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease;
+}
+
+.gb-active-chip:hover {
+  border-color: #d9534f;
+  background: #fdeceb;
+  color: #a83a37;
+}
+
+.gb-active-chip:focus-visible {
+  outline: 3px solid rgba(11, 122, 59, .3);
+  outline-offset: 2px;
+}
+
+.gb-active-chip i {
+  font-size: 10px;
 }
 
 .gb-catalog-heading {
@@ -5500,6 +5678,86 @@ app-tbl-order-shopping .gb-footer {
     gap: 10px;
   }
 
+  /* Below 820px the left rail collapses into a toggleable panel that
+     opens between the search bar and the product grid. */
+  .gb-filters-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 0 14px;
+    border: 1px solid #dce9e2;
+    border-radius: 999px;
+    background: #f7fbf8;
+    color: #3d5b4b;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color .18s ease, border-color .18s ease, color .18s ease;
+  }
+
+  .gb-filters-toggle i {
+    color: #0b7a3b;
+  }
+
+  .gb-filters-toggle:hover {
+    border-color: #b9d6c5;
+    background: #f0f8f3;
+  }
+
+  .gb-filters-toggle.has-filters {
+    border-color: #0b7a3b;
+    background: #0b7a3b;
+    color: #ffffff;
+  }
+
+  .gb-filters-toggle.has-filters i {
+    color: #ffffff;
+  }
+
+  .gb-filters-toggle:focus-visible {
+    outline: 3px solid rgba(11, 122, 59, .3);
+    outline-offset: 2px;
+  }
+
+  .gb-filters-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #e5efe9;
+    color: #42614f;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .gb-filters-toggle.has-filters .gb-filters-count {
+    background: rgba(255, 255, 255, .22);
+    color: #ffffff;
+  }
+
+  .gb-catalog-layout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .gb-filters {
+    display: none;
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .gb-filters.gb-filters-open {
+    display: block;
+  }
+
   .gb-order-hero {
     align-items: flex-start;
     flex-direction: column;
@@ -5557,6 +5815,10 @@ app-tbl-order-shopping .gb-footer {
 }
 
 @media (max-width: 640px) {
+  app-tbl-order-shopping {
+    --gb-header-h: 59px;
+  }
+
   app-tbl-order-shopping .gb-page {
     padding: 10px 12px 28px;
   }
@@ -5806,7 +6068,7 @@ app-tbl-order-shopping .gb-footer {
   .gb-footer-cta,
   .gb-place-order-btn,
   .gb-choice-card-content,
-  .gb-categories button,
+  .gb-vendor-chip,
   .gb-quantity button,
   .gb-policy-progress > span,
   .gb-footer-progress-track > span {

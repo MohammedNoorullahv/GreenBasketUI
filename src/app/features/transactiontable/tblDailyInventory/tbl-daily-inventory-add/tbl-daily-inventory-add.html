@@ -22,6 +22,15 @@
       <button type="button" class="btn-app btn-outline" (click)="loadStock()"
         [disabled]="loading || isSaving || changedCount > 0"
         [title]="'DailyInventoryAdd.RELOAD_IS_DISABLED_WHILE_THERE_ARE_UNSAVED_CHANGES' | translate">{{ 'DailyInventoryAdd.REFRESH' | translate }}</button>
+      <button type="button" class="gb-filters-toggle" (click)="toggleFilters()"
+        [class.has-filters]="activeFilterCount > 0"
+        [attr.aria-expanded]="filtersOpen"
+        [attr.aria-controls]="'stockFilterPanel'"
+        [attr.aria-label]="'DailyInventoryAdd.FILTERS' | translate">
+        <i class="bi bi-funnel" aria-hidden="true"></i>
+        <span>{{ 'DailyInventoryAdd.FILTERS' | translate }}</span>
+        <span class="gb-filters-count" *ngIf="activeFilterCount > 0" aria-hidden="true">{{ activeFilterCount }}</span>
+      </button>
     </div>
 
     <!-- Vendor selection leads the screen: the stock list below always
@@ -48,43 +57,63 @@
       </button>
     </div>
 
-    <div class="stock-category-bar" *ngIf="!loading && rows.length > 0" role="group"
-      [attr.aria-label]="'DailyInventoryAdd.FILTER_BY_CATEGORY' | translate">
-      <button type="button" class="stock-category-chip" [class.active]="selectedCategory === ''" (click)="setCategory('')">
-        {{ 'DailyInventoryAdd.ALL' | translate }}
-        <span class="chip-count">{{ displayedCount }}</span>
-      </button>
-      <button type="button" class="stock-category-chip" *ngFor="let cat of categories"
-        [class.active]="selectedCategory === cat.name" (click)="setCategory(cat.name)">
-        {{ cat.name }}
-        <span class="chip-count">{{ cat.count }}</span>
-      </button>
-    </div>
-
-    <div class="stock-type-filter" *ngIf="!loading && rows.length > 0 && itemTypes.length > 0">
-      <label class="stock-type-label" for="itemTypeFilter">
-        <i class="bi bi-funnel"></i>{{ 'DailyInventoryAdd.ITEM_TYPE' | translate }}
-      </label>
-      <select id="itemTypeFilter" class="stock-type-select" name="itemTypeFilter" [(ngModel)]="selectedItemType"
-        [class.filter-active]="selectedItemType" [disabled]="loading || isSaving"
-        (ngModelChange)="resetPagination()"
-        [attr.aria-label]="'DailyInventoryAdd.FILTER_BY_ITEM_TYPE' | translate">
-        <option value="">
-          {{ 'DailyInventoryAdd.ALL_ITEM_TYPES' | translate }} ({{ itemTypeScopeCount }})
-        </option>
-        <option *ngFor="let type of itemTypes" [value]="type.name">{{ type.name }} ({{ type.count }})</option>
-      </select>
-      <button *ngIf="selectedItemType" type="button" class="stock-type-clear"
-        (click)="setItemType('')" [title]="'DailyInventoryAdd.CLEAR_ITEM_TYPE_FILTER' | translate"
-        [attr.aria-label]="'DailyInventoryAdd.CLEAR_ITEM_TYPE_FILTER' | translate">
-        <i class="bi bi-x-lg"></i>
-      </button>
-    </div>
-
     <div *ngIf="loading" class="stock-message">{{ 'DailyInventoryAdd.LOADING_TODAY_S_VEGETABLES' | translate }}</div>
     <div *ngIf="!loading && rows.length === 0" class="stock-message">{{ 'DailyInventoryAdd.NO_ACTIVE_ITEMS_FOUND' | translate }}</div>
 
-    <div class="stock-grid-scroll">
+    <!-- Catalogue layout: category filter rail on the left (like the order
+         screens), stock-entry list on the right. -->
+    <div class="gb-catalog-layout stock-catalog-layout" *ngIf="!loading && rows.length > 0">
+
+      <aside class="gb-filters" [class.gb-filters-open]="filtersOpen" id="stockFilterPanel"
+        [attr.aria-label]="'DailyInventoryAdd.FILTER_BY_CATEGORY' | translate">
+        <div class="gb-filters-head">
+          <span class="gb-filters-title">
+            <i class="bi bi-funnel" aria-hidden="true"></i>
+            {{ 'DailyInventoryAdd.FILTERS' | translate }}
+          </span>
+          <button type="button" class="gb-filters-clear" *ngIf="activeFilterCount > 0" (click)="clearAllFilters()">
+            {{ 'DailyInventoryAdd.CLEAR_ALL' | translate }}
+          </button>
+        </div>
+
+        <div class="gb-filter-group">
+          <h4>{{ 'DailyInventoryAdd.CATEGORIES' | translate }}</h4>
+          <ul class="gb-filter-list" *ngIf="categories.length > 0">
+            <li *ngFor="let cat of categories">
+              <label class="gb-filter-option">
+                <input type="checkbox" [checked]="isCategorySelected(cat.name)" (change)="toggleCategory(cat.name)"
+                  [attr.aria-label]="cat.name" />
+                <span class="gb-filter-name">{{ cat.name }}</span>
+                <span class="gb-filter-count" aria-hidden="true">{{ cat.count }}</span>
+              </label>
+            </li>
+          </ul>
+          <p class="gb-filter-empty" *ngIf="categories.length === 0">
+            {{ 'DailyInventoryAdd.ALL' | translate }}
+          </p>
+        </div>
+
+        <div class="gb-filter-group" *ngIf="itemTypes.length > 0">
+          <h4>{{ 'DailyInventoryAdd.ITEM_TYPE' | translate }}</h4>
+          <select id="itemTypeFilter" class="stock-type-select" name="itemTypeFilter" [(ngModel)]="selectedItemType"
+            [class.filter-active]="selectedItemType" [disabled]="isSaving"
+            (ngModelChange)="resetPagination()"
+            [attr.aria-label]="'DailyInventoryAdd.FILTER_BY_ITEM_TYPE' | translate">
+            <option value="">
+              {{ 'DailyInventoryAdd.ALL_ITEM_TYPES' | translate }} ({{ itemTypeScopeCount }})
+            </option>
+            <option *ngFor="let type of itemTypes" [value]="type.name">{{ type.name }} ({{ type.count }})</option>
+          </select>
+          <button *ngIf="selectedItemType" type="button" class="stock-type-clear stock-type-clear-rail"
+            (click)="setItemType('')" [title]="'DailyInventoryAdd.CLEAR_ITEM_TYPE_FILTER' | translate"
+            [attr.aria-label]="'DailyInventoryAdd.CLEAR_ITEM_TYPE_FILTER' | translate">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      </aside>
+
+      <div class="stock-catalog-main">
+        <div class="stock-grid-scroll">
 
       <!-- Desktop: grid table -->
       <div *ngIf="!loading && rows.length > 0 && !isMobileView && visibleRows.length > 0" class="stock-table-wrap">
@@ -262,6 +291,8 @@
           {{ 'DailyInventoryAdd.CLEAR' | translate }}</button>
       </div>
 
+        </div>
+      </div>
     </div>
 
   </div>

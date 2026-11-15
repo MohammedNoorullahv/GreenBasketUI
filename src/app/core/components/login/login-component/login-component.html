@@ -1,39 +1,9 @@
 <!-- =====================================
-     GREEN BASKET INTRO VIDEO
+     GREEN BASKET LOGIN
 ===================================== -->
 
 <div
-  class="intro-video-container"
-  *ngIf="showIntroVideo">
-
-  <video
-    #introVideo
-    class="intro-video"
-    autoplay
-    muted
-    playsinline
-    preload="auto"
-    (timeupdate)="onIntroVideoProgress()"
-    (ended)="onIntroVideoEnded()"
-    (error)="onIntroVideoError()">
-
-    <source
-      src="/Videos/relaffsol_Intro.mp4"
-      type="video/mp4">
-
-  </video>
-
-  <button type="button" class="intro-skip-button" (click)="skipIntro()"
-    aria-label="Skip introduction and show login">
-    Skip Intro <span aria-hidden="true">→</span>
-  </button>
-
-</div>
-
-
-<div
-  class="login-page"
-  *ngIf="!showIntroVideo">
+  class="login-page">
 
   <div class="login-shell">
 

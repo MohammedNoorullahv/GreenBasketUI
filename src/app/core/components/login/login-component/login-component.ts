@@ -2,8 +2,6 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   afterNextRender,
   DestroyRef,
-  ElementRef,
-  ViewChild,
   ChangeDetectorRef,
   Component,
   Inject,
@@ -68,31 +66,6 @@ export class LoginComponent {
 private readonly apiUrl =
     `${environment.apiBaseUrl}/api/Authenticate`;
 
-  showIntroVideo = false;
-  private readonly introSessionKey = 'gb.introShown.v1';
-  private introWatchdog?: ReturnType<typeof setTimeout>;
-  private introElement?: HTMLVideoElement;
-  private introDestroyed = false;
-
-  @ViewChild('introVideo')
-  set introVideoRef(ref: ElementRef<HTMLVideoElement> | undefined) {
-    this.introElement = ref?.nativeElement;
-    if (!this.introElement || !this.showIntroVideo) return;
-    const video = this.introElement;
-    video.muted = true;
-    // Catch blocked autoplay as well as unsupported media.
-    void Promise.resolve().then(() => {
-      if (!this.introDestroyed && this.showIntroVideo && this.introElement === video) {
-        return video.play();
-      }
-
-      return undefined;
-    }).catch(() => this.finishIntro());
-  }
-
-
-  introVideoCompleted = false;
-
   constructor(
     private http: HttpClient,
     private router: Router,
@@ -104,9 +77,6 @@ private readonly apiUrl =
     private firebaseOtp: FirebaseOtpAuthService
   ) {
     this.destroyRef.onDestroy(() => {
-      this.introDestroyed = true;
-      clearTimeout(this.introWatchdog);
-      this.introElement?.pause();
       this.stopResendCountdown();
       // Drop the in-memory Firebase session (and its ID token) with the screen.
       void this.firebaseOtp.reset();
@@ -119,51 +89,7 @@ private readonly apiUrl =
       this.restoreSessionRedirect();
 
       this.restoreRememberedMobile();
-
-      try {
-        if (sessionStorage.getItem(this.introSessionKey)) {
-          this.introVideoCompleted = true;
-          return;
-        }
-        // Record BEFORE playback: refreshing mid-video must still show login.
-        sessionStorage.setItem(this.introSessionKey, '1');
-      } catch {
-        // If storage is blocked, keep login accessible instead of replaying.
-        this.introVideoCompleted = true;
-        return;
-      }
-      this.showIntroVideo = true;
-      this.onIntroVideoProgress();
-      this.cdr.detectChanges();
     });
-  }
-
-  skipIntro(): void {
-    this.finishIntro();
-  }
-
-  onIntroVideoEnded(): void {
-    this.finishIntro();
-  }
-
-  onIntroVideoError(): void {
-    this.finishIntro();
-  }
-
-  onIntroVideoProgress(): void {
-    if (this.introDestroyed || !this.showIntroVideo) return;
-    clearTimeout(this.introWatchdog);
-    // Loading or playback that makes no progress for 8 seconds cannot block login.
-    this.introWatchdog = setTimeout(() => this.finishIntro(), 8000);
-  }
-
-  private finishIntro(): void {
-    if (this.introDestroyed) return;
-    clearTimeout(this.introWatchdog);
-    this.introElement?.pause();
-    this.showIntroVideo = false;
-    this.introVideoCompleted = true;
-    this.cdr.detectChanges();
   }
 
   // ================================================================ //

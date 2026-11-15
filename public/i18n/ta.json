@@ -362,7 +362,12 @@
     "DELIVERY_OPTIONS": "டெலிவரி விருப்பங்கள்",
     "EDIT": "திருத்து",
     "EDIT_DELIVERY_OPTIONS": "டெலிவரி விருப்பங்களைத் திருத்து",
-    "LOCAL_VENDOR": "உள்ளூர் விற்பனையாளர்"
+    "LOCAL_VENDOR": "உள்ளூர் விற்பனையாளர்",
+    "FILTERS": "வடிகட்டிகள்",
+    "CATEGORIES": "வகைகள்",
+    "VENDORS": "விற்பனையாளர்கள்",
+    "CLEAR_ALL": "அனைத்தையும் அழிக்கவும்",
+    "FILTERED_ITEMS": "வடிகட்டிய பொருட்கள்"
   },
   "DailyInventoryList": {
     "TODAY_S_VEGETABLES": "மொத்த பொருட்கள்",
@@ -465,6 +470,9 @@
     "ITEM_TYPE": "பொருள் வகை",
     "ALL_ITEM_TYPES": "அனைத்துப் பொருள் வகைகளும்",
     "FILTER_BY_ITEM_TYPE": "பொருள் வகையின் படி வடிகட்டவும்",
-    "CLEAR_ITEM_TYPE_FILTER": "பொருள் வகை வடிகட்டியை நீக்கவும்"
+    "CLEAR_ITEM_TYPE_FILTER": "பொருள் வகை வடிகட்டியை நீக்கவும்",
+    "FILTERS": "வடிகட்டிகள்",
+    "CATEGORIES": "வகைகள்",
+    "CLEAR_ALL": "அனைத்தையும் அழிக்கவும்"
   }
 }

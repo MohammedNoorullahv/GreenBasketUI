@@ -772,31 +772,88 @@
 
     <ng-container *ngIf="!showCheckout; else checkout">
 
+      <!-- Amazon-style catalogue: filter rail on the left, products on the right. -->
+      <div class="gb-catalog-layout">
+
+        <aside class="gb-filters" [class.gb-filters-open]="filtersOpen" id="gbFilterPanel"
+          [attr.aria-label]="'OrderShopping.FILTERS' | translate">
+          <div class="gb-filters-head">
+            <span class="gb-filters-title">
+              <i class="bi bi-funnel" aria-hidden="true"></i>
+              {{ 'OrderShopping.FILTERS' | translate }}
+            </span>
+            <button type="button" class="gb-filters-clear" *ngIf="activeFilterCount > 0" (click)="clearAllFilters()">
+              {{ 'OrderShopping.CLEAR_ALL' | translate }}
+            </button>
+          </div>
+
+          <div class="gb-filter-group">
+            <h4>{{ 'OrderShopping.CATEGORIES' | translate }}</h4>
+            <ul class="gb-filter-list">
+              <li *ngFor="let c of categories">
+                <label class="gb-filter-option">
+                  <input type="checkbox" [checked]="isCategorySelected(c)" (change)="toggleCategory(c)"
+                    [attr.aria-label]="(c | menuCaption:'OrderShopping')" />
+                  <span class="gb-filter-name">{{ (c | menuCaption:'OrderShopping') }}</span>
+                  <span class="gb-filter-count" aria-hidden="true">{{ categoryStockCount(c) }}</span>
+                </label>
+              </li>
+            </ul>
+          </div>
+
+          <div class="gb-filter-group" *ngIf="vendorOptions.length > 0">
+            <h4>{{ 'OrderShopping.VENDORS' | translate }}</h4>
+            <div class="gb-vendor-filters gb-vendor-filters-panel" role="group"
+              [attr.aria-label]="'OrderShopping.FILTER_BY_VENDOR' | translate">
+              <button type="button" class="gb-vendor-chip" *ngFor="let vendor of vendorOptions"
+                [class.active]="vendorFilter === vendor.fldId" [attr.aria-pressed]="vendorFilter === vendor.fldId"
+                (click)="setVendorFilter(vendor.fldId)">
+                <span class="gb-vendor-chip-name">{{ vendor.fldDescription }}</span>
+                <span class="gb-vendor-chip-count">{{ vendorStockCount(vendor.fldId) }}</span>
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        <div class="gb-catalog-main">
+
       <section class="gb-catalog-toolbar" [attr.aria-label]="'OrderShopping.FIND_VEGETABLES' | translate">
         <div class="gb-search">
           <i class="bi bi-search" aria-hidden="true"></i>
           <input class="gb-input" type="search" [placeholder]="'OrderShopping.SEARCH_VEGETABLES' | translate" [attr.aria-label]="'OrderShopping.SEARCH_VEGETABLES_2' | translate"
             [(ngModel)]="searchText" (ngModelChange)="onSearchChange()" />
         </div>
-        <div class="gb-categories" role="group" [attr.aria-label]="'OrderShopping.FILTER_BY_CATEGORY' | translate">
-          <button type="button" *ngFor="let c of categories" [class.active]="category === c"
-            [attr.aria-pressed]="category === c" (click)="setCategory(c)">
-             {{ (c | menuCaption:'OrderShopping') }} </button>
-        </div>
-        <div class="gb-vendor-filters" role="group" *ngIf="vendorOptions.length > 0"
-          [attr.aria-label]="'OrderShopping.FILTER_BY_VENDOR' | translate">
-          <button type="button" class="gb-vendor-chip" *ngFor="let vendor of vendorOptions"
-            [class.active]="vendorFilter === vendor.fldId" [attr.aria-pressed]="vendorFilter === vendor.fldId"
-            (click)="setVendorFilter(vendor.fldId)">
-            <span class="gb-vendor-chip-name">{{ vendor.fldDescription }}</span>
-            <span class="gb-vendor-chip-count">{{ vendorStockCount(vendor.fldId) }}</span>
-          </button>
-        </div>
+        <button type="button" class="gb-filters-toggle" (click)="toggleFilters()"
+          [class.has-filters]="activeFilterCount > 0"
+          [attr.aria-expanded]="filtersOpen"
+          [attr.aria-controls]="'gbFilterPanel'"
+          [attr.aria-label]="'OrderShopping.FILTERS' | translate">
+          <i class="bi bi-funnel" aria-hidden="true"></i>
+          <span>{{ 'OrderShopping.FILTERS' | translate }}</span>
+          <span class="gb-filters-count" *ngIf="activeFilterCount > 0" aria-hidden="true">{{ activeFilterCount }}</span>
+        </button>
       </section>
+
+      <div class="gb-active-filters" *ngIf="activeFilterCount > 0" aria-live="polite">
+        <button type="button" class="gb-active-chip" *ngFor="let c of selectedCategories" (click)="toggleCategory(c)"
+          [attr.aria-label]="('OrderShopping.REMOVE_VALUE' | translate:{p0: (c | menuCaption:'OrderShopping')})">
+          <span>{{ (c | menuCaption:'OrderShopping') }}</span>
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="gb-active-chip" *ngIf="vendorFilter !== 'all'" (click)="clearVendorFilter()"
+          [attr.aria-label]="('OrderShopping.REMOVE_VALUE' | translate:{p0: selectedVendorName})">
+          <span>{{ selectedVendorName }}</span>
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </div>
 
       <div class="gb-catalog-heading" *ngIf="!loading && stock.length > 0">
         <div>
-          <h2>{{ (category === 'All' ? ('OrderShopping.ALL_ITEMS' | translate) : (category | menuCaption:'OrderShopping')) }}</h2>
+          <h2>{{ (selectedCategories.length === 0
+                ? ('OrderShopping.ALL_ITEMS' | translate)
+                : (selectedCategories.length === 1
+                  ? (selectedCategories[0] | menuCaption:'OrderShopping')
+                  : ('OrderShopping.FILTERED_ITEMS' | translate))) }}</h2>
           <p>{{ ('OrderShopping.SHOWING_VALUE_OF_VALUE_ITEMS' | translate:{p0: (displayedStock.length), p1: (visibleStock.length)}) }}</p>
         </div>
         <div class="gb-view-toggle" role="group" [attr.aria-label]="'OrderShopping.VIEW_LAYOUT' | translate">
@@ -868,7 +925,9 @@
       </ng-template>
 
       <section class="gb-products" *ngIf="visibleStock.length > 0 && viewMode === 'grid'"
-        [attr.aria-label]="category === 'All' ? ('OrderShopping.ALL_ITEMS' | translate) : (category | menuCaption:'OrderShopping')">
+        [attr.aria-label]="selectedCategories.length === 0
+          ? ('OrderShopping.ALL_ITEMS' | translate)
+          : ('OrderShopping.FILTER_BY_CATEGORY' | translate)">
         <article class="gb-product" *ngFor="let item of displayedStock">
           <img class="gb-product-image" [src]="imageUrl(item.fldItemImagePath)" [alt]="item.fldItemName"
             loading="lazy" (error)="onImageError($event)" />
@@ -908,7 +967,9 @@
       </section>
 
       <section class="gb-item-list" *ngIf="visibleStock.length > 0 && viewMode === 'list'"
-        [attr.aria-label]="category === 'All' ? ('OrderShopping.ALL_ITEMS' | translate) : (category | menuCaption:'OrderShopping')">
+        [attr.aria-label]="selectedCategories.length === 0
+          ? ('OrderShopping.ALL_ITEMS' | translate)
+          : ('OrderShopping.FILTER_BY_CATEGORY' | translate)">
         <div class="gb-item-list-head" aria-hidden="true">
           <span>{{ 'OrderShopping.ITEM_2' | translate }}</span>
           <span>{{ 'OrderShopping.PRICE' | translate }}</span>
@@ -980,6 +1041,9 @@
           {{ ('OrderShopping.ALL_ITEMS_LOADED' | translate:{p0: (visibleStock.length)}) }}
         </p>
       </div>
+
+        </div><!-- /.gb-catalog-main -->
+      </div><!-- /.gb-catalog-layout -->
 
       <ng-container *ngTemplateOutlet="deliverySettings"></ng-container>
 

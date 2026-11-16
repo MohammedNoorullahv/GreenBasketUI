@@ -24,15 +24,14 @@
             "styles": [
               "src/styles.css",
               "src/app/shared/styles/common.css"
-            ],
-            "server": "src/main.server.ts",
-            "outputMode": "server",
-            "ssr": {
-              "entry": "src/server.ts"
-            }
+            ]
           },
           "configurations": {
             "production": {
+              "server": "src/main.server.ts",
+              "ssr": {
+                "entry": "src/server.ts"
+              },
               "outputMode": "static",
               "budgets": [
                 {
@@ -50,6 +49,11 @@
               "serviceWorker": "ngsw-config.json"
             },
             "development": {
+              "server": "src/main.server.ts",
+              "outputMode": "server",
+              "ssr": {
+                "entry": "src/server.ts"
+              },
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
@@ -61,6 +65,17 @@
               ]
             },
             "pwa-local": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.development.ts"
+                }
+              ]
+            },
+            "development-https": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
@@ -82,6 +97,14 @@
             },
             "pwa-local": {
               "buildTarget": "GreenBasketUI:build:production,pwa-local"
+            },
+            "development-https": {
+              "buildTarget": "GreenBasketUI:build:development-https",
+              "host": "dev.greenbasket.relaffsol.com",
+              "port": 4200,
+              "ssl": true,
+              "sslCert": "D:/Noor/Secrets/GreenBasket/https/dev-cert.pem",
+              "sslKey": "D:/Noor/Secrets/GreenBasket/https/dev-key.pem"
             }
           },
           "defaultConfiguration": "development"

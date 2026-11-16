@@ -1,6 +1,7 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'https://web-dev-eus-100-f0gkhrhaeuegfehc.centralindia-01.azurewebsites.net',
+  apiBaseUrl: 'https://localhost:7082',
+  // apiBaseUrl: 'https://web-dev-eus-100-f0gkhrhaeuegfehc.centralindia-01.azurewebsites.net',
   firebase: {
     apiKey: 'AIzaSyBv9eOc0_uylwTCVS7q2Y1gYdPn4aYQBtg',
     authDomain: 'courtconnect-585f6.firebaseapp.com',

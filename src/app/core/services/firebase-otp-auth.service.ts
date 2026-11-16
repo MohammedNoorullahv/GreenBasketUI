@@ -1,5 +1,5 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
-import { environment } from '../../../environments/environment';
+// import { environment } from '../../../environments/environment';
 
 /**
  * Type-only imports: they are erased at build time, so importing them is
@@ -7,6 +7,7 @@ import { environment } from '../../../environments/environment';
  * during SSR).
  */
 import type { Auth, AuthError, ConfirmationResult, RecaptchaVerifier } from 'firebase/auth';
+import { environment } from '../../../environments/environment';
 
 /** Shape returned after a successful OTP verification. */
 export interface OtpVerificationResult {
@@ -41,23 +42,9 @@ export class FirebaseOtpError extends Error {
  *  - Verifies the OTP entered by the user and exposes the Firebase ID
  *    token so callers can pass it to the Green Basket backend.
  *
- * Design notes (important for `auth/invalid-app-credential` reliability):
- *  - A reCAPTCHA token is single-use. In firebase v13 the public
- *    reset() was removed, so the correct lifecycle is: clear() the spent
- *    widget after EVERY attempt (success or failure), defensively wipe
- *    any reCAPTCHA markup left in the container, and bind a fresh widget
- *    on the next attempt. Rendering a new widget over stale markup, or
- *    stacking widgets, leaves invalid app-verification state that
- *    Firebase rejects as INVALID_APP_CREDENTIAL.
- *      Reference: Firebase web docs create the verifier, and call
- *      clear() to remove it before a new attempt; the JS SDK's own
- *      reCAPTCHA migration notes describe clearing/recaptcha markup
- *      cleanup between attempts for the same container.
- *  - The reCAPTCHA container must exist in the DOM before a verifier is
- *    bound to it; each watch is checked and missing containers fail
- *    loudly (console + friendy error) instead of failing silently.
- *  - All Firebase failures are logged raw (code + message + remediation)
- *    under the [FirebaseOtpAuth] console prefix.
+ * Lifecycle: each send uses a fresh child element inside the caller's
+ * container. Sends and resets are serialized; the verifier is cleared
+ * after each completed attempt. Firebase app verification stays enabled.
  *
  * Security notes:
  *  - The ID token is held in memory only. It is deliberately NOT stored
@@ -95,16 +82,25 @@ export class FirebaseOtpAuthService {
   private lastVerifiedToken: string | null = null;
 
   /**
-   * Invisible reCAPTCHA widget, created once per container and reused
-   * (reset) between OTP attempts.
+   * Invisible reCAPTCHA widget owned by the current send attempt.
    */
   private verifier: RecaptchaVerifier | null = null;
 
   /** Container id the current verifier is bound to. */
-  private verifierContainerId: string | null = null;
 
   /** Guards against two phone-auth requests racing through one widget. */
   private sending = false;
+
+  private nextSendAllowedAt = 0;
+
+  private operationQueue: Promise<void> = Promise.resolve();
+  private verifierElement: HTMLElement | null = null;
+
+  private enqueue<T>(operation: () => Promise<T>): Promise<T> {
+    const result = this.operationQueue.then(operation);
+    this.operationQueue = result.then(() => undefined, () => undefined);
+    return result;
+  }
 
   // ================================================================== //
   // Public API
@@ -123,112 +119,70 @@ export class FirebaseOtpAuthService {
     mobileNumber: string,
     recaptchaContainerId: string
   ): Promise<void> {
-
-    try {
-      await this.sendOtpOnce(mobileNumber, recaptchaContainerId);
-    } catch (error) {
-
-      // A reCAPTCHA token is single-use and app verification is validated
-      // every send. Google rejects the *occasional* token as invalid even
-      // when the environment is configured correctly (spent/staled widget
-      // state, e.g. after a previous attempt, a refresh raced, or a
-      // transient bot-scoring flake). Firebase's own guidance is to retry
-      // with a fresh widget, so retries ONCE internally, from a fully
-      // reinstated reCAPTCHA state, before surfacing the failure.
-      const isRejectedVerification =
-        error instanceof FirebaseOtpError &&
-        (error.code === 'invalid-app-credential' ||
-          error.code === 'captcha-check-failed');
-
-      if (!isRejectedVerification) {
-        throw error;
-      }
-
-      this.log(
-        'warn',
-        'App verification was rejected once; retrying with a fresh reCAPTCHA widget.',
-        error.code
-      );
-
-      // Full teardown of the spent widget before the retry; ensureVerifier
-      // then re-runs the same clean -> create -> verify cycle it always
-      // does, ending with a completely fresh reCAPTCHA state.
-      await this.disposeVerifier();
-
-      // Give reCAPTCHA a beat; immediate recreation over a just-cleared
-      // container is exactly the state Google rejects.
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      await this.sendOtpOnce(mobileNumber, recaptchaContainerId);
-
-    }
-
-  }
-
-  /**
-   * One app-verification attempt, from the caller-provided state.
-   * Retries (when needed) are orchestrated by {@link sendOtp}.
-   */
-  private async sendOtpOnce(
-    mobileNumber: string,
-    recaptchaContainerId: string
-  ): Promise<void> {
+    this.assertBrowser();
 
     if (this.sending) {
       throw new FirebaseOtpError(
-        'An OTP request is already in progress. Please wait a moment.',
+        'An OTP request is already in progress. Please wait.',
         'already-in-progress',
         'sending OTP'
       );
     }
 
-    this.assertBrowser();
+    const mobile = mobileNumber.trim();
+    if (!/^[6-9]\d{9}$/.test(mobile)) {
+      throw new FirebaseOtpError(
+        'Please enter a valid 10-digit mobile number.',
+        'invalid-phone-number',
+        'sending OTP'
+      );
+    }
+
+    const remainingSeconds = Math.ceil(
+      (this.nextSendAllowedAt - Date.now()) / 1000
+    );
+
+    if (remainingSeconds > 0) {
+      throw new FirebaseOtpError(
+        `Please wait ${remainingSeconds} seconds before requesting another OTP.`,
+        'resend-cooldown',
+        'sending OTP'
+      );
+    }
+
+    // App-level protection against rapid repeat requests.
+    // This does not represent Firebase's own blocking duration.
+    this.nextSendAllowedAt = Date.now() + 60_000;
 
     this.sending = true;
+    try {
+      await this.enqueue(async () => {
+        this.confirmation = null;
+        this.lastVerifiedToken = null;
+        try {
+          const auth = await this.loadAuth();
+          const { signInWithPhoneNumber, RecaptchaVerifier } =
+            await import('firebase/auth');
+          const verifier = await this.ensureVerifier(
+            auth, recaptchaContainerId, RecaptchaVerifier
+          );
 
-    await this.loadAuth().then(async (auth) => {
-
-      const { signInWithPhoneNumber, RecaptchaVerifier } =
-        await import('firebase/auth');
-
-      try {
-
-        const verifier = await this.ensureVerifier(
-          auth,
-          recaptchaContainerId,
-          RecaptchaVerifier
-        );
-
-        const e164Number = `${this.countryCode}${mobileNumber}`;
-
-        this.log(
-          'info',
-          `Requesting OTP for ${e164Number} via invisible reCAPTCHA.`
-        );
-
-        this.confirmation = await signInWithPhoneNumber(
-          auth,
-          e164Number,
-          verifier
-        );
-
-        // A reCAPTCHA token is single-use, so the widget is spent after
-        // every attempt. In firebase v13 the verifier has no public
-        // reset() — the only correct reuse pattern is clear() (which we
-        // follow up with defensive container cleanup) and a fresh widget
-        // on the next attempt.
-        await this.disposeVerifier();
-
-      } catch (error) {
-        // Never leave a spent widget behind after a failed attempt.
-        await this.disposeVerifier();
-        throw this.toFriendlyError(error, 'sending OTP');
-      }
-
-    }).finally(() => {
+          this.log('info', 'Requesting OTP via invisible reCAPTCHA.');
+          this.confirmation = await signInWithPhoneNumber(
+            auth, `${this.countryCode}${mobile}`, verifier
+          );
+        } catch (error) {
+          if (error instanceof FirebaseOtpError) {
+            throw error;
+          }
+          throw this.toFriendlyError(error, 'sending OTP');
+        } finally {
+          await this.disposeVerifier();
+        }
+      });
+    } finally {
       this.sending = false;
-    });
-
+    }
   }
 
   /**
@@ -312,40 +266,31 @@ export class FirebaseOtpAuthService {
    * never bypassed).
    */
   async reset(): Promise<void> {
-
-    this.confirmation = null;
-    this.lastVerifiedToken = null;
-
-    await this.disposeVerifier();
-
     if (!this.isBrowser()) {
       return;
     }
 
-    try {
-      const auth = await this.loadAuth();
-      const { signOut } = await import('firebase/auth');
-      await signOut(auth);
-    } catch {
-      // Reset must never throw into the caller's UI flow.
-    }
-
+    // Queue teardown behind an active send; a later send waits for teardown.
+    await this.enqueue(async () => {
+      this.confirmation = null;
+      this.lastVerifiedToken = null;
+      await this.disposeVerifier();
+      try {
+        if (this.authPromise) {
+          const auth = await this.authPromise;
+          const { signOut } = await import('firebase/auth');
+          await signOut(auth);
+        }
+      } catch {
+        // Teardown must not throw into the caller's UI flow.
+      }
+    });
   }
 
   // ================================================================== //
   // reCAPTCHA widget lifecycle
   // ================================================================== //
 
-  /**
-   * Returns a FRESH widget for the given container. A reCAPTCHA token is
-   * single-use, so in firebase v13 (where the public reset() was removed
-   * in favour of internal _reset) the correct app-credential-safe
-   * lifecycle is: clear() the previous widget, wipe any recaptcha markup
-   * the container still holds, then render a new invisible widget:
-   *   clear + cleanup -> signInWithPhoneNumber -> clear + cleanup -> ...
-   * Rendering a second widget over stale markup is what Firebase rejects
-   * as invalid app verification (INVALID_APP_CREDENTIAL).
-   */
   private async ensureVerifier(
     auth: Auth,
     containerId: string,
@@ -355,86 +300,48 @@ export class FirebaseOtpAuthService {
       options?: { size?: 'invisible' | 'normal'; callback?: () => void }
     ) => RecaptchaVerifier
   ): Promise<RecaptchaVerifier> {
+    await this.disposeVerifier();
 
-    // The container must be attached to the DOM when the widget is bound:
-    // widgets on a detached <div> render nothing and verification fails.
     const container = document.getElementById(containerId);
-    if (!container) {
-      const message =
-        `reCAPTCHA container "#${containerId}" was not found in the DOM. ` +
-        'Render it statically inside the component template (not inside an @if / *ngIf that is currently hidden).';
-      this.log('error', message);
+    if (!container || !container.isConnected) {
       throw new FirebaseOtpError(
-        'The app verification widget could not be initialised. Please reload the page and try again.',
+        'The verification widget is unavailable. Reload the page and try again.',
         'recaptcha-container-missing',
         'preparing reCAPTCHA'
       );
     }
 
-    // Always start from a clean container: tear down any previous widget
-    // and remove leftover markup before binding a new one.
-    if (this.verifier) {
-      await this.disposeVerifier();
-    }
-
-    this.log('info', `Creating invisible reCAPTCHA verifier on "#${containerId}".`);
+    // Keep Angular's host div. Never bind another widget to the same
+    // element: Google's registry may retain it after clear()/DOM cleanup.
+    const widgetElement = document.createElement('div');
+    container.replaceChildren(widgetElement);
+    this.verifierElement = widgetElement;
 
     try {
-      this.verifier = new verifierCtor(
-        auth,
-        container,
-        { size: 'invisible' }
+      const verifier = new verifierCtor(
+        auth, widgetElement, { size: 'invisible' }
       );
-      this.verifierContainerId = containerId;
+      this.verifier = verifier;
+      // signInWithPhoneNumber renders/verifies it; do not render it twice.
+      return verifier;
     } catch (error) {
-      this.verifier = null;
-      this.verifierContainerId = null;
-      await this.clearContainerMarkup(container);
+      await this.disposeVerifier();
       throw this.toFriendlyError(error, 'preparing reCAPTCHA');
     }
-
-    return this.verifier;
-
   }
 
-  /** Puts the old widget down and clears the container (fails silently). */
   private async disposeVerifier(): Promise<void> {
     const verifier = this.verifier;
-    const containerId = this.verifierContainerId;
+    const element = this.verifierElement;
     this.verifier = null;
-    this.verifierContainerId = null;
-    try {
-      // clear() both removes the widget and resets reCAPTCHA state.
-      await verifier?.clear();
-      this.log('info', 'reCAPTCHA widget cleared.');
-    } catch (error) {
-      this.log('warn', 'reCAPTCHA widget clear() failed; forcing container cleanup.', error);
-    }
-    if (containerId) {
-      const container = document.getElementById(containerId);
-      if (container) {
-        await this.clearContainerMarkup(container);
-      }
-    }
-  }
+    this.verifierElement = null;
 
-  /**
-   * Defensive cleanup: if any reCAPTCHA iframe/markup survives in the
-   * container after clear(), remove it so a fresh widget never collides
-   * with stale markup (a classic cause of invalid app verification).
-   */
-  private async clearContainerMarkup(container: HTMLElement): Promise<void> {
     try {
-      if (container.childElementCount > 0) {
-        this.log(
-          'warn',
-          `reCAPTCHA container "#${container.id}" still contains markup; clearing it.`,
-          container
-        );
-        container.replaceChildren();
-      }
+      verifier?.clear();
     } catch {
-      // Never break the OTP flow because of cleanup.
+      this.log('warn', 'reCAPTCHA cleanup failed; removing its owned element.');
+    } finally {
+      element?.remove();
     }
   }
 
@@ -508,9 +415,9 @@ export class FirebaseOtpAuthService {
 
     const remediation: Record<string, string[]> = {
       'auth/invalid-app-credential': [
-        'The reCAPTCHA/app verification result Firebase received was rejected. One retry with a fresh widget is done automatically in code; if the SECOND send still fails, check the following.',
+        'Firebase rejected app verification. Retry manually; no automatic SMS retry is performed.',
         `Current origin: ${typeof location !== 'undefined' ? location.origin : 'unknown'} \u2014 this EXACT origin must be reachable:`,
-        '1. When testing from localhost (http://localhost:4200) the default Firebase settings work; if you open the app via a LAN IP (http://192.168.x.x:4200), ngrok or another preview URL, add that exact host to Firebase console > Authentication > Sign-in method > Authorized domains, or test using http://localhost:4200 instead.',
+        '1. Confirm localhost is listed in Firebase Authorized domains; if you open the app via a LAN IP (http://192.168.x.x:4200), ngrok or another preview URL, add that exact host to Firebase console > Authentication > Sign-in method > Authorized domains, or test using http://localhost:4200 instead.',
         '2. Common transient cause: a shared/spent reCAPTCHA state. Close the browser tab and open a fresh one, then send again.',
         '3. Browser extensions (ad-blockers, VPN, privacy tools) block google.com/recaptcha; try an incognito window with extensions off.',
         '4. Firebase console > Authentication > Sign-in method > Phone provider must be enabled, and Project Settings > General must match apiKey/projectId/appId in environment.*.ts for this exact project.',
@@ -554,12 +461,11 @@ export class FirebaseOtpAuthService {
   /** Lazily initialize Firebase (browser only) exactly once. */
   private loadAuth(): Promise<Auth> {
 
-    // Never memoize a rejection: a transient network error during first
-    // initialization would otherwise fail every later attempt.
     if (!this.authPromise) {
       this.authPromise = (async () => {
         const { initializeApp, getApps, getApp } =
           await import('firebase/app');
+
         const { getAuth } = await import('firebase/auth');
 
         try {
@@ -567,19 +473,33 @@ export class FirebaseOtpAuthService {
             ? getApp()
             : initializeApp(environment.firebase);
 
-          return getAuth(app);
+          const auth = getAuth(app);
+
+          // Enable fictional-number testing only during local development.
+          // auth.settings.appVerificationDisabledForTesting =
+          //   !environment.production &&
+          //   ['localhost', '127.0.0.1'].includes(
+          //     window.location.hostname
+          //   );
+
+          auth.settings.appVerificationDisabledForTesting = false;
+
+          return auth;
+
         } catch (error) {
-          this.log('error',
+          this.log(
+            'error',
             'Firebase initialization failed. Check environment.*.ts firebase config.',
-            error);
-          this.authPromise = undefined; // allow a retry
+            error
+          );
+
+          this.authPromise = undefined;
           throw error;
         }
       })();
     }
 
     return this.authPromise;
-
   }
 
   private isBrowser(): boolean {

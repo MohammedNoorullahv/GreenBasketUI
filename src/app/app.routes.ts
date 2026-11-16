@@ -211,7 +211,7 @@ export const routes: Routes = [
       // AUTH-STAGE-2: canActivate: [menuGuard]
       { path: 'accounttable/tblincomeandexpense/add', component: TblIncomeAndExpenseAddComponent },
       // AUTH-STAGE-2: canActivate: [menuGuard]
-      { path: 'accounttable/tblincomeandexpense/edit/:id', component: TblIncomeAndExpenseUpdateComponent },
+      // { path: 'accounttable/tblincomeandexpense/edit/:id', component: TblIncomeAndExpenseUpdateComponent },
       // AUTH-STAGE-2: canActivate: [menuGuard]
 
 

@@ -14,6 +14,15 @@
         <span class="gb-header-user-name">{{ profileName }}</span>
       </span>
 
+      <!-- Guests can browse and build a basket without an account; the
+           sign-in is only demanded when they place the order. -->
+      <a *ngIf="isGuest" [routerLink]="['/login']"
+        class="gb-btn gb-btn-primary gb-header-signin"
+        aria-label="Log in">
+        <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+        {{ 'OrderShopping.SIGN_IN' | translate }}
+      </a>
+
       <!-- Move to top: after the catalogue grew with the infinite scrolling,
            jump straight back to the vendor filter bar instead of a manual scroll. -->
       <button type="button" class="gb-top-icon" *ngIf="!showCheckout"
@@ -589,7 +598,7 @@
   <ng-container *ngIf="shoppingStarted">
     <section class="gb-order-hero" *ngIf="!showCheckout" aria-labelledby="gbNewOrderTitle">
       <div>
-        <button type="button" class="gb-back-link" (click)="backToMyOrders()">
+        <button type="button" class="gb-back-link" (click)="backToMyOrders()" *ngIf="!isGuest">
           <i class="bi bi-arrow-left" aria-hidden="true"></i>
           {{ 'OrderShopping.BACK_TO_MY_ORDERS' | translate }}</button>
         <p class="gb-orders-eyebrow">
@@ -638,7 +647,8 @@
               <span>{{ 'OrderShopping.ADVANCE' | translate }}</span>
             </label>
           </div>
-          <small *ngIf="!vendorProfile">{{ 'OrderShopping.LOADING_VENDOR_SETTINGS' | translate }}</small>
+          <small *ngIf="!vendorProfile && isGuest">{{ 'OrderShopping.SIGN_IN_TO_SEE_DELIVERY_CHARGES' | translate }}</small>
+          <small *ngIf="!vendorProfile && !isGuest">{{ 'OrderShopping.LOADING_VENDOR_SETTINGS' | translate }}</small>
           <small *ngIf="vendorProfile && vendorProfile.fldvAllowAdvanceOrder !== true">
             {{ 'OrderShopping.ADVANCE_ORDERING_IS_NOT_ENABLED_FOR_THIS_VENDOR' | translate }}</small>
         </fieldset>
@@ -1075,13 +1085,16 @@
         </div>
 
         <button type="button" class="gb-footer-cta" (click)="previewOrder()"
-          [disabled]="cart.length === 0 || hasBlockingQuantityErrors || !minimumOrderMet">
+          [disabled]="cart.length === 0 || hasBlockingQuantityErrors || (!isGuest && !minimumOrderMet)">
           <span *ngIf="cart.length === 0">{{ 'OrderShopping.CART_IS_EMPTY' | translate }}</span>
           <span *ngIf="cart.length > 0 && hasBlockingQuantityErrors">{{ 'OrderShopping.FIX_QUANTITY_ERRORS' | translate }}</span>
-          <span *ngIf="cart.length > 0 && !hasBlockingQuantityErrors && !vendorProfile">{{ 'OrderShopping.LOADING_VENDOR_SETTINGS' | translate }}</span>
-          <span *ngIf="cart.length > 0 && !hasBlockingQuantityErrors && vendorProfile && !minimumOrderMet">
+          <!-- Guests go to the login screen from here and come back to this exact step. -->
+          <span *ngIf="cart.length > 0 && !hasBlockingQuantityErrors && isGuest">
+            {{ 'OrderShopping.SIGN_IN_TO_PLACE_ORDER' | translate }}<i class="bi bi-arrow-right" aria-hidden="true"></i></span>
+          <span *ngIf="cart.length > 0 && !hasBlockingQuantityErrors && !isGuest && !vendorProfile">{{ 'OrderShopping.LOADING_VENDOR_SETTINGS' | translate }}</span>
+          <span *ngIf="cart.length > 0 && !hasBlockingQuantityErrors && !isGuest && vendorProfile && !minimumOrderMet">
             {{ ('OrderShopping.ADD_VALUE_MORE_2' | translate:{p0: (amountToMinimum | number:'1.2-2')}) }}</span>
-          <span *ngIf="minimumOrderMet && !hasBlockingQuantityErrors">
+          <span *ngIf="!isGuest && minimumOrderMet && !hasBlockingQuantityErrors">
             {{ 'OrderShopping.REVIEW_CART' | translate }}<i class="bi bi-arrow-right" aria-hidden="true"></i>
           </span>
         </button>

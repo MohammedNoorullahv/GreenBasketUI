@@ -8,11 +8,12 @@ import {
   PLATFORM_ID
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   HttpClient,
   HttpErrorResponse
 } from '@angular/common/http';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { environment } from '../../../../../environments/environment';
 import { VendorNotificationService } from '../../../services/vendor-notification.service';
 import { FirebaseOtpAuthService } from '../../../services/firebase-otp-auth.service';
@@ -69,6 +70,7 @@ private readonly apiUrl =
   constructor(
     private http: HttpClient,
     private router: Router,
+    private activatedRoute: ActivatedRoute,
     @Inject(PLATFORM_ID)
     private platformId: object,
     private cdr: ChangeDetectorRef,
@@ -387,9 +389,20 @@ private readonly apiUrl =
     this.resendCooldown = 0;
   }
 
+  /** Visible to the template so the Register link can carry the return flow. */
+  get isCheckoutReturn(): boolean {
+    return this.activatedRoute.snapshot.queryParamMap.get('checkout') === '1';
+  }
+
   private navigateAfterLogin(
     userType: string
   ): void {
+
+    // Return to the checkout the customer was sent here from.
+    if (this.isCheckoutReturn && (userType === 'Customer' || userType === 'Vendor')) {
+      this.router.navigateByUrl('/transactiontables/tblOrder?checkout=1');
+      return;
+    }
 
     switch (userType) {
 
@@ -514,12 +527,16 @@ private readonly apiUrl =
         return;
       }
 
+      // Keep the place-order return flow intact even for an already
+      // authenticated user tapping sign-in from the shop.
+      const checkoutSuffix = this.isCheckoutReturn ? '?checkout=1' : '';
+
       switch (userType) {
 
         case 'Vendor':
         case 'Customer':
           this.router.navigateByUrl(
-            '/transactiontables/tblOrder',
+            '/transactiontables/tblOrder' + checkoutSuffix,
             { replaceUrl: true }
           );
           break;

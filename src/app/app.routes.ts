@@ -46,10 +46,11 @@ import { TblFeatureUpdateComponent } from './features/transactiontable/tblFeatur
 
 export const routes: Routes = [
 
-  // Default page: Login
+  // Default page: the shop (guests browse without login; login is only
+  // demanded when an action needs an account, e.g. placing an order).
   {
     path: '',
-    redirectTo: 'login',
+    redirectTo: '/transactiontables/tblOrder',
     pathMatch: 'full'
   },
 

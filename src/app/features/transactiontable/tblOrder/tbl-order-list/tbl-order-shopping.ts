@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subscription, map, finalize, timeout } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
 import * as QRCode from 'qrcode';
 import { ToastrService } from 'ngx-toastr';
 import { environment } from '../../../../../environments/environment';
@@ -149,12 +150,34 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
     return this.userType === 'Customer';
   }
 
+  /**
+   * A guest is anyone browsing the shop without a session. Guests can see the
+   * full catalogue and build a basket; login is only demanded when they try to
+   * place the order.
+   */
+  get isGuest(): boolean {
+    return this.profileId <= 0 || !this.userType || this.userType === 'Guest';
+  }
+
+  /** True only when a real (non-guest) session is stored. */
+  get isLoggedIn(): boolean {
+    return !this.isGuest;
+  }
+
+  /**
+   * Set when the customer was sent to /login from the place-order button.
+   * After the successful login / registration the app returns here and the
+   * checkout opens by itself over the restored basket.
+   */
+  private checkoutOnReady = false;
+
   updatingOrderId = 0;
 
   constructor(private catalogService: OrderCatalogService,
     private profileService: TblProfileService,
     private orderService: TblOrderService,
     private toastr: ToastrService, private cdr: ChangeDetectorRef,
+    private router: Router, private route: ActivatedRoute,
     @Inject(PLATFORM_ID)
     private platformId: object) { }
 
@@ -227,9 +250,10 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
 
     if (!profileLoaded) {
 
-      this.toastr.error(
-        'Unable to identify logged-in user.'
-      );
+      // Guest browsing: show the shop WITHOUT login. The catalogue is served
+      // from the local cache, the basket is kept in localStorage, and login
+      // is only requested when the guest tries to place the order.
+      this.startShoppingAsGuest();
 
       return;
     }
@@ -242,6 +266,11 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
         userType: this.userType
       }
     );
+
+    // Returning from /login after being sent there by the place-order
+    // button: reopen the checkout over the restored basket once it loads.
+    this.checkoutOnReady =
+      this.route.snapshot.queryParamMap.get('checkout') === '1';
 
     if (this.isCustomer) {
 
@@ -276,6 +305,101 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
 
       return;
     }
+  }
+
+  /**
+   * Opens the shop for a visitor without a session.
+   *
+   * No pending-order API is called (guests have no orders), the catalogue is
+   * served from the local cache (at most one Azure call per session) and any
+   * basket the guest started earlier is restored, so the login that happens
+   * later never loses their items.
+   */
+  private startShoppingAsGuest(): void {
+
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    this.userType = 'Guest';
+    this.profileId = 0;
+    this.profileName = '';
+    this.customerId = 0;
+
+    // Skip the pending-orders verification screens entirely for guests.
+    this.checkingPendingOrders = false;
+    this.pendingOrderLoadError = false;
+    this.showPendingOrders = false;
+    this.shoppingStarted = true;
+
+    // Restore a basket the guest built earlier (same browser).
+    this.restoreSavedCart();
+
+    // Cache-first catalogue; the network is hit at most once per session.
+    this.loadVendors();
+
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * The customer pressed a place-order button without a session.
+   *
+   * The basket is already persisted (guest carts are saved to localStorage
+   * with customerId 0), so we only remember where to come back to and route
+   * to the existing login screen. After the login / registration completes,
+   * the app returns to this screen and the checkout reopens by itself.
+   */
+  private redirectToLoginForCheckout(): void {
+
+    // Make sure the latest basket is on disk before leaving the screen.
+    this.saveCartState();
+
+    this.toastr.info('Please log in to place your order.');
+
+    this.router.navigate(['/login'], {
+      queryParams: { checkout: '1' }
+    });
+  }
+
+  /**
+   * Reopens the checkout after the customer returns from /login with the
+   * basket and vendor settings already restored. Runs only once.
+   */
+  private openSavedCheckout(): void {
+
+    if (!this.checkoutOnReady) {
+      return;
+    }
+
+    if (!this.isLoggedIn) {
+      this.checkoutOnReady = false;
+      return;
+    }
+
+    if (!this.cart.length) {
+      this.checkoutOnReady = false;
+      this.toastr.info('Your basket is empty. Add items to place an order.');
+      return;
+    }
+
+    if (this.isCustomer) {
+      this.customerId = this.profileId;
+    }
+
+    if (!this.vendorProfile) {
+      // Vendor delivery settings are still loading; this method is invoked
+      // again from loadVendorProfile as soon as they arrive.
+      if (this.vendorId > 0) {
+        this.loadVendorProfile();
+      }
+      return;
+    }
+
+    this.checkoutOnReady = false;
+
+    // Runs the full checkout validation (minimum order value, advance date,
+    // vendor settings) and opens the review & place-order section.
+    this.previewOrder();
   }
 
   private today(): string {
@@ -353,6 +477,10 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
         next: ({ options, stock }) => {
           this.vendorOptions = options;
           this.stock = stock;
+          // The cache-first service emits instantly when a cached catalogue
+          // exists, so stop showing the loading state from the first
+          // emission while the background refresh is still running.
+          this.loading = false;
           this.resetCatalogPagination();
 
           // Keep a still-valid selection; otherwise default to the first
@@ -365,6 +493,16 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
           if (!this.orderViewDestroyed) this.cdr.detectChanges();
         },
         error: err => {
+          if (this.stock.length > 0) {
+            // A cached catalogue is already on screen; the background
+            // refresh simply failed. Keep the products instead of wiping
+            // the customer's shopping view.
+            console.error('Unable to refresh vendor catalogue:', err);
+            this.toastr.warning('Could not check for updated products. Showing the saved catalogue.');
+            if (!this.orderViewDestroyed) this.cdr.detectChanges();
+            return;
+          }
+
           this.stock = [];
           this.vendorOptions = [];
           this.vendorFilter = 'all';
@@ -1346,6 +1484,15 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
 
   previewOrder(): void {
     if (!this.cart.length) return;
+
+    // Placing an order needs an account. Guests are sent to the existing
+    // /login screen; they come back to this exact step after the login or
+    // registration finishes, with the basket intact.
+    if (this.isGuest) {
+      this.redirectToLoginForCheckout();
+      return;
+    }
+
     if (this.hasBlockingQuantityErrors) {
       this.toastr.warning('Correct the highlighted quantities before continuing.');
       return;
@@ -1558,13 +1705,34 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
 
   }
 
+  // =====================================================
+  // VENDOR PROFILE (paid GetTblProfileById API)
+  // =====================================================
+
+  /**
+   * Loads the vendor's delivery policy.
+   *
+   * The profile API is billed per call on Azure, so it is called ONLY for an
+   * authenticated session — guests never reach it (they cannot place an
+   * order anyway; the real charges are loaded right after the login that
+   * precedes checkout).
+   */
   loadVendorProfile(): void {
 
     if (this.vendorId <= 0) {
       return;
     }
 
-    this.profileRequest?.unsubscribe();
+    // No profile API call without a session.
+    if (this.isGuest) {
+      return;
+    }
+
+    // A request is already running — never stack duplicate API calls.
+    if (this.profileRequest && !this.profileRequest.closed) {
+      return;
+    }
+
     this.profileRequest = this.profileService
       .getTblProfileById(this.vendorId)
       .subscribe({
@@ -1577,6 +1745,11 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
 
           this.updateDeliveryEstimate();
           void this.refreshUpiQr();
+
+          // Returning from /login with checkout intent: the basket and the
+          // vendor delivery settings are ready, so open the checkout now.
+          this.openSavedCheckout();
+
           this.cdr.detectChanges();
 
         },
@@ -1900,6 +2073,13 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Safety net for the confirm step: a stale guest session must never
+    // reach the order API.
+    if (this.isGuest) {
+      this.redirectToLoginForCheckout();
+      return;
+    }
+
     if (this.orderSaved) return;
     if (this.hasBlockingQuantityErrors) {
       this.toastr.warning('Correct the highlighted quantities before placing the order.');
@@ -2202,6 +2382,13 @@ export class TblOrderShoppingComponent implements OnInit, OnDestroy {
   }
 
   startNewOrder(): void {
+
+    // A customer who came back from /login with checkout intent must land in
+    // the checkout over the restored basket, not lose it to a fresh basket.
+    if (this.checkoutOnReady && this.cart.length) {
+      this.openSavedCheckout();
+      return;
+    }
 
     this.showPendingOrders = false;
 

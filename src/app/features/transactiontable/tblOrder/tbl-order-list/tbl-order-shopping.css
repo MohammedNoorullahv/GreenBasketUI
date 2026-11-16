@@ -9,3 +9,11 @@
    already follow. The `gb-` prefixed selectors are used only by this
    component, so there is no leakage.
    ========================================================================= */
+
+/* Guest sign-in button inside the shop header — a compact version of the
+   shared gb-btn-primary so it matches the header action pills. */
+.gb-header-signin {
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 13px;
+}

@@ -249,7 +249,8 @@
           New User?
         </span>
 
-        <a routerLink="/register">
+        <a [routerLink]="['/register']"
+          [queryParams]="isCheckoutReturn ? { checkout: '1' } : {}">
 
           Register
 

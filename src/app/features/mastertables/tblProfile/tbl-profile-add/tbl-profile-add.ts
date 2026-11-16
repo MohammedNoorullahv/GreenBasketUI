@@ -847,7 +847,13 @@ export class TblProfileAddComponent implements OnDestroy {
           // Firebase session before leaving the screen.
           this.firebaseIdToken = null;
           void this.firebaseOtp.reset();
-          void this.router.navigateByUrl('/login');
+          // A registration started from the place-order flow keeps the
+          // checkout return: the following login reopens the checkout.
+          void this.router.navigateByUrl(
+            this.route.snapshot.queryParamMap.get('checkout') === '1'
+              ? '/login?checkout=1'
+              : '/login'
+          );
           return;
         }
         if (this.submitAction === 'SaveAndAddNew') {
@@ -910,7 +916,13 @@ export class TblProfileAddComponent implements OnDestroy {
   }
 
   backToHome(): void {
-    this.router.navigateByUrl(this.isRegistration ? '/login' : '/mastertables/tblProfile');
+    // A registration started from the place-order flow keeps the
+    // checkout return: the following login reopens the checkout.
+    const checkoutSuffix =
+      this.isRegistration && this.route.snapshot.queryParamMap.get('checkout') === '1'
+        ? '?checkout=1'
+        : '';
+    this.router.navigateByUrl((this.isRegistration ? '/login' : '/mastertables/tblProfile') + checkoutSuffix);
   }
 
   ngOnDestroy(): void {
